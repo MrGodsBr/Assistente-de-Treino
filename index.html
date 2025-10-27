@@ -345,7 +345,8 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-teal-50 min-h-screen flex items-start justify-center p-4 py-8">
+<!-- CLASSE DO BODY ATUALIZADA (flex-col items-center) -->
+<body class="bg-gradient-to-br from-blue-50 to-teal-50 min-h-screen flex flex-col items-center p-4 py-8">
 
     <!-- 1. TELA DE LOADING INICIAL DO APP -->
     <div id="app-loading" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
@@ -631,7 +632,12 @@
             </div>
         </div>
 
-    </div>
+    </div> <!-- Fim do <div id="main-app-content"> -->
+
+    <!-- Rodapé (NOVO) -->
+    <footer class="mt-8 text-center text-sm text-gray-500">
+        <p>Desenvolvido por Thiago</p>
+    </footer>
 
     <!-- Modal de Aviso de Limite -->
     <div id="modalOverlay" class="fixed inset-0 bg-black bg-opacity-60 z-40 hidden transition-opacity"></div>
