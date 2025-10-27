@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- TÍTULO ATUALIZADO -->
     <title>Fitness-Pro 2.0</title>
-    <!-- Carrega o Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Scripts do Firebase -->
@@ -28,8 +26,15 @@
         // Variáveis globais do Firebase
         let app, auth, db;
         let userId;
-        let currentProfileData = {}; // Guarda os dados do perfil atual
-
+        let currentProfileData = {}; // Guarda os dados do perfil (nome, tel)
+        
+        // --- Variáveis Globais de Estado ---
+        let dailyLog = {}; // Armazena as refeições de HOJE
+        let calorieGoal = 0; // Armazena a meta de calorias
+        let selectedFoodKey = null;
+        const todayString = new Date().toISOString().split('T')[0];
+        let goalExceededNotified = false;
+        
         // --- INICIALIZAÇÃO DO FIREBASE ---
         async function initializeFirebase() {
             try {
@@ -43,25 +48,18 @@
                     appId: "1:878456748339:web:5b310b5e91a7b23d0ba646"
                 };
 
-                // Inicializa o Firebase
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-                setLogLevel('Debug'); // Ativa logs do Firestore no console
+                setLogLevel('Debug'); 
 
-                // Monitora o estado de autenticação
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
-                        // Usuário está logado
                         userId = user.uid;
-                        window.userId = user.uid; // Disponibiliza globalmente
+                        window.userId = user.uid; 
                         console.log("Usuário autenticado, UID:", userId);
-                        
-                        // Agora, verificamos se o perfil dele existe no banco de dados
                         await checkUserProfile();
-
                     } else {
-                        // Usuário não está logado, vamos logá-lo
                         console.log("Nenhum usuário logado, tentando login anônimo...");
                         try {
                             await signInAnonymously(auth);
@@ -71,14 +69,13 @@
                         }
                     }
                 });
-
             } catch (error) {
                 console.error("Crítico ao inicializar o Firebase:", error);
                 document.getElementById('app-loading-text').textContent = "Erro ao carregar o app. Verifique a configuração.";
             }
         }
 
-        // --- VERIFICAÇÃO DE PERFIL DE USUÁRIO ---
+        // --- VERIFICAÇÃO DE PERFIL DE USUÁRIO (ATUALIZADO) ---
         async function checkUserProfile() {
             if (!userId) return;
 
@@ -88,64 +85,66 @@
             const registrationOverlay = document.getElementById('registrationOverlay');
 
             try {
-                // Define o caminho do documento do perfil (NOVO CAMINHO)
+                // 1. Define os caminhos dos documentos
                 const profileRef = doc(db, "users", userId, "profile", "data");
-                const profileSnap = await getDoc(profileRef);
+                const metasRef = doc(db, "users", userId, "profile", "metas");
+                const mealsRef = doc(db, "users", userId, "meals", "today");
 
+                // 2. Faz as chamadas em paralelo
+                const [profileSnap, metasSnap, mealsSnap] = await Promise.all([
+                    getDoc(profileRef),
+                    getDoc(metasRef),
+                    getDoc(mealsRef)
+                ]);
+
+                // 3. Processa o Perfil (Nome, Telefone, Foto)
                 if (profileSnap.exists()) {
-                    // --- USUÁRIO EXISTENTE ---
-                    console.log("Perfil encontrado, carregando app...");
-                    const profileData = profileSnap.data();
-                    
-                    // Carrega a UI do perfil e os dados locais
-                    loadProfileUI(profileData);
-                    loadDataFromLocalStorage(); // Carrega metas e refeições
-                    
-                    // Mostra o app e esconde o loading
-                    mainAppContent.classList.remove('hidden');
-                    loadingOverlay.classList.add('hidden');
-
+                    loadProfileUI(profileSnap.data()); // Carrega nome, tel, foto (do localStorage)
                 } else {
-                    // --- NOVO USUÁRIO ---
+                    // NOVO USUÁRIO - Mostra o modal de cadastro
                     console.log("Nenhum perfil encontrado, mostrando modal de cadastro.");
-                    
-                    // Configura o modal para "Cadastro"
                     document.getElementById('registrationModalTitle').textContent = 'Crie seu Perfil';
                     document.getElementById('saveProfileButtonText').textContent = 'Começar a Usar';
-                    document.getElementById('cancelEditButton').classList.add('hidden'); // Esconde "Cancelar" no cadastro
+                    document.getElementById('cancelEditButton').classList.add('hidden');
                     
-                    // Mostra o modal de cadastro e esconde o loading
                     registrationModal.classList.remove('hidden', 'scale-95', 'opacity-0');
                     registrationOverlay.classList.remove('hidden');
                     loadingOverlay.classList.add('hidden');
+                    return; // Para a execução aqui, o usuário precisa se cadastrar
                 }
-            } catch (error) {
-                console.error("Erro ao verificar perfil no Firestore:", error);
-                // Se o erro for 'permission-denied', é provável que as regras do Firestore não estejam definidas
-                if (error.code === 'permission-denied') {
-                     document.getElementById('app-loading-text').textContent = "Erro de permissão. Verifique as regras do Firestore.";
+
+                // 4. Processa as Metas (Peso, Altura, etc.)
+                if (metasSnap.exists()) {
+                    loadMetasUI(metasSnap.data());
                 } else {
-                     document.getElementById('app-loading-text').textContent = "Erro ao verificar seu perfil.";
+                    console.log("Nenhum documento de metas encontrado. Usuário precisa calcular.");
+                    // Deixa os campos em branco e calorieGoal = 0
                 }
+                
+                // 5. Processa as Refeições (Verifica a data!)
+                loadTodayMeals(mealsSnap.exists() ? mealsSnap.data() : null);
+
+                // 6. Mostra o app
+                mainAppContent.classList.remove('hidden');
+                loadingOverlay.classList.add('hidden');
+
+            } catch (error) {
+                console.error("Erro ao carregar dados do usuário do Firestore:", error);
+                document.getElementById('app-loading-text').textContent = "Erro ao carregar seus dados.";
             }
         }
 
-        // --- CARREGA DADOS DO PERFIL NA UI ---
+        // --- CARREGA DADOS DO PERFIL (NOME, FOTO) NA UI ---
         function loadProfileUI(profileData) {
-            currentProfileData = profileData || {}; // Salva os dados atuais
-
-            // 1. Atualiza a barra de display principal
+            currentProfileData = profileData || {}; 
             if (profileData && profileData.username) {
                 document.getElementById('displayUsername').textContent = profileData.username;
             } else {
                 document.getElementById('displayUsername').textContent = "Usuário Anônimo";
             }
-            
-            // 2. Preenche os campos de edição no modal (para quando "Editar" for clicado)
             document.getElementById('usernameInput').value = profileData.username || '';
             document.getElementById('phoneInput').value = profileData.phone || '';
 
-            // 3. Carrega a foto de perfil (do localStorage)
             const profilePicData = localStorage.getItem(`treinoProfilePic_${userId}`);
             const picPreviewEl = document.getElementById('profilePicPreview');
             const picDisplayEl = document.getElementById('displayProfilePic');
@@ -158,57 +157,89 @@
                 picPreviewEl.src = defaultPic;
                 picDisplayEl.src = defaultPic;
             }
-            
-            // 4. Mostra o ID do usuário (mas mantém escondido por padrão)
-            document.getElementById('displayUserId').textContent = `Seu ID: ${userId}`;
             document.getElementById('profile-display-section').classList.remove('hidden');
         }
 
-        // --- MOSTRAR/LIMPAR ERROS DO MODAL DE CADASTRO ---
+        // --- (NOVA FUNÇÃO) CARREGA DADOS DAS METAS (PESO, ETC) NA UI ---
+        function loadMetasUI(metasData) {
+            if (!metasData) {
+                console.log("Nenhum dado de meta no Firestore.");
+                return;
+            }
+            console.log("Carregando metas do Firestore:", metasData);
+            
+            weightInput.value = metasData.weight || '';
+            heightInput.value = metasData.height || '';
+            ageInput.value = metasData.age || '';
+            genderSelect.value = metasData.gender || 'male';
+            activitySelect.value = metasData.activity || '1.55';
+            goalTypeSelect.value = metasData.goalType || 'ganhar';
+            
+            calorieGoal = parseFloat(metasData.calorieGoal) || 0; // Define a meta global
+            
+            if (calorieGoal > 0) {
+                 const goalName = goalDisplayNames[metasData.goalType] || goalDisplayNames['ganhar'];
+                 goalText.textContent = `Sua meta (${goalName}): ${calorieGoal.toFixed(0)} kcal/dia`;
+                 goalText.classList.remove('hidden', 'text-red-600');
+                 goalText.classList.add('text-green-700');
+                 goalTag.textContent = goalName;
+                 goalTag.classList.remove('hidden');
+            } else {
+                 goalTag.classList.add('hidden'); 
+            }
+            updateMealSuggestion();
+        }
+        
+        // --- (NOVA FUNÇÃO) CARREGA REFEIÇÕES DO DIA E VERIFICA A DATA ---
+        function loadTodayMeals(mealData) {
+            console.log("Carregando refeições de hoje do Firestore...");
+            // Verifica se os dados existem e se são de hoje
+            if (mealData && mealData.savedDate === todayString) {
+                console.log("Refeições de hoje encontradas:", mealData.log);
+                dailyLog = mealData.log;
+            } else {
+                // Se não houver dados ou se forem de ontem (data != todayString), limpa
+                console.log(mealData ? "Dados de refeição são de ontem. Limpando." : "Nenhum dado de refeição. Começando novo log.");
+                dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
+                // Salva o log limpo imediatamente (se os dados eram de ontem)
+                if (mealData) {
+                    saveTodayMeals(); 
+                }
+            }
+            renderFoodList();
+            updateTotals(true); // 'true' para não mostrar modal de aviso
+        }
+
+        // --- Funções de Abrir/Fechar Modal de Edição (Sem mudança) ---
         function showRegistrationError(message) {
             const errorEl = document.getElementById('registrationError');
             errorEl.textContent = message;
             errorEl.classList.remove('hidden');
         }
         function clearRegistrationError() {
-            const errorEl = document.getElementById('registrationError');
-            errorEl.classList.add('hidden');
+            document.getElementById('registrationError').classList.add('hidden');
         }
-        
-        // --- FUNÇÕES DE ABRIR/FECHAR MODAL DE EDIÇÃO (NOVAS) ---
         function openProfileEditor() {
             clearRegistrationError();
-            
-            // Configura o modal para "Editar"
             document.getElementById('registrationModalTitle').textContent = 'Editar Perfil';
             document.getElementById('saveProfileButtonText').textContent = 'Salvar Alterações';
-            document.getElementById('cancelEditButton').classList.remove('hidden'); // Mostra "Cancelar"
-            
-            // Garante que os campos estão preenchidos com os dados mais recentes
+            document.getElementById('cancelEditButton').classList.remove('hidden');
             loadProfileUI(currentProfileData); 
-            
-            // Mostra o modal
             document.getElementById('registrationModal').classList.remove('hidden', 'scale-95', 'opacity-0');
             document.getElementById('registrationOverlay').classList.remove('hidden');
         }
-
         function closeProfileEditor() {
-            // Esconde o modal
             const registrationModal = document.getElementById('registrationModal');
             const registrationOverlay = document.getElementById('registrationOverlay');
-            
             registrationModal.classList.add('scale-95', 'opacity-0');
             setTimeout(() => {
                 registrationModal.classList.add('hidden');
                 registrationOverlay.classList.add('hidden');
             }, 150);
-            
-            // Restaura a UI para os dados salvos (desfazendo mudanças não salvas)
             loadProfileUI(currentProfileData);
         }
 
-
-        // --- SALVA O PERFIL (FOTO E DADOS) ---
+        // --- SALVA O PERFIL (NOME, FOTO) (Sem mudança) ---
         async function handleSaveProfile() {
             clearRegistrationError(); 
             const username = document.getElementById('usernameInput').value;
@@ -223,55 +254,49 @@
             const buttonText = saveButton.querySelector('span');
             const spinner = saveButton.querySelector('svg');
 
-            // Ativa o loading
             buttonText.textContent = "Salvando...";
             spinner.classList.remove('hidden');
             saveButton.disabled = true;
 
             try {
-                // 1. Prepara dados para salvar (mescla com dados existentes)
                 const dataToSave = {
-                    ...currentProfileData, // Mantém dados antigos (como 'createdAt')
+                    ...currentProfileData, 
                     username: username,
                     phone: phone,
-                    lastUpdatedAt: new Date() // Adiciona/atualiza data de modificação
+                    lastUpdatedAt: new Date()
                 };
-                
-                // Se for a primeira vez, adiciona data de criação
                 if (!currentProfileData.createdAt) {
                     dataToSave.createdAt = new Date();
                 }
 
-                // 2. Salva os dados (nome, telefone) no Firestore (NOVO CAMINHO)
                 const profileRef = doc(db, "users", userId, "profile", "data");
                 await setDoc(profileRef, dataToSave, { merge: true });
 
                 console.log("Perfil salvo no Firestore!");
-
-                // 3. Atualiza a UI do perfil com os novos dados
                 loadProfileUI(dataToSave);
                 
-                // 4. Carrega os dados locais (refeições, metas) se for a primeira vez
-                if (!historyLog || Object.keys(historyLog).length === 0) {
-                     loadDataFromLocalStorage();
+                // Se for o primeiro login, carrega metas e refeições (que estarão vazios)
+                if (Object.keys(dailyLog).length === 0) {
+                    const metasRef = doc(db, "users", userId, "profile", "metas");
+                    const mealsRef = doc(db, "users", userId, "meals", "today");
+                    const [metasSnap, mealsSnap] = await Promise.all([getDoc(metasRef), getDoc(mealsRef)]);
+                    if (metasSnap.exists()) loadMetasUI(metasSnap.data());
+                    loadTodayMeals(mealsSnap.exists() ? mealsSnap.data() : null);
                 }
 
-                // 5. Esconde o modal e mostra o app principal (caso estivesse escondido)
-                closeProfileEditor(); // Reutiliza a função de fechar
+                closeProfileEditor();
                 document.getElementById('main-app-content').classList.remove('hidden');
 
             } catch (error) {
                 console.error("Erro ao salvar perfil no Firestore:", error);
                 showRegistrationError(`Erro ao salvar: ${error.message}. Tente novamente.`);
             } finally {
-                // Desativa o loading
-                // (O texto do botão será corrigido na próxima vez que abrir o modal)
                 spinner.classList.add('hidden');
                 saveButton.disabled = false;
             }
         }
 
-        // --- MANIPULA A SELEÇÃO DA FOTO DE PERFIL ---
+        // --- Salva Foto (Sem mudança) ---
         function handleProfilePicChange(event) {
             clearRegistrationError(); 
             const file = event.target.files[0];
@@ -285,11 +310,9 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const dataURL = e.target.result;
-                
                 try {
                     localStorage.setItem(`treinoProfilePic_${userId}`, dataURL);
                     document.getElementById('profilePicPreview').src = dataURL;
-                    // Atualiza a foto principal imediatamente
                     document.getElementById('displayProfilePic').src = dataURL; 
                 } catch (error) {
                     console.error("Erro ao salvar foto no localStorage (provavelmente cheio):", error);
@@ -299,7 +322,48 @@
             reader.readAsDataURL(file);
         }
 
-        // --- REGISTRA OS HANDLERS DO FIREBASE GLOBALMENTE ---
+        // --- (FUNÇÃO RENOMEADA) SALVA AS METAS NO FIRESTORE ---
+        async function saveMetas() {
+            if (!window.userId) return;
+            
+            const metasData = {
+                weight: weightInput.value,
+                height: heightInput.value,
+                age: ageInput.value,
+                gender: genderSelect.value,
+                activity: activitySelect.value,
+                goalType: goalTypeSelect.value,
+                calorieGoal: calorieGoal.toString() // Salva a meta de caloria calculada
+            };
+            
+            try {
+                const metasRef = doc(db, "users", userId, "profile", "metas");
+                await setDoc(metasRef, metasData);
+                console.log("Metas salvas no Firestore!");
+            } catch (e) {
+                console.error("Erro ao salvar metas no Firestore:", e);
+            }
+        }
+        
+        // --- (FUNÇÃO RENOMEADA) SALVA AS REFEIÇÕES DE HOJE NO FIRESTORE ---
+        async function saveTodayMeals() {
+            if (!window.userId) return;
+            
+            const dataToSave = {
+                savedDate: todayString, // Marca com a data de hoje
+                log: dailyLog // Salva o objeto de refeições
+            };
+            
+            try {
+                const mealsRef = doc(db, "users", userId, "meals", "today");
+                await setDoc(mealsRef, dataToSave);
+                console.log("Refeições de hoje salvas no Firestore.");
+            } catch (e) {
+                console.error("Erro ao salvar refeições no Firestore:", e);
+            }
+        }
+
+        // --- REGISTRA OS HANDLERS GLOBAIS ---
         window.handleSaveProfile = handleSaveProfile;
         window.handleProfilePicChange = handleProfilePicChange;
         window.openProfileEditor = openProfileEditor;
@@ -310,42 +374,16 @@
     </script>
     
     <style>
-        /* Define a fonte Inter como padrão */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            scroll-behavior: smooth;
-        }
-        /* Remove as setas do input number */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-        /* Estilo para a barra de progresso */
-        #calorieProgress {
-            transition: width 0.3s ease-in-out;
-        }
-        /* Estilo para a lista de alimentos para evitar encolhimento */
-        #foodList {
-            min-height: 12rem; /* 192px */
-        }
-        /* Estilo para o spinner de carregamento */
-        .spinner {
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        #calorieProgress { transition: width 0.3s ease-in-out; }
+        #foodList { min-height: 12rem; }
+        .spinner { border-top-color: transparent; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<!-- CLASSE DO BODY ATUALIZADA (flex-col items-center) -->
 <body class="bg-gradient-to-br from-blue-50 to-teal-50 min-h-screen flex flex-col items-center p-4 py-8">
 
     <!-- 1. TELA DE LOADING INICIAL DO APP -->
@@ -357,12 +395,8 @@
     <!-- 2. MODAL DE CADASTRO/EDIÇÃO DE PERFIL -->
     <div id="registrationOverlay" class="fixed inset-0 bg-black bg-opacity-70 z-40 hidden transition-opacity"></div>
     <div id="registrationModal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-xl z-50 hidden transition-transform scale-95 opacity-0">
-        <!-- TÍTULO DO MODAL (DINÂMICO) -->
         <h2 id="registrationModalTitle" class="text-2xl font-bold text-center text-gray-800 mb-6">Crie seu Perfil</h2>
-        
-        <!-- Formulário de Perfil -->
         <div class="space-y-4">
-            <!-- Seção da Foto -->
             <div class="flex flex-col items-center space-y-2">
                 <img id="profilePicPreview" src="https://placehold.co/100x100/e2e8f0/718096?text=Foto" alt="Foto do Perfil" class="w-24 h-24 rounded-full object-cover border-4 border-gray-200">
                 <label for="profilePicInput" class="cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-700">
@@ -370,29 +404,19 @@
                 </label>
                 <input type="file" id="profilePicInput" class="hidden" accept="image/*" onchange="handleProfilePicChange(event)">
             </div>
-            
-            <!-- Campo de Usuário -->
             <div>
                 <label for="usernameInput" class="block text-sm font-medium text-gray-700">Nome de Usuário *</label>
                 <input type="text" id="usernameInput" placeholder="Como quer ser chamado?" class="mt-1 w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-
-            <!-- Campo de Telefone -->
             <div>
                 <label for="phoneInput" class="block text-sm font-medium text-gray-700">Telefone (Opcional)</label>
                 <input type="tel" id="phoneInput" placeholder="(00) 00000-0000" class="mt-1 w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-
-            <!-- Mensagem de Erro -->
             <p id="registrationError" class="text-sm text-center text-red-600 font-medium hidden"></p>
-
-            <!-- Botão Salvar (Dinâmico) -->
             <button id="saveProfileButton" onclick="handleSaveProfile()" class="w-full flex items-center justify-center bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-70">
                 <svg class="spinner w-5 h-5 mr-3 border-2 border-white rounded-full hidden" role="status" aria-hidden="true"></svg>
                 <span id="saveProfileButtonText">Começar a Usar</span>
             </button>
-            
-            <!-- Botão Cancelar (NOVO) -->
             <button id="cancelEditButton" onclick="closeProfileEditor()" type="button" class="w-full text-center text-sm font-medium text-gray-700 hover:text-gray-900 mt-2">
                 Cancelar
             </button>
@@ -403,30 +427,23 @@
     <!-- 3. CONTEÚDO PRINCIPAL DO APP -->
     <div id="main-app-content" class="bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 hidden">
         
-        <!-- TÍTULO PRINCIPAL E BOTÃO PARTILHAR (ATUALIZADO) -->
         <div class="relative text-center">
-            <!-- NOME DO APP ATUALIZADO -->
             <h1 class="text-3xl font-bold text-green-600">
                 Fitness-Pro 2.0
             </h1>
-            <!-- NOVO BOTÃO DE PARTILHAR O APP -->
             <button id="shareAppButton" title="Compartilhar o App" class="absolute top-0 right-0 p-2 text-gray-500 hover:text-green-600 transition-colors">
-                <!-- ÍCONE DE PARTILHA (estilo WhatsApp/Android) ATUALIZADO -->
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"></path>
                 </svg>
             </button>
         </div>
 
-        <!-- SEÇÃO DE PERFIL DO USUÁRIO (ATUALIZADA) -->
         <div id="profile-display-section" class="hidden flex items-center p-4 bg-blue-50 rounded-lg border border-blue-200">
             <img id="displayProfilePic" src="https://placehold.co/100x100/e2e8f0/718096?text=Foto" alt="Sua Foto" class="w-16 h-16 rounded-full object-cover border-2 border-blue-200">
             <div class="ml-4 flex-grow min-w-0">
                 <h2 id="displayUsername" class="text-xl font-bold text-gray-800 truncate">Carregando...</h2>
-                <!-- ID OCULTO (hidden) CONFORME SOLICITADO -->
                 <p id="displayUserId" class="text-xs text-gray-500 break-all hidden">Carregando ID...</p>
             </div>
-            <!-- BOTÃO EDITAR -->
             <button id="editProfileButton" onclick="openProfileEditor()" class="ml-4 flex-shrink-0 text-sm font-medium text-blue-600 hover:text-blue-700">
                 Editar
             </button>
@@ -434,11 +451,9 @@
 
 
         <!-- Seção: Minhas Metas (ATUALIZADO) -->
-        <details class="group bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <!-- Título e Seta na mesma linha - COR ATUALIZADA -->
+        <details class="group bg-gray-50 p-4 rounded-lg border border-gray-200" open> <!-- Deixei aberto por padrão -->
             <summary class="text-xl font-semibold text-green-600 cursor-pointer list-none flex justify-between items-center">
                 <span>Minhas Metas</span>
-                <!-- Nova Seta SVG que gira -->
                 <svg class="w-5 h-5 text-blue-600 transition-transform duration-200 transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -489,22 +504,7 @@
                 </button>
             </div>
             
-            <div class="mt-6 border-t border-gray-200 pt-4">
-                <h4 class="text-sm font-semibold text-gray-600 mb-3 text-center">Backup de Dados Locais</h4>
-                <div class="grid grid-cols-2 gap-4">
-                    <button id="exportButton" class="w-full bg-gray-600 text-white font-medium py-2 px-3 rounded-lg shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
-                        Exportar Dados
-                    </button>
-                    
-                    <label for="importFile" class="w-full bg-gray-200 text-gray-800 font-medium py-2 px-3 rounded-lg shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors cursor-pointer text-center">
-                        Importar Dados
-                    </label>
-                    <input type="file" id="importFile" class="hidden" accept=".json,application/json">
-                </div>
-                <p class="text-xs text-gray-500 mt-2 text-center">
-                    Salve seu progresso em um arquivo.
-                </p>
-            </div>
+            <!-- SEÇÃO DE BACKUP LOCAL REMOVIDA -->
             
             <p id="goalText" class="text-center text-lg font-semibold text-green-700 mt-4 hidden"></p>
         </details>
@@ -532,7 +532,6 @@
                     <label for="mealTimeSelect" class="block text-sm font-medium text-gray-700 mb-1">
                         2. Escolher Refeição
                     </label>
-                    <!-- "Ceia" REMOVIDA DAQUI -->
                     <select id="mealTimeSelect" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
                         <option value="cafe_da_manha">Café da Manhã</option>
                         <option value="almoco">Almoço</option>
@@ -568,28 +567,19 @@
             </div>
         </div>
 
-        <!-- Seção: Histórico -->
-        <div class="border-t border-b border-gray-200 py-4">
-            <div class="flex justify-between items-center mb-2">
-                <label for="historySelect" class="text-xl font-semibold text-gray-700">Diário</label>
-                <button id="clearButton" class="text-sm text-red-500 hover:text-red-700">
-                    Limpar dia selecionado
-                </button>
-            </div>
-            <select id="historySelect" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-            </select>
-            <p id="historyWarning" class="text-sm text-center text-orange-600 font-medium mt-2 hidden">
-                Modo de visualização. Para adicionar itens, selecione "Hoje".
-            </p>
-        </div>
-
+        <!-- SEÇÃO DE HISTÓRICO (DIÁRIO) REMOVIDA -->
 
         <!-- Lista de Alimentos Adicionados -->
         <div>
-            <h3 id="foodListTitle" class="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <span>Suas Refeições (Hoje):</span>
-                <span id="goalTag" class="hidden text-xs sm:text-sm font-medium text-blue-700 bg-blue-100 py-0.5 px-3 rounded-full"></span>
-            </h3>
+            <div class="flex justify-between items-center mb-3">
+                 <h3 id="foodListTitle" class="text-lg font-semibold text-gray-700 flex items-center gap-2">
+                    <span>Refeições de Hoje:</span>
+                    <span id="goalTag" class="hidden text-xs sm:text-sm font-medium text-blue-700 bg-blue-100 py-0.5 px-3 rounded-full"></span>
+                </h3>
+                <button id="clearButton" class="text-sm text-red-500 hover:text-red-700">
+                    Limpar Refeições
+                </button>
+            </div>
             <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50">
                 <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
             </div>
@@ -634,7 +624,6 @@
 
     </div> <!-- Fim do <div id="main-app-content"> -->
 
-    <!-- Rodapé (NOVO) -->
     <footer class="mt-8 text-center text-sm text-gray-500">
         <p>Desenvolvido por Thiago</p>
     </footer>
@@ -719,17 +708,7 @@
             'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false }
         };
 
-        // --- Variáveis Globais de Estado ---
-        // A variável 'userId' é definida globalmente pelo script do Firebase
-        let historyLog = {}; 
-        let dailyLog = {}; 
-        let calorieGoal = 0; 
-        let selectedFoodKey = null;
-        const todayString = new Date().toISOString().split('T')[0];
-        let selectedDate = todayString;
-        let goalExceededNotified = false;
-
-        // "Ceia" REMOVIDA DAQUI
+        // --- Variáveis Globais (DOM) ---
         const mealDisplayNames = {
             cafe_da_manha: "☕ Café da Manhã",
             almoco: "🍽️ Almoço",
@@ -741,7 +720,6 @@
             manter: 'Manutenção',
             perder: 'Perda de Peso'
         };
-        // "Ceia" REMOVIDA DAQUI
         const mealSuggestions = {
             ganhar: {
                 cafe_da_manha: "Ex: Ovos, Aveia, Banana, Whey Protein.",
@@ -772,8 +750,6 @@
         const goalTypeSelect = document.getElementById('goalType'); 
         const calculateButton = document.getElementById('calculateButton');
         const goalText = document.getElementById('goalText');
-        const exportButton = document.getElementById('exportButton');
-        const importFile = document.getElementById('importFile');
 
         // Seletores do DOM - Log
         const addFoodSection = document.getElementById('addFoodSection');
@@ -784,11 +760,10 @@
         const mealSuggestion = document.getElementById('mealSuggestion'); 
         const addFoodButton = document.getElementById('addFoodButton');
         
-        // Seletores do DOM - Histórico
-        const historySelect = document.getElementById('historySelect');
-        const historyWarning = document.getElementById('historyWarning');
+        // Seletores do DOM - Histórico (Agora apenas 'Limpar')
         const foodListTitle = document.getElementById('foodListTitle');
         const goalTag = document.getElementById('goalTag'); 
+        const clearButton = document.getElementById('clearButton');
 
         // Seletores do DOM - Lista e Totais
         const foodListContainer = document.getElementById('foodList');
@@ -799,7 +774,6 @@
         const calorieProgress = document.getElementById('calorieProgress');
         const shareButton = document.getElementById('shareButton'); // Resumo
         const shareAppButton = document.getElementById('shareAppButton'); // App
-        const clearButton = document.getElementById('clearButton');
 
         // Seletores do Modal
         const modalOverlay = document.getElementById('modalOverlay');
@@ -807,155 +781,8 @@
         const closeModalButton = document.getElementById('closeModalButton');
         const modalGoalText = document.getElementById('modalGoalText');
 
-        // --- Funções de Salvamento (COM NAMESPACE DE USUÁRIO) ---
-        function saveProfile() {
-            if (!window.userId) return; 
-            try {
-                const profile = {
-                    weight: weightInput.value,
-                    height: heightInput.value,
-                    age: ageInput.value,
-                    gender: genderSelect.value,
-                    activity: activitySelect.value,
-                    goalType: goalTypeSelect.value 
-                };
-                localStorage.setItem(`treinoProfile_${window.userId}`, JSON.stringify(profile));
-                localStorage.setItem(`treinoGoal_${window.userId}`, calorieGoal.toString());
-            } catch (e) {
-                console.error("Erro ao salvar perfil no localStorage:", e);
-            }
-        }
-
-        function saveLog() {
-            if (!window.userId) return;
-            historyLog[selectedDate] = dailyLog;
-            try {
-                localStorage.setItem(`treinoHistory_${window.userId}`, JSON.stringify(historyLog));
-                populateHistoryDropdown(); 
-            } catch (e) {
-                console.error("Erro ao salvar log no localStorage:", e);
-            }
-        }
-
-        // --- Função de Carregamento Principal (COM NAMESPACE) ---
-        function loadDataFromLocalStorage() {
-            if (!window.userId) return; 
-            
-            try {
-                // Carrega Perfil (Metas)
-                const savedProfile = JSON.parse(localStorage.getItem(`treinoProfile_${window.userId}`));
-                if (savedProfile) {
-                    weightInput.value = savedProfile.weight;
-                    heightInput.value = savedProfile.height;
-                    ageInput.value = savedProfile.age;
-                    genderSelect.value = savedProfile.gender;
-                    activitySelect.value = savedProfile.activity;
-                    goalTypeSelect.value = savedProfile.goalType || 'ganhar'; 
-                }
-                
-                // Carrega Meta (Calorias)
-                calorieGoal = parseFloat(localStorage.getItem(`treinoGoal_${window.userId}`)) || 0;
-                if (calorieGoal > 0) {
-                     const savedGoalType = savedProfile?.goalType || 'ganhar';
-                     const savedGoalName = goalDisplayNames[savedGoalType];
-                     goalText.textContent = `Sua meta (${savedGoalName}): ${calorieGoal.toFixed(0)} kcal/dia`;
-                     goalText.classList.remove('hidden', 'text-red-600');
-                     goalText.classList.add('text-green-700');
-                     goalTag.textContent = savedGoalName;
-                     goalTag.classList.remove('hidden');
-                } else {
-                     goalTag.classList.add('hidden'); 
-                }
-                
-                // Carrega Histórico de Refeições
-                historyLog = JSON.parse(localStorage.getItem(`treinoHistory_${window.userId}`)) || {};
-
-                populateHistoryDropdown();
-                loadLogForDate(selectedDate); // Carrega o log do dia de hoje
-                updateMealSuggestion(); 
-
-            } catch (e) {
-                console.error("Erro ao carregar dados do localStorage:", e);
-                localStorage.removeItem(`treinoProfile_${window.userId}`);
-                localStorage.removeItem(`treinoGoal_${window.userId}`);
-                localStorage.removeItem(`treinoHistory_${window.userId}`);
-            }
-        }
-
-        function loadLogForDate(dateString) {
-            selectedDate = dateString;
-            // "Ceia" REMOVIDA DAQUI
-            dailyLog = historyLog[dateString] || {
-                cafe_da_manha: [], almoco: [], lanche: [], jantar: []
-            };
-            renderFoodList();
-            updateTotals(true); 
-            const isToday = (selectedDate === todayString);
-            toggleInputs(isToday);
-            historySelect.value = dateString;
-        }
-
-        function populateHistoryDropdown() {
-            historySelect.innerHTML = '';
-            const dates = Object.keys(historyLog).sort().reverse();
-            if (!dates.includes(todayString)) {
-                dates.unshift(todayString);
-            }
-            if (dates.length === 0) {
-                // Garante que "Hoje" apareça mesmo se não houver histórico
-                dates.push(todayString);
-            }
-            
-            let foundSelected = false;
-            historySelect.innerHTML = ''; // Limpa opções
-            
-            dates.forEach(date => {
-                const option = document.createElement('option');
-                option.value = date;
-                const [year, month, day] = date.split('-');
-                const formattedDate = `${day}/${month}/${year}`;
-                option.textContent = (date === todayString) ? `Hoje (${formattedDate})` : formattedDate;
-                
-                if (date === selectedDate) {
-                    option.selected = true;
-                    foundSelected = true;
-                }
-                historySelect.appendChild(option);
-            });
-            
-            // Se o 'selectedDate' (de alguma forma) não estiver na lista, seleciona o primeiro
-            if (!foundSelected && historySelect.options.length > 0) {
-                historySelect.options[0].selected = true;
-                selectedDate = historySelect.options[0].value;
-            }
-        }
-
-        function toggleInputs(isEnabled) {
-            const currentGoalType = goalTypeSelect.value || 'ganhar';
-            const currentGoalName = goalDisplayNames[currentGoalType];
-            const titleTextNode = foodListTitle.querySelector('span:first-child');
-
-            if (isEnabled) {
-                addFoodSection.classList.remove('opacity-50', 'pointer-events-none');
-                historyWarning.classList.add('hidden');
-                titleTextNode.textContent = "Suas Refeições (Hoje):";
-            } else {
-                addFoodSection.classList.add('opacity-50', 'pointer-events-none');
-                historyWarning.classList.remove('hidden');
-                const [y, m, d] = selectedDate.split('-');
-                titleTextNode.textContent = `Refeições de ${d}/${m}/${y}:`;
-            }
-            
-            if (calorieGoal > 0) {
-                goalTag.textContent = currentGoalName;
-                goalTag.classList.remove('hidden');
-            } else {
-                goalTag.classList.add('hidden');
-            }
-            updateMealSuggestion();
-        }
-
-        // --- Funções do Perfil ---
+        // --- Funções de Cálculo e UI ---
+        
         function calculateGoal() {
             const weight = parseFloat(weightInput.value);
             const height = parseFloat(heightInput.value);
@@ -1002,7 +829,7 @@
             goalTag.textContent = goalName;
             goalTag.classList.remove('hidden');
             
-            saveProfile(); // Salva no localStorage com namespace
+            saveMetas(); // Salva no Firestore
             updateTotals();
             updateMealSuggestion(); 
         }
@@ -1015,12 +842,11 @@
             const goalType = goalTypeSelect.value || 'ganhar';
             const mealTime = mealTimeSelect.value || 'cafe_da_manha';
             
-            // Verifica se a sugestão existe (evita erro se 'ceia' for selecionada por algum motivo)
             if (mealSuggestions[goalType] && mealSuggestions[goalType][mealTime]) {
                 const suggestionText = mealSuggestions[goalType][mealTime];
                 mealSuggestion.innerHTML = `💡 <span class="font-semibold">Sugestão p/ ${goalDisplayNames[goalType]}:</span> ${suggestionText}`;
             } else {
-                mealSuggestion.innerHTML = ''; // Limpa se for uma refeição inválida
+                mealSuggestion.innerHTML = ''; 
             }
         }
 
@@ -1086,7 +912,6 @@
                 return;
             }
              if (!dailyLog) {
-                // "Ceia" REMOVIDA DAQUI
                 dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
              }
             const foodData = foodDatabase[selectedFoodKey];
@@ -1122,7 +947,8 @@
             
             renderFoodList();
             updateTotals(); 
-            saveLog(); 
+            saveTodayMeals(); // Salva no Firestore
+            
             foodSearchInput.value = '';
             foodQuantityInput.value = '';
             foodQuantityInput.placeholder = 'Qtd.';
@@ -1133,7 +959,6 @@
             foodListContainer.innerHTML = '';
             let totalItems = 0;
             if (dailyLog && typeof dailyLog === 'object') {
-                // Garante que a ordem das refeições é consistente
                 const mealOrder = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
                 
                 mealOrder.forEach(mealKey => {
@@ -1143,7 +968,7 @@
                         
                         const mealTitle = document.createElement('h4');
                         mealTitle.className = "text-md font-semibold text-gray-600 pt-2";
-                        mealTitle.textContent = mealDisplayNames[mealKey]; // mealKey ainda existe, só não está no dropdown
+                        mealTitle.textContent = mealDisplayNames[mealKey];
                         foodListContainer.appendChild(mealTitle);
                         
                         items.forEach(item => {
@@ -1165,7 +990,6 @@
                                            data-id="${item.id}" 
                                            data-meal-key="${mealKey}"
                                            ${isDone ? 'checked' : ''}
-                                           ${selectedDate !== todayString ? 'disabled' : ''}
                                     >
                                 </div>
                                 <div class="flex-grow mx-3 min-w-0">
@@ -1182,7 +1006,7 @@
                                 </div>
                                 <div class="flex-shrink-0">
                                     <button 
-                                        class="remove-btn text-red-500 hover:text-red-700 font-bold text-2xl ${selectedDate !== todayString ? 'hidden' : ''}" 
+                                        class="remove-btn text-red-500 hover:text-red-700 font-bold text-2xl" 
                                         data-id="${item.id}"
                                         data-meal-key="${mealKey}" 
                                         title="Remover"
@@ -1208,26 +1032,24 @@
         function handleRemoveFood(event) {
             const removeBtn = event.target.closest('.remove-btn');
             if (!removeBtn) return;
-            if (selectedDate !== todayString) return;
             const idToRemove = parseInt(removeBtn.dataset.id);
             const mealKey = removeBtn.dataset.mealKey;
             dailyLog[mealKey] = dailyLog[mealKey].filter(item => item.id !== idToRemove);
             renderFoodList();
             updateTotals();
-            saveLog(); 
+            saveTodayMeals(); // Salva no Firestore
         }
         
         function handleToggleDone(event) {
             const checkbox = event.target.closest('.done-checkbox');
             if (!checkbox) return;
-            if (selectedDate !== todayString) return;
             const idToToggle = parseInt(checkbox.dataset.id);
             const mealKey = checkbox.dataset.mealKey;
             const item = dailyLog[mealKey].find(i => i.id === idToToggle);
             if (item) {
                 item.done = checkbox.checked;
-                saveLog(); 
-                renderFoodList();
+                saveTodayMeals(); // Salva no Firestore
+                renderFoodList(); // Atualiza a UI (para o line-through)
             }
         }
 
@@ -1266,7 +1088,7 @@
             const isOverLimit = (calorieGoal > 0) && (totalCals > calorieGoal);
             
             if (isOverLimit) {
-                if (!goalExceededNotified && !isLoading && selectedDate === todayString) {
+                if (!goalExceededNotified && !isLoading) {
                     modalGoalText.textContent = `Meta: ${calorieGoal.toFixed(0)} kcal | Atual: ${totalCals.toFixed(0)} kcal`;
                     showWarningModal();
                 }
@@ -1279,12 +1101,11 @@
         function handleShareWhatsApp() {
             const currentGoalType = goalTypeSelect.value || 'ganhar';
             const currentGoalName = goalDisplayNames[currentGoalType];
-            let waText = `Meu Resumo Alimentar (${selectedDate.split('-').reverse().join('/')})\n`;
+            let waText = `Meu Resumo Alimentar (Hoje)\n`;
             waText += `*Objetivo:* ${currentGoalName}\n\n`; 
             let totalItems = 0;
             if (dailyLog && typeof dailyLog === 'object') {
                 Object.entries(dailyLog).forEach(([mealKey, items]) => {
-                    // Verifica se a refeição ainda existe antes de partilhar
                     if (mealDisplayNames[mealKey] && Array.isArray(items) && items.length > 0) {
                         totalItems += items.length;
                         waText += `*${mealDisplayNames[mealKey]}*\n`;
@@ -1309,12 +1130,11 @@
             window.open(waURL, '_blank');
         }
 
-        // NOVA FUNÇÃO para partilhar o app
         function handleShareApp() {
             const shareData = {
-                title: 'Fitness-Pro 2.0', // TÍTULO ATUALIZADO
+                title: 'Fitness-Pro 2.0',
                 text: 'Confira este app para monitorar sua dieta e treino!',
-                url: window.location.href // Partilha o link atual (ex: o seu .vercel.app)
+                url: window.location.href 
             };
             
             if (navigator.share) {
@@ -1323,9 +1143,7 @@
                     .catch((e) => console.error('Erro ao compartilhar app:', e));
             } else {
                 console.warn('API de compartilhamento (navigator.share) não é suportada neste navegador.');
-                // Fallback: Tenta copiar para o clipboard
                 try {
-                    // Usa o método execCommand para máxima compatibilidade
                     const tempInput = document.createElement('input');
                     tempInput.style.position = 'absolute';
                     tempInput.style.left = '-9999px';
@@ -1334,34 +1152,23 @@
                     tempInput.select();
                     document.execCommand('copy');
                     document.body.removeChild(tempInput);
-                    // Avisa o usuário (idealmente com um modal, mas vamos evitar alertas)
-                    console.log('Link copiado para a área de transferência!');
-                    // Mostra uma breve mensagem
                     const shareBtn = document.getElementById('shareAppButton');
                     shareBtn.title = 'Link copiado!';
                     setTimeout(() => { shareBtn.title = 'Compartilhar o App'; }, 2000);
-
                 } catch (err) {
                     console.error('Falha ao copiar link de fallback:', err);
                 }
             }
         }
 
-
+        // --- ATUALIZADO ---
         function clearAll() {
-            // "Ceia" REMOVIDA DAQUI
             dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
             goalExceededNotified = false;
-            if (selectedDate === todayString) {
-                saveLog(); 
-            } else {
-                delete historyLog[selectedDate];
-                saveLog(); 
-                loadLogForDate(todayString); 
-                populateHistoryDropdown(); 
-            }
+            
             renderFoodList();
             updateTotals();
+            saveTodayMeals(); // Salva o log limpo no Firestore
         }
         
         function showWarningModal() {
@@ -1381,82 +1188,15 @@
             }, 150);
         }
 
-        // --- Funções de Importar/Exportar (COM NAMESPACE) ---
-        function handleExport() {
-            if (!window.userId) return;
-            try {
-                const profile = localStorage.getItem(`treinoProfile_${window.userId}`);
-                const history = localStorage.getItem(`treinoHistory_${window.userId}`);
-                const goal = localStorage.getItem(`treinoGoal_${window.userId}`);
+        // --- Funções de Importar/Exportar (REMOVIDAS, pois os dados estão na cloud) ---
 
-                if (!profile && !history) {
-                    console.warn("Nenhum dado para exportar.");
-                    return;
-                }
-
-                const backupData = {
-                    profile: JSON.parse(profile),
-                    history: JSON.parse(history),
-                    goal: goal
-                };
-
-                const jsonString = JSON.stringify(backupData, null, 2);
-                const blob = new Blob([jsonString], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `assistente_treino_backup_${todayString}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-            } catch (e) {
-                console.error("Erro ao exportar dados:", e);
-            }
-        }
-
-        function handleImport(event) {
-            if (!window.userId) return;
-            const file = event.target.files[0];
-            if (!file) {
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-
-                    if (data.profile) {
-                        localStorage.setItem(`treinoProfile_${window.userId}`, JSON.stringify(data.profile));
-                    }
-                    if (data.history) {
-                        localStorage.setItem(`treinoHistory_${window.userId}`, JSON.stringify(data.history));
-                    }
-                    if (data.goal) {
-                        localStorage.setItem(`treinoGoal_${window.userId}`, data.goal);
-                    }
-                    
-                    location.reload();
-
-                } catch (err) {
-                    console.error("Erro ao importar o arquivo. O arquivo é um JSON válido?", err);
-                }
-            };
-
-            reader.readAsText(file);
-            event.target.value = null;
-        }
-
-// --- Inicialização e Event Listeners ---
+// --- Inicialização e Event Listeners (ATUALIZADOS) ---
 document.addEventListener('DOMContentLoaded', () => {
-    // NÃO carregue os dados aqui. A inicialização do Firebase (initializeFirebase)
-    // irá chamar 'checkUserProfile', que então chama 'loadDataFromLocalStorage'
-    // no momento certo, após a autenticação.
+    // A inicialização agora é feita pelo 'initializeFirebase'
     
-    calculateButton.addEventListener('click', calculateGoal);
+    // O listener de 'calculateButton' foi movido para uma função global
+    // para garantir que 'calculateGoal' esteja disponível.
+    
     goalTypeSelect.addEventListener('change', updateMealSuggestion);
     mealTimeSelect.addEventListener('change', updateMealSuggestion);
     foodSearchInput.addEventListener('input', handleSearchInput);
@@ -1469,21 +1209,16 @@ document.addEventListener('DOMContentLoaded', () => {
     foodListContainer.addEventListener('click', handleRemoveFood);
     foodListContainer.addEventListener('change', handleToggleDone); 
     shareButton.addEventListener('click', handleShareWhatsApp);
-    
-    // NOVO LISTENER para partilhar o app
     shareAppButton.addEventListener('click', handleShareApp);
-    
     clearButton.addEventListener('click', clearAll);
-    historySelect.addEventListener('change', (e) => {
-        loadLogForDate(e.target.value);
-    });
+    
+    // O 'historySelect' foi removido
     
     closeModalButton.addEventListener('click', hideWarningModal);
     modalOverlay.addEventListener('click', hideWarningModal);
 
-    exportButton.addEventListener('click', handleExport);
-    importFile.addEventListener('change', handleImport);
-
+    // Os listeners de 'exportButton' e 'importFile' foram removidos
+    
     // Adiciona também os listeners para o código global
     window.handleSearchInput = handleSearchInput;
     window.handleSelectSearchResult = handleSelectSearchResult;
@@ -1491,13 +1226,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.handleRemoveFood = handleRemoveFood;
     window.handleToggleDone = handleToggleDone;
     window.handleShareWhatsApp = handleShareWhatsApp;
-    window.handleShareApp = handleShareApp; // Adiciona o novo handler globalmente
+    window.handleShareApp = handleShareApp; 
     window.clearAll = clearAll;
-    window.calculateGoal = calculateGoal;
+    window.calculateGoal = calculateGoal; // Função principal de metas
+    window.calculateButton.addEventListener('click', calculateGoal); // Adiciona listener
     window.updateMealSuggestion = updateMealSuggestion;
-    window.handleExport = handleExport;
-    window.handleImport = handleImport;
-    window.loadLogForDate = (e) => loadLogForDate(e.target.value);
     window.hideWarningModal = hideWarningModal;
 });
     </script>
