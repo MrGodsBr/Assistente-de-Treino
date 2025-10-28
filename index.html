@@ -156,10 +156,16 @@
         </button>
       </div>
     </div>
+    
+    <div class="border-t border-gray-200 pt-4">
+        <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2">Histórico:</label>
+        <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
+    </div>
 
-    <div class="border-t border-b border-gray-200 py-4">
+    <div class="border-b border-gray-200 py-4">
       <h3 class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
-        <span>Suas Refeições:</span>
+        <span>Refeições do Dia:</span>
         <span id="goalTag" class="text-xs font-medium text-blue-700 bg-blue-100 py-0.5 px-2 rounded-full flex-shrink-0 hidden"></span>
       </h3>
       <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50 min-h-48">
@@ -264,11 +270,13 @@
     let calorieGoal = 0;
     let selectedFoodKey = null;
     let dailyLog = {}; 
-    const todayString = new Date().toISOString().split('T')[0];
+    let currentDateString = new Date().toISOString().split('T')[0]; // Data atualmente selecionada/visualizada
+    let todayDateString = currentDateString; // Data de HOJE, para desabilitar a edição
     let goalExceededNotified = false;
     let profilePicBase64 = null;
     let isEditingProfile = false;
     let currentGoalType = 'ganhar';
+    let unsubscribeListener = null; // Para gerenciar o listener do Firestore
 
     const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
     const mealDisplayNames = {
@@ -304,7 +312,7 @@
       }
     };
 
-    // Base de alimentos (ATUALIZADA)
+    // Base de alimentos (MANTIDA ATUALIZADA)
     const foodDatabase = {
       'banana': { name: 'Banana', protein: 1.1, carbs: 27, cals: 105, unit: 'unidade', visceralFat: false },
       'maca': { name: 'Maçã', protein: 0.3, carbs: 25, cals: 95, unit: 'unidade', visceralFat: false },
@@ -322,7 +330,7 @@
       'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, cals: 77, unit: 'unidade', visceralFat: false },
       'ovo_frito': { name: 'Ovo Frito (em óleo)', protein: 6.2, carbs: 0.6, cals: 95, unit: 'unidade', visceralFat: false },
       'ovos_mexidos': { name: 'Ovos Mexidos (c/ manteiga)', protein: 6.5, carbs: 1.5, cals: 105, unit: 'unidade (1 ovo)', visceralFat: true },
-      'ovo_mexido_oleo': { name: 'Ovo Mexido (c/ óleo)', protein: 6.5, carbs: 1.5, cals: 95, unit: 'unidade (1 ovo)', visceralFat: true }, // NOVO ITEM
+      'ovo_mexido_oleo': { name: 'Ovo Mexido (c/ óleo)', protein: 6.5, carbs: 1.5, cals: 95, unit: 'unidade (1 ovo)', visceralFat: true }, 
       'whey_protein': { name: 'Whey Protein', protein: 24, carbs: 3, cals: 120, unit: 'scoop 30g', visceralFat: false },
       'carne_moida': { name: 'Carne Moída (patinho, cozida)', protein: 26, carbs: 0, cals: 180, unit: '100g', visceralFat: false },
       'bife_alcatra': { name: 'Bife (Alcatra, grelhado)', protein: 28, carbs: 0, cals: 165, unit: '100g', visceralFat: false },
@@ -359,10 +367,6 @@
       'mel': { name: 'Mel', protein: 0.3, carbs: 82, cals: 304, unit: '100g', visceralFat: true },
       'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false }
     };
-
-    // Helpers Firestore (subcoleções)
-// ... (resto do código JS, que é o código otimizado da resposta anterior)
-// ... (O resto do código abaixo está inalterado em relação à versão otimizada anterior)
 
     // Helpers Firestore (subcoleções)
     function getDayRef(uid, date) {
@@ -465,7 +469,6 @@
         updateGoalDisplay();
         updateTotals(false);
         updateMealSuggestion();
-        // Não precisa mais de renderFoodList aqui, o listener cuidará disso
       }catch(e){
         goalText.textContent="Erro ao salvar meta. Verifique sua conexão.";
         goalText.classList.remove('hidden','text-green-700');
@@ -500,20 +503,51 @@
       el.innerHTML=`💡 <span class="font-semibold">Sugestão p/ ${goalDisplayNames[goalType]}:</span> ${txt}`;
     }
 
-    // Referências do dia e listener
-    let itemsRef = null;
-    function startDayListener(){
-      const dayRef = getDayRef(userId, todayString);
-      itemsRef = getItemsRef(userId, todayString);
-      // Garante doc do dia
-      dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    // Função para carregar o log para a data especificada
+    function loadLogForDate(dateString) {
+        if (unsubscribeListener) {
+            unsubscribeListener(); // Remove o listener anterior
+            unsubscribeListener = null;
+        }
+
+        currentDateString = dateString;
+        dailyLog = {}; // Limpa o log local
+
+        // Limpa a UI
+        MEAL_KEYS.forEach(key => {
+            const el = document.getElementById(`${key}_container`);
+            if (el) el.innerHTML = '';
+        });
+        updateTotals(false);
+        
+        // Verifica se a data é hoje para habilitar a edição
+        const isToday = currentDateString === todayDateString;
+        const controls = document.querySelectorAll('#addFoodSection, #shareButton');
+        controls.forEach(el => isToday ? showElement(el) : hideElement(el));
+        
+        document.getElementById('dateStatus').textContent = isToday ? 'Visualizando e Editando o dia de Hoje' : 'Visualizando o Histórico (Somente Leitura)';
+
+        // Inicia o novo listener
+        startDayListener(dateString);
+    }
+    
+    // Inicia o listener para a data fornecida
+    function startDayListener(date) {
+      const dayRef = getDayRef(userId, date);
+      const itemsRef = getItemsRef(userId, date);
+      
+      // Se for o dia atual, garante o doc do dia
+      if (date === todayDateString) {
+        dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      } else {
+        // Se não for hoje, apenas tenta ler. Se não existir, estará vazio.
+      }
 
       // OTIMIZAÇÃO CRÍTICA: Listener em tempo real com docChanges
-      itemsRef.orderBy('clientTs','asc').onSnapshot(
+      unsubscribeListener = itemsRef.orderBy('clientTs','asc').onSnapshot(
         { includeMetadataChanges: true },
         (snap)=>{
           let shouldUpdateTotals = false;
-          let hasFood = Object.keys(dailyLog).length > 0;
 
           snap.docChanges().forEach(change => {
             const item = { ...change.doc.data(), id: change.doc.id };
@@ -525,7 +559,6 @@
             }
             if (change.type === "modified") {
               dailyLog[item.id] = item;
-              // Você pode criar uma função para atualizar os valores de um elemento existente se necessário
               updateFoodItemElement(item); 
               shouldUpdateTotals = true;
             }
@@ -536,19 +569,27 @@
             }
           });
 
-          // Atualiza os totais uma vez após todas as alterações de documentos
           if(shouldUpdateTotals) {
             updateTotals(true);
           }
           
-          // Gerencia a exibição do texto "Nenhum alimento adicionado ainda"
           manageEmptyListText();
+        },
+        // Opcional: Adicionar tratamento de erro ao listener
+        (error) => {
+            console.error("Erro no listener do Firestore:", error);
         }
       );
     }
     
     // Novo: Adicionar o item (um doc por alimento)
     async function addFoodToLog(){
+      // Verifica se a data atual é HOJE antes de adicionar
+      if(currentDateString !== todayDateString) {
+        alert("Você só pode adicionar alimentos no dia de hoje.");
+        return;
+      }
+      
       if(!selectedFoodKey){ alert("Por favor, selecione um alimento da lista."); return; }
       const quantity=parseFloat(document.getElementById('foodQuantity').value);
       const meal=document.getElementById('mealTimeSelect').value;
@@ -569,8 +610,8 @@
         clientTs: Date.now() 
       };
 
-      // Persistência: a adição ao Firestore aciona o onSnapshot (otimizado)
-      // O onSnapshot se encarrega da renderização de UI e cálculo dos totais
+      // Obtém a referência correta para a data atual
+      const itemsRef = getItemsRef(userId, currentDateString);
       await itemsRef.add(payload);
 
       // Limpeza
@@ -580,9 +621,15 @@
       hideElement(document.getElementById('searchDropdown'));
     }
 
-    // Novo: Remover item (agora mais limpo, apenas faz o delete)
+    // Novo: Remover item 
     async function removeFoodFromLog(itemId){
-      // A remoção do Firestore acionará o listener onSnapshot que fará a atualização da UI (rendering parcial)
+       // Verifica se a data atual é HOJE antes de remover
+      if(currentDateString !== todayDateString) {
+        alert("Você só pode remover alimentos no dia de hoje.");
+        return;
+      }
+
+      const itemsRef = getItemsRef(userId, currentDateString);
       try { 
         await itemsRef.doc(itemId).delete(); 
       } catch (err) { 
@@ -596,7 +643,8 @@
     
     // Função auxiliar para obter a lista de items por refeição
     function getItemsByMeal() {
-      const items = Object.values(dailyLog).sort((a, b) => a.clientTs - b.clientTs);
+      // Ordena por clientTs para manter a ordem de inserção
+      const items = Object.values(dailyLog).sort((a, b) => a.clientTs - b.clientTs); 
       return MEAL_KEYS.reduce((acc, key) => {
         acc[key] = items.filter(item => item.meal === key);
         return acc;
@@ -609,6 +657,17 @@
       const div = document.createElement('div');
       div.id = `food-item-${item.id}`;
       div.className = "flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-gray-200";
+      
+      // Verifica se é hoje para exibir o botão de remoção
+      const isToday = currentDateString === todayDateString;
+      const deleteButtonHtml = isToday ? `
+        <button onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      ` : '';
+
       div.innerHTML = `
         <div class="flex-grow">
           <p class="font-medium text-gray-800">${item.name}${warn}</p>
@@ -622,11 +681,7 @@
             <span class="text-blue-600 font-medium">C: ${item.carbs}g</span>
           </p>
         </div>
-        <button onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
+        ${deleteButtonHtml}
       `;
       return div;
     }
@@ -668,17 +723,16 @@
         }
     }
 
-    // Função para atualizar um item (útil se você permitir edição, mas aqui atualiza o link de remoção)
+    // Função para atualizar um item
     function updateFoodItemElement(item) {
-        // Para a sua implementação atual (sem edição), apenas remove e adiciona para garantir a ordem
-        // Em um app mais complexo, faríamos uma atualização in-place
+        // Remove o item antigo
         removeFoodItemElement(item.id);
+        // Adiciona o item atualizado (mantendo a ordem devido ao ordenamento no listener)
         appendFoodItem(item);
     }
     
     // Gerencia o texto de lista vazia
     function manageEmptyListText(){
-        const container = document.getElementById('foodList');
         const empty = document.getElementById('emptyListText');
         const hasFood = Object.keys(dailyLog).length > 0;
         
@@ -696,13 +750,19 @@
       document.getElementById('totalProteins').textContent = totalProtein.toFixed(1)+' g';
       document.getElementById('totalCarbs').textContent   = totalCarbs.toFixed(1)+' g';
 
+      // O aviso de meta atingida só deve ser acionado se estiver no dia de hoje
+      const isToday = currentDateString === todayDateString;
+      
       if(calorieGoal>0){
         document.getElementById('totalCalsGoalText').textContent = `${totalCals.toFixed(0)} / ${calorieGoal.toFixed(0)} kcal`;
         const pct=Math.min((totalCals/calorieGoal)*100, 100);
         document.getElementById('calorieProgress').style.width=pct+'%';
-        if(checkGoal && !goalExceededNotified && totalCals>=calorieGoal){
+        if(isToday && checkGoal && !goalExceededNotified && totalCals>=calorieGoal){
           goalExceededNotified=true;
           showGoalExceededModal();
+        } else if (!isToday) {
+             // Reseta o aviso se mudar para um dia histórico
+             goalExceededNotified = false;
         }
       }else{
         document.getElementById('totalCalsGoalText').textContent = `${totalCals.toFixed(0)} kcal`;
@@ -716,7 +776,7 @@
       showModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay'));
     }
 
-    // Busca com ⚠️ e “kcal” laranja
+    // Busca com ⚠️ e “kcal” laranja (MANTIDA)
     function searchFood(){
       const q=document.getElementById('foodSearch').value.toLowerCase().trim();
       const dd=document.getElementById('searchDropdown');
@@ -748,7 +808,7 @@
       hideElement(document.getElementById('searchDropdown'));
     }
 
-    // Compartilhar
+    // Compartilhar (MANTIDA)
     function shareToWhatsApp(){
       let totalCals=0,totalProtein=0,totalCarbs=0;
       const itemsByMeal = getItemsByMeal();
@@ -759,7 +819,7 @@
       const goalType=document.getElementById('goalType').value||'ganhar';
       const goalName=goalDisplayNames[goalType];
 
-      let msg = `🏋️ Fitness-Pro 2.0 - Resumo do Dia\n\n`;
+      let msg = `🏋️ Fitness-Pro 2.0 - Resumo do Dia (${currentDateString})\n\n`; // Data adicionada
       msg += `👤 ${userName}\n`;
       msg += `🎯 Objetivo: ${goalName}\n`;
       msg += `📊 Meta: ${calorieGoal.toFixed(0)} kcal\n\n`;
@@ -808,7 +868,10 @@
         userId = firebaseAuth.currentUser.uid;
 
         await loadProfileAndMetas();
-        startDayListener();
+        
+        // Configura o seletor de data para hoje e carrega o log
+        document.getElementById('dateSelector').value = todayDateString;
+        loadLogForDate(todayDateString);
 
         document.getElementById('loadingScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
@@ -833,6 +896,11 @@
     // Listeners
     document.addEventListener('DOMContentLoaded', ()=>{
       initializeApp();
+      
+      // NOVO LISTENER: Seletor de data
+      document.getElementById('dateSelector').addEventListener('change', (e) => {
+          loadLogForDate(e.target.value);
+      });
 
       // Perfil
       document.getElementById('editProfileButton').addEventListener('click', ()=>{
