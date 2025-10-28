@@ -718,4 +718,87 @@
       window.open(url,'_blank');
     }
 
+    // Inicialização<!-- CONTINUAÇÃO DO SCRIPT DO SEU ARQUIVO -->
+
     // Inicialização
+    async function initializeApp(){
+      try{
+        firebaseApp = firebase.initializeApp(firebaseConfig);
+        firebaseAuth = firebase.auth();
+        firebaseDb = firebase.firestore();
+
+        // Persistência offline com multi-aba
+        try{
+          await firebaseDb.enablePersistence({ synchronizeTabs: true });
+        }catch(err){
+          console.warn('Persistência não habilitada:', err?.code||err);
+        }
+
+        await firebaseAuth.signInAnonymously();
+        userId = firebaseAuth.currentUser.uid;
+
+        await loadProfileAndMetas();
+        startDayListener();
+
+        document.getElementById('loadingScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+      }catch(e){
+        const l=document.getElementById('loadingScreen');
+        l.innerHTML = `
+          <p class="text-red-600 font-semibold">Erro ao conectar com o servidor</p>
+          <p class="text-gray-600 mt-2">Verifique sua conexão e recarregue a página</p>
+          <button onclick="location.reload()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg">Tentar Novamente</button>
+        `;
+      }
+    }
+
+    // Expor funções globais para onclick
+    window.selectFood = selectFood;
+    window.addFoodToLog = addFoodToLog;
+    window.removeFoodFromLog = removeFoodFromLog;
+
+    // Listeners
+    document.addEventListener('DOMContentLoaded', ()=>{
+      initializeApp();
+
+      // Perfil
+      document.getElementById('editProfileButton').addEventListener('click', ()=>{
+        isEditingProfile=true;
+        document.getElementById('modalTitle').textContent='Editar Perfil';
+        showModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
+      });
+      document.getElementById('saveProfileButton').addEventListener('click', saveProfileData);
+      document.getElementById('profilePicInput').addEventListener('change', async (e)=>{
+        const file=e.target.files[0];
+        if(file){ profilePicBase64=await fileToBase64(file); document.getElementById('modalProfileImage').src=profilePicBase64; }
+      });
+
+      // Metas
+      document.getElementById('calculateButton').addEventListener('click', saveMetas);
+      document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
+      document.getElementById('mealTimeSelect').addEventListener('change', updateMealSuggestion);
+
+      // Alimentos
+      document.getElementById('foodSearch').addEventListener('input', searchFood);
+      document.getElementById('addFoodButton').addEventListener('click', addFoodToLog);
+
+      // Compartilhar
+      document.getElementById('shareButton').addEventListener('click', shareToWhatsApp);
+      document.getElementById('shareAppButton').addEventListener('click', shareApp);
+
+      // Modal aviso
+      document.getElementById('closeWarningModalButton').addEventListener('click', ()=>{
+        hideModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay'));
+      });
+
+      // Fechar dropdown ao clicar fora
+      document.addEventListener('click', (e)=>{
+        if(!e.target.closest('#foodSearch') && !e.target.closest('#searchDropdown')){
+          hideElement(document.getElementById('searchDropdown'));
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
