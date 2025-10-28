@@ -21,13 +21,10 @@
     #calorieProgress { transition: width 0.3s ease-in-out; }
     .modal-transition { transition: opacity 0.3s, transform 0.3s; }
     .spinner { animation: spin 1s linear infinite; }
-    @keyframes spin { from { transform: rotate(0deg); } to transform: rotate(360deg); } }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     /* Estilos para a nova estrutura de lista */
     .meal-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; }
     .meal-section:first-child { border-top: none; padding-top: 0; }
-    /* Estilo para esconder o ícone padrão do date input no Chrome/Edge/Firefox */
-    input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0; position: absolute; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer; }
-    input[type="date"]::-webkit-inner-spin-button, input[type="date"]::-webkit-clear-button { display: none; }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-teal-50 min-h-screen flex flex-col items-center justify-start p-4 py-8">
@@ -112,14 +109,10 @@
       <p id="goalText" class="text-center text-lg font-semibold text-green-700 mt-4 hidden"></p>
     </details>
     
-    <div class="flex justify-between items-center py-3 border-b border-gray-200 border-t pt-4">
-        <h3 class="text-xl font-bold text-gray-800">Histórico de Refeições:</h3>
-        <div class="relative flex items-center bg-gray-100 rounded-lg px-3 py-1 border border-gray-300 shadow-sm">
-            <input type="date" id="dateSelector" class="w-32 bg-transparent text-center font-semibold text-gray-700 focus:outline-none p-1" max="<%= new Date().toISOString().split('T')[0] %>">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 ml-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-        </div>
+    <div class="border-t border-gray-200 pt-4">
+        <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2">Histórico:</label>
+        <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
     </div>
     <div id="addFoodSection">
       <h2 class="text-xl font-semibold text-gray-700 mb-3">Adicionar Alimento (Apenas Dia Atual)</h2>
@@ -169,9 +162,9 @@
       </div>
     </div>
 
-    <div class="border-t border-b border-gray-200 py-4">
+    <div class="border-b border-gray-200 py-4">
       <h3 class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
-        <span>Suas Refeições:</span>
+        <span>Refeições do Dia:</span>
         <span id="goalTag" class="text-xs font-medium text-blue-700 bg-blue-100 py-0.5 px-2 rounded-full flex-shrink-0 hidden"></span>
       </h3>
       <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50 min-h-48">
@@ -278,15 +271,15 @@
     let dailyLog = {}; 
     const TODAY = new Date(); // Data de hoje (imutável)
     TODAY.setHours(0, 0, 0, 0); 
-    const todayString = TODAY.toISOString().split('T')[0]; // String da data de hoje (imutável)
+    const todayDateString = TODAY.toISOString().split('T')[0]; // String da data de hoje (imutável)
     
-    let currentDateString = todayString; // Data atualmente visualizada
+    let currentDateString = todayDateString; // Data atualmente visualizada
     
     let goalExceededNotified = false;
     let profilePicBase64 = null;
     let isEditingProfile = false;
     let currentGoalType = 'ganhar';
-    let unsubscribeDailyListener = null; // Para limpar o listener ao mudar de data
+    let unsubscribeListener = null; // Para gerenciar o listener do Firestore
 
     const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
     const mealDisplayNames = {
@@ -322,7 +315,7 @@
       }
     };
 
-    // Base de alimentos (expandida)
+    // Base de alimentos (ATUALIZADA E EXPANDIDA)
     const foodDatabase = {
       'banana': { name: 'Banana', protein: 1.1, carbs: 27, cals: 105, unit: 'unidade', visceralFat: false },
       'maca': { name: 'Maçã', protein: 0.3, carbs: 25, cals: 95, unit: 'unidade', visceralFat: false },
@@ -345,7 +338,7 @@
       'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, cals: 77, unit: 'unidade', visceralFat: false },
       'ovo_frito': { name: 'Ovo Frito (em óleo)', protein: 6.2, carbs: 0.6, cals: 95, unit: 'unidade', visceralFat: false },
       'ovos_mexidos': { name: 'Ovos Mexidos (c/ manteiga)', protein: 6.5, carbs: 1.5, cals: 105, unit: 'unidade (1 ovo)', visceralFat: true },
-      'ovo_mexido_oleo': { name: 'Ovo Mexido (c/ óleo)', protein: 6.5, carbs: 1.5, cals: 95, unit: 'unidade (1 ovo)', visceralFat: true },
+      'ovo_mexido_oleo': { name: 'Ovo Mexido (c/ óleo)', protein: 6.5, carbs: 1.5, cals: 95, unit: 'unidade (1 ovo)', visceralFat: true }, 
       'whey_protein': { name: 'Whey Protein', protein: 24, carbs: 3, cals: 120, unit: 'scoop 30g', visceralFat: false },
       'carne_moida': { name: 'Carne Moída (patinho, cozida)', protein: 26, carbs: 0, cals: 180, unit: '100g', visceralFat: false },
       'bife_alcatra': { name: 'Bife (Alcatra, grelhado)', protein: 28, carbs: 0, cals: 165, unit: '100g', visceralFat: false },
@@ -526,66 +519,81 @@
       el.innerHTML=`💡 <span class="font-semibold">Sugestão p/ ${goalDisplayNames[goalType]}:</span> ${txt}`;
     }
 
-    // * LÓGICA DE SELETOR DE DATA (NOVO) *
+    // * LÓGICA DE SELETOR DE DATA *
     
-    // Altera a data atual e recarrega os dados
-    function selectDate(dateString) {
-        currentDateString = dateString;
-        
-        const selectedDate = new Date(dateString);
-        selectedDate.setHours(0, 0, 0, 0); 
-        
-        const isToday = (currentDateString === todayString);
+    // Altera a data atualmente visualizada e recarrega os dados
+    function loadLogForDate(dateString) {
+        if (unsubscribeListener) {
+            unsubscribeListener(); // Remove o listener anterior
+            unsubscribeListener = null;
+        }
 
-        // Habilita/Desabilita campos de Adicionar/Compartilhar (só é possível no dia atual)
-        document.getElementById('addFoodSection').classList.toggle('opacity-50', !isToday);
-        document.getElementById('addFoodButton').disabled = !isToday;
-        document.getElementById('shareButton').disabled = !isToday;
-        
-        // Limpa UI e Log antes de subscrever à nova data
+        currentDateString = dateString;
+        dailyLog = {}; // Limpa o log local
+
+        // Limpa a UI
         clearFoodListUI();
-        dailyLog = {}; 
-        
-        // Re-subscreve aos dados da nova data
-        startDayListener(currentDateString);
+        updateTotals(false);
+
+        // Verifica se a data é hoje para habilitar a edição
+        const isToday = currentDateString === todayDateString;
+        const addFoodSection = document.getElementById('addFoodSection');
+        const shareButton = document.getElementById('shareButton');
+        const dateStatus = document.getElementById('dateStatus');
+
+        if (isToday) {
+            addFoodSection.classList.remove('opacity-50');
+            addFoodSection.querySelectorAll('input, select, button').forEach(el => el.disabled = false);
+            shareButton.disabled = false;
+            dateStatus.textContent = 'Visualizando e Editando o dia de Hoje';
+        } else {
+            addFoodSection.classList.add('opacity-50');
+            addFoodSection.querySelectorAll('input, select, button').forEach(el => el.disabled = true);
+            shareButton.disabled = true;
+            dateStatus.textContent = 'Visualizando Histórico (Somente Leitura)';
+        }
+
+        // Inicia o novo listener para a data selecionada
+        startDayListener(dateString);
     }
     
     function clearFoodListUI() {
+        // Limpa as seções de refeições
         MEAL_KEYS.forEach(k => {
             const container = document.getElementById(`${k}_container`);
-            container.innerHTML = '';
+            if (container) container.innerHTML = '';
         });
+        // Garante que o texto de lista vazia é exibido se necessário
+        manageEmptyListText();
     }
 
-    // Listener do Firestore (atualizado para receber a data e limpar o listener anterior)
-    let itemsRef = null;
-    function startDayListener(dateString){
-      // 1. Limpa o listener antigo se ele existir
-      if (unsubscribeDailyListener) {
-          unsubscribeDailyListener();
-          unsubscribeDailyListener = null;
-      }
-
-      const dayRef = getDayRef(userId, dateString);
-      itemsRef = getItemsRef(userId, dateString);
+    // Inicia o listener para a data fornecida
+    function startDayListener(date) {
+      const dayRef = getDayRef(userId, date);
+      const itemsRef = getItemsRef(userId, date);
       
-      // Garante doc do dia atual (apenas se for hoje)
-      if (dateString === todayString) {
-          dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      // Se for o dia atual, garante o doc do dia
+      if (date === todayDateString) {
+        dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
       }
 
-      // 2. OTIMIZAÇÃO CRÍTICA: Listener em tempo real com docChanges
-      unsubscribeDailyListener = itemsRef.orderBy('clientTs','asc').onSnapshot(
+      // OTIMIZAÇÃO CRÍTICA: Listener em tempo real com docChanges
+      unsubscribeListener = itemsRef.orderBy('clientTs','asc').onSnapshot(
         { includeMetadataChanges: true },
         (snap)=>{
           let shouldUpdateTotals = false;
+          
+          // Limpa o dailyLog e a UI antes de processar TUDO (necessário se o listener for reaberto)
+          if (snap.docChanges().length > 0 && snap.metadata.fromCache && Object.keys(dailyLog).length === 0) {
+              clearFoodListUI();
+          }
 
           snap.docChanges().forEach(change => {
             const item = { ...change.doc.data(), id: change.doc.id };
 
             if (change.type === "added") {
               dailyLog[item.id] = item;
-              appendFoodItem(item); // Adiciona apenas o novo elemento DOM
+              appendFoodItem(item); 
               shouldUpdateTotals = true;
             }
             if (change.type === "modified") {
@@ -595,35 +603,35 @@
             }
             if (change.type === "removed") {
               delete dailyLog[item.id];
-              removeFoodItemElement(item.id); // Remove apenas o elemento DOM específico
+              removeFoodItemElement(item.id); 
               shouldUpdateTotals = true;
             }
           });
 
-          // Atualiza os totais uma vez após todas as alterações de documentos
           if(shouldUpdateTotals) {
             updateTotals(true);
           }
           
-          // Gerencia a exibição do texto "Nenhum alimento adicionado ainda"
           manageEmptyListText();
+        },
+        (error) => {
+            console.error("Erro no listener do Firestore:", error);
         }
       );
     }
     
     // Novo: Adicionar o item (um doc por alimento)
     async function addFoodToLog(){
+      // Verifica se a data atual é HOJE antes de adicionar
+      if(currentDateString !== todayDateString) {
+        alert("Você só pode adicionar alimentos no dia de hoje.");
+        return;
+      }
+      
       if(!selectedFoodKey){ alert("Por favor, selecione um alimento da lista."); return; }
       const quantity=parseFloat(document.getElementById('foodQuantity').value);
       const meal=document.getElementById('mealTimeSelect').value;
       if(isNaN(quantity)||quantity<=0){ alert("Por favor, insira uma quantidade válida."); return; }
-      
-      // Garante que só é possível adicionar no dia atual
-      if (currentDateString !== todayString) {
-          alert("Apenas é possível adicionar alimentos no dia atual. Selecione a data de hoje para continuar.");
-          return;
-      }
-
 
       const f=foodDatabase[selectedFoodKey];
       const payload = {
@@ -640,6 +648,7 @@
         clientTs: Date.now() 
       };
 
+      const itemsRef = getItemsRef(userId, currentDateString);
       await itemsRef.add(payload);
 
       // Limpeza
@@ -649,13 +658,15 @@
       hideElement(document.getElementById('searchDropdown'));
     }
 
-    // Novo: Remover item (agora mais limpo, apenas faz o delete)
+    // Novo: Remover item 
     async function removeFoodFromLog(itemId){
-      // Garante que só é possível remover no dia atual
-      if (currentDateString !== todayString) {
-          alert("Apenas é possível remover alimentos do dia atual.");
-          return;
+       // Verifica se a data atual é HOJE antes de remover
+      if(currentDateString !== todayDateString) {
+        alert("Você só pode remover alimentos no dia de hoje.");
+        return;
       }
+
+      const itemsRef = getItemsRef(userId, currentDateString);
       try { 
         await itemsRef.doc(itemId).delete(); 
       } catch (err) { 
@@ -667,23 +678,22 @@
     /* * FUNÇÕES DE RENDERING PARCIAL (DOM Manipulation)
      */
     
-    // Função auxiliar para obter a lista de items por refeição
     function getItemsByMeal() {
-      const items = Object.values(dailyLog).sort((a, b) => a.clientTs - b.clientTs);
+      const items = Object.values(dailyLog).sort((a, b) => a.clientTs - b.clientTs); 
       return MEAL_KEYS.reduce((acc, key) => {
         acc[key] = items.filter(item => item.meal === key);
         return acc;
       }, { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] });
     }
 
-    // Cria o elemento HTML de um item de alimento
     function createFoodItemElement(item){
       const warn=item.visceralFat?' ⚠️':'';
       const div = document.createElement('div');
       div.id = `food-item-${item.id}`;
       div.className = "flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-gray-200";
       
-      const removeButtonHtml = (currentDateString === todayString) ? `
+      const isToday = currentDateString === todayDateString;
+      const deleteButtonHtml = isToday ? `
         <button onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
           <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -704,17 +714,15 @@
             <span class="text-blue-600 font-medium">C: ${item.carbs}g</span>
           </p>
         </div>
-        ${removeButtonHtml}
+        ${deleteButtonHtml}
       `;
       return div;
     }
     
-    // Adiciona o item na UI na seção correta
     function appendFoodItem(item){
         const mealContainer = document.getElementById(`${item.meal}_container`);
         if (!mealContainer) return;
 
-        // Seção da Refeição (Título)
         let mealSection = document.getElementById(`section-${item.meal}`);
         if (!mealSection) {
             mealSection = document.createElement('div');
@@ -727,31 +735,16 @@
         const listContainer = document.getElementById(`list-${item.meal}`);
         if(listContainer) {
             const newItemElement = createFoodItemElement(item);
-            
-            let inserted = false;
-            const children = Array.from(listContainer.children);
-            for (const child of children) {
-                const existingItem = dailyLog[child.id.replace('food-item-', '')];
-                if (existingItem && item.clientTs < existingItem.clientTs) {
-                    listContainer.insertBefore(newItemElement, child);
-                    inserted = true;
-                    break;
-                }
-            }
-            if (!inserted) {
-                listContainer.appendChild(newItemElement);
-            }
+            listContainer.appendChild(newItemElement);
         }
     }
 
-    // Remove o elemento HTML de um item (otimizado)
     function removeFoodItemElement(itemId){
         const element = document.getElementById(`food-item-${itemId}`);
         if(element){
             const listContainer = element.parentNode;
             element.remove();
 
-            // Verifica se a lista da refeição ficou vazia e remove a seção inteira
             if (listContainer && listContainer.children.length === 0) {
                 const mealSection = listContainer.parentNode;
                 mealSection.remove();
@@ -759,13 +752,11 @@
         }
     }
 
-    // Função para atualizar um item (útil se você permitir edição)
     function updateFoodItemElement(item) {
         removeFoodItemElement(item.id);
         appendFoodItem(item);
     }
     
-    // Gerencia o texto de lista vazia
     function manageEmptyListText(){
         const empty = document.getElementById('emptyListText');
         const hasFood = Object.keys(dailyLog).length > 0;
@@ -784,7 +775,7 @@
       document.getElementById('totalProteins').textContent = totalProtein.toFixed(1)+' g';
       document.getElementById('totalCarbs').textContent   = totalCarbs.toFixed(1)+' g';
 
-      const isToday = currentDateString === todayString;
+      const isToday = currentDateString === todayDateString;
 
       if(calorieGoal>0){
         document.getElementById('totalCalsGoalText').textContent = `${totalCals.toFixed(0)} / ${calorieGoal.toFixed(0)} kcal`;
@@ -794,6 +785,8 @@
         if(isToday && checkGoal && !goalExceededNotified && totalCals>=calorieGoal){
           goalExceededNotified=true;
           showGoalExceededModal();
+        } else if (!isToday && goalExceededNotified) {
+             goalExceededNotified = false;
         }
       }else{
         document.getElementById('totalCalsGoalText').textContent = `${totalCals.toFixed(0)} kcal`;
@@ -841,7 +834,7 @@
 
     // Compartilhar
     function shareToWhatsApp(){
-      if (currentDateString !== todayString) {
+      if (currentDateString !== todayDateString) {
           alert("Apenas é possível compartilhar o resumo do dia atual. Selecione a data de hoje.");
           return;
       }
@@ -854,10 +847,8 @@
       const userName=document.getElementById('userNameDisplay').textContent;
       const goalType=document.getElementById('goalType').value||'ganhar';
       const goalName=goalDisplayNames[goalType];
-      
-      const dateDisplay = (currentDateString === todayString) ? 'de Hoje' : currentDateString;
 
-      let msg = `🏋️ Fitness-Pro 2.0 - Resumo do Dia (${dateDisplay})\n\n`;
+      let msg = `🏋️ Fitness-Pro 2.0 - Resumo do Dia (${currentDateString})\n\n`; 
       msg += `👤 ${userName}\n`;
       msg += `🎯 Objetivo: ${goalName}\n`;
       msg += `📊 Meta: ${calorieGoal.toFixed(0)} kcal\n\n`;
@@ -907,11 +898,11 @@
 
         await loadProfileAndMetas();
         
-        // * INICIALIZA O SELETOR DE DATA E CARREGA O DIA ATUAL *
+        // Configura o seletor de data para hoje e carrega o log
         const dateSelector = document.getElementById('dateSelector');
-        dateSelector.value = todayString;
-        dateSelector.max = todayString;
-        selectDate(todayString); 
+        dateSelector.value = todayDateString;
+        dateSelector.max = todayDateString; // Impede que o usuário selecione uma data futura
+        loadLogForDate(todayDateString); 
 
         document.getElementById('loadingScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
@@ -936,10 +927,10 @@
     // Listeners
     document.addEventListener('DOMContentLoaded', ()=>{
       initializeApp();
-
-      // * LISTENER DO SELETOR DE DATA *
+      
+      // NOVO LISTENER: Seletor de data
       document.getElementById('dateSelector').addEventListener('change', (e) => {
-        selectDate(e.target.value);
+          loadLogForDate(e.target.value);
       });
 
       // Perfil
