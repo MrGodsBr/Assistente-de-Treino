@@ -75,7 +75,7 @@
             }
         }
 
-        // --- VERIFICAÇÃO DE PERFIL DE USUÁRIO (ATUALIZADO) ---
+        // --- VERIFICAÇÃO DE PERFIL DE USUÁRIO ---
         async function checkUserProfile() {
             if (!userId) return;
 
@@ -118,7 +118,6 @@
                     loadMetasUI(metasSnap.data());
                 } else {
                     console.log("Nenhum documento de metas encontrado. Usuário precisa calcular.");
-                    // Deixa os campos em branco e calorieGoal = 0
                 }
                 
                 // 5. Processa as Refeições (Verifica a data!)
@@ -160,13 +159,12 @@
             document.getElementById('profile-display-section').classList.remove('hidden');
         }
 
-        // --- (NOVA FUNÇÃO) CARREGA DADOS DAS METAS (PESO, ETC) NA UI ---
+        // --- CARREGA DADOS DAS METAS (PESO, ETC) NA UI ---
         function loadMetasUI(metasData) {
             if (!metasData) {
                 console.log("Nenhum dado de meta no Firestore.");
                 return;
             }
-            console.log("Carregando metas do Firestore:", metasData);
             
             weightInput.value = metasData.weight || '';
             heightInput.value = metasData.height || '';
@@ -190,18 +188,15 @@
             updateMealSuggestion();
         }
         
-        // --- (NOVA FUNÇÃO) CARREGA REFEIÇÕES DO DIA E VERIFICA A DATA ---
+        // --- CARREGA REFEIÇÕES DO DIA E VERIFICA A DATA ---
         function loadTodayMeals(mealData) {
-            console.log("Carregando refeições de hoje do Firestore...");
             // Verifica se os dados existem e se são de hoje
             if (mealData && mealData.savedDate === todayString) {
-                console.log("Refeições de hoje encontradas:", mealData.log);
                 dailyLog = mealData.log;
             } else {
-                // Se não houver dados ou se forem de ontem (data != todayString), limpa
-                console.log(mealData ? "Dados de refeição são de ontem. Limpando." : "Nenhum dado de refeição. Começando novo log.");
+                // Limpeza Automática à Meia-noite
                 dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
-                // Salva o log limpo imediatamente (se os dados eram de ontem)
+                // Se os dados eram de ontem, salva o log limpo imediatamente
                 if (mealData) {
                     saveTodayMeals(); 
                 }
@@ -210,7 +205,7 @@
             updateTotals(true); // 'true' para não mostrar modal de aviso
         }
 
-        // --- Funções de Abrir/Fechar Modal de Edição (Sem mudança) ---
+        // --- Funções do Modal ---
         function showRegistrationError(message) {
             const errorEl = document.getElementById('registrationError');
             errorEl.textContent = message;
@@ -239,7 +234,7 @@
             loadProfileUI(currentProfileData);
         }
 
-        // --- SALVA O PERFIL (NOME, FOTO) (Sem mudança) ---
+        // --- SALVA O PERFIL (NOME, FOTO) ---
         async function handleSaveProfile() {
             clearRegistrationError(); 
             const username = document.getElementById('usernameInput').value;
@@ -272,7 +267,6 @@
                 const profileRef = doc(db, "users", userId, "profile", "data");
                 await setDoc(profileRef, dataToSave, { merge: true });
 
-                console.log("Perfil salvo no Firestore!");
                 loadProfileUI(dataToSave);
                 
                 // Se for o primeiro login, carrega metas e refeições (que estarão vazios)
@@ -296,7 +290,7 @@
             }
         }
 
-        // --- Salva Foto (Sem mudança) ---
+        // --- Salva Foto ---
         function handleProfilePicChange(event) {
             clearRegistrationError(); 
             const file = event.target.files[0];
@@ -322,7 +316,7 @@
             reader.readAsDataURL(file);
         }
 
-        // --- (FUNÇÃO RENOMEADA) SALVA AS METAS NO FIRESTORE ---
+        // --- SALVA AS METAS NO FIRESTORE ---
         async function saveMetas() {
             if (!window.userId) return;
             
@@ -339,13 +333,12 @@
             try {
                 const metasRef = doc(db, "users", userId, "profile", "metas");
                 await setDoc(metasRef, metasData);
-                console.log("Metas salvas no Firestore!");
             } catch (e) {
                 console.error("Erro ao salvar metas no Firestore:", e);
             }
         }
         
-        // --- (FUNÇÃO RENOMEADA) SALVA AS REFEIÇÕES DE HOJE NO FIRESTORE ---
+        // --- SALVA AS REFEIÇÕES DE HOJE NO FIRESTORE ---
         async function saveTodayMeals() {
             if (!window.userId) return;
             
@@ -357,7 +350,6 @@
             try {
                 const mealsRef = doc(db, "users", userId, "meals", "today");
                 await setDoc(mealsRef, dataToSave);
-                console.log("Refeições de hoje salvas no Firestore.");
             } catch (e) {
                 console.error("Erro ao salvar refeições no Firestore:", e);
             }
@@ -569,7 +561,6 @@
         <div>
             <div class="flex justify-between items-center mb-3">
                  <h3 id="foodListTitle" class="text-lg font-semibold text-gray-700 flex items-center gap-2">
-                    <!-- BOTÃO 'Limpar Refeições' REMOVIDO -->
                     <span>Refeições de Hoje:</span>
                     <span id="goalTag" class="hidden text-xs sm:text-sm font-medium text-blue-700 bg-blue-100 py-0.5 px-3 rounded-full"></span>
                 </h3>
@@ -619,7 +610,6 @@
     </div> <!-- Fim do <div id="main-app-content"> -->
 
     <footer class="mt-8 text-center text-sm text-gray-500">
-        <!-- RODAPÉ LIMPO -->
         Desenvolvido por Thiago
     </footer>
 
@@ -747,7 +737,6 @@
         const goalText = document.getElementById('goalText');
 
         // Seletores do DOM - Log
-        const addFoodSection = document.getElementById('addFoodSection');
         const foodSearchInput = document.getElementById('foodSearch');
         const searchDropdown = document.getElementById('searchDropdown');
         const mealTimeSelect = document.getElementById('mealTimeSelect');
@@ -756,7 +745,6 @@
         const addFoodButton = document.getElementById('addFoodButton');
         
         // Seletores do DOM - Histórico (Limpar foi removido)
-        const foodListTitle = document.getElementById('foodListTitle');
         const goalTag = document.getElementById('goalTag'); 
 
         // Seletores do DOM - Lista e Totais
@@ -1154,8 +1142,6 @@
                 }
             }
         }
-
-        // --- CLEAR ALL REMOVIDO POIS O BOTÃO FOI REMOVIDO DA UI ---
         
         function showWarningModal() {
             warningModal.classList.remove('hidden', 'scale-95', 'opacity-0');
@@ -1174,31 +1160,35 @@
             }, 150);
         }
 
-// --- Inicialização e Event Listeners (ATUALIZADOS) ---
+// --- Inicialização e Event Listeners (FINAL) ---
 document.addEventListener('DOMContentLoaded', () => {
     
+    // Associa funções globais a eventos DOM
     goalTypeSelect.addEventListener('change', updateMealSuggestion);
     mealTimeSelect.addEventListener('change', updateMealSuggestion);
     foodSearchInput.addEventListener('input', handleSearchInput);
     foodSearchInput.addEventListener('blur', () => {
+        // Delay para permitir o clique no dropdown antes de fechar
         setTimeout(() => searchDropdown.classList.add('hidden'), 150);
     });
     foodSearchInput.addEventListener('focus', handleSearchInput);
     searchDropdown.addEventListener('mousedown', handleSelectSearchResult);
     addFoodButton.addEventListener('click', handleAddFood);
+    
+    // Listeners na lista de alimentos (usa o container para delegação)
     foodListContainer.addEventListener('click', handleRemoveFood);
     foodListContainer.addEventListener('change', handleToggleDone); 
+    
+    // Botões de Partilha e Metas
     shareButton.addEventListener('click', handleShareWhatsApp);
     shareAppButton.addEventListener('click', handleShareApp);
-    
-    // clearButton foi removido
-    
+    calculateButton.addEventListener('click', calculateGoal); 
+
+    // Listeners do Modal
     closeModalButton.addEventListener('click', hideWarningModal);
     modalOverlay.addEventListener('click', hideWarningModal);
 
-    // Os listeners de 'exportButton' e 'importFile' foram removidos
-    
-    // Adiciona também os listeners para o código global
+    // Associa funções a janela para serem acessíveis pelo HTML
     window.handleSearchInput = handleSearchInput;
     window.handleSelectSearchResult = handleSelectSearchResult;
     window.handleAddFood = handleAddFood;
@@ -1206,11 +1196,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.handleToggleDone = handleToggleDone;
     window.handleShareWhatsApp = handleShareWhatsApp;
     window.handleShareApp = handleShareApp; 
-    window.calculateGoal = calculateGoal; // Função principal de metas
-    window.calculateButton.addEventListener('click', calculateGoal); // Adiciona listener
+    window.calculateGoal = calculateGoal;
     window.updateMealSuggestion = updateMealSuggestion;
     window.hideWarningModal = hideWarningModal;
     
+    // Inicia a aplicação (Firebase Auth e Firestore)
     initializeFirebase();
 });
     </script>
