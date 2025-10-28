@@ -263,7 +263,6 @@
     // Estado
     let calorieGoal = 0;
     let selectedFoodKey = null;
-    // O dailyLog agora armazena os items por ID para fácil acesso e atualização
     let dailyLog = {}; 
     const todayString = new Date().toISOString().split('T')[0];
     let goalExceededNotified = false;
@@ -305,7 +304,7 @@
       }
     };
 
-    // Base de alimentos (MANTIDA)
+    // Base de alimentos (ATUALIZADA)
     const foodDatabase = {
       'banana': { name: 'Banana', protein: 1.1, carbs: 27, cals: 105, unit: 'unidade', visceralFat: false },
       'maca': { name: 'Maçã', protein: 0.3, carbs: 25, cals: 95, unit: 'unidade', visceralFat: false },
@@ -323,6 +322,7 @@
       'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, cals: 77, unit: 'unidade', visceralFat: false },
       'ovo_frito': { name: 'Ovo Frito (em óleo)', protein: 6.2, carbs: 0.6, cals: 95, unit: 'unidade', visceralFat: false },
       'ovos_mexidos': { name: 'Ovos Mexidos (c/ manteiga)', protein: 6.5, carbs: 1.5, cals: 105, unit: 'unidade (1 ovo)', visceralFat: true },
+      'ovo_mexido_oleo': { name: 'Ovo Mexido (c/ óleo)', protein: 6.5, carbs: 1.5, cals: 95, unit: 'unidade (1 ovo)', visceralFat: true }, // NOVO ITEM
       'whey_protein': { name: 'Whey Protein', protein: 24, carbs: 3, cals: 120, unit: 'scoop 30g', visceralFat: false },
       'carne_moida': { name: 'Carne Moída (patinho, cozida)', protein: 26, carbs: 0, cals: 180, unit: '100g', visceralFat: false },
       'bife_alcatra': { name: 'Bife (Alcatra, grelhado)', protein: 28, carbs: 0, cals: 165, unit: '100g', visceralFat: false },
@@ -359,6 +359,10 @@
       'mel': { name: 'Mel', protein: 0.3, carbs: 82, cals: 304, unit: '100g', visceralFat: true },
       'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false }
     };
+
+    // Helpers Firestore (subcoleções)
+// ... (resto do código JS, que é o código otimizado da resposta anterior)
+// ... (O resto do código abaixo está inalterado em relação à versão otimizada anterior)
 
     // Helpers Firestore (subcoleções)
     function getDayRef(uid, date) {
