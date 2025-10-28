@@ -7,7 +7,7 @@
     <!-- Carrega o Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Configuração do Firebase -->
+    <!-- Configuração do Firebase - Método de Carregamento Robusto (CDN) -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
@@ -61,7 +61,7 @@
                 Fitness-Pro 2.0
             </h1>
             <button id="shareAppButton" class="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600 transition-colors" title="Compartilhar o App">
-                <!-- Ícone de Partilha (3 Pontos) -->
+                <!-- Ícone de Partilha (3 Pontos) - Estilo universal de compartilhamento -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M18 16a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM6 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM12 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM18 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM6 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>
                 </svg>
@@ -208,9 +208,7 @@
         <div class="border-t border-b border-gray-200 py-4">
             <h3 id="foodListTitle" class="text-xl font-semibold text-gray-700 mb-3 flex justify-between items-center">
                 <span>Suas Refeições (Hoje):</span>
-                <button id="clearMealsButton" class="text-sm text-red-500 hover:text-red-700 transition-colors">
-                    Limpar Refeições
-                </button>
+                <!-- O Botão Limpar Refeições foi removido a pedido do usuário -->
             </h3>
             <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50">
                 <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
@@ -524,6 +522,7 @@
                     document.getElementById('phoneInput').value = data.phone || '';
                     loadProfilePicLocally(); // Carrega a foto local
                 } else if (isEditingProfile === false) {
+                    // Se o perfil não existe e não estamos editando, abrimos o modal de cadastro.
                     showModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
                     return; // Parar o carregamento se o perfil não existir
                 }
@@ -644,20 +643,22 @@
         }
 
         function updateGoalDisplay() {
+            const goalText = document.getElementById('goalText');
             if (calorieGoal > 0) {
                  const goalType = document.getElementById('goalType').value || 'ganhar';
                  const goalName = goalDisplayNames[goalType];
                  goalText.textContent = `Sua meta (${goalName}): ${calorieGoal.toFixed(0)} kcal/dia`;
-                 goalText.classList.remove('hidden', 'text-red-600');
+                 goalText.classList.remove('hidden', 'text-red-600', 'text-gray-600');
                  goalText.classList.add('text-green-700');
             } else {
                  goalText.textContent = "Clique em 'Calcular e Salvar Meta'.";
-                 goalText.classList.remove('hidden', 'text-green-700');
+                 goalText.classList.remove('hidden', 'text-green-700', 'text-red-600');
                  goalText.classList.add('text-gray-600');
             }
         }
         
         function updateMealSuggestion() {
+            const mealSuggestion = document.getElementById('mealSuggestion');
             if (calorieGoal === 0) {
                 mealSuggestion.innerHTML = 'Preencha e salve suas metas acima para ver sugestões de refeições.';
                 return;
@@ -679,7 +680,9 @@
                     if (data.date !== todayString) {
                         // Data é diferente, limpar e começar novo dia (limpeza automática 00:00)
                         dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
-                        await getMealsDocRef().set({ date: todayString, log: dailyLog });
+                        // Não é necessário await, para não travar o carregamento
+                        getMealsDocRef().set({ date: todayString, log: dailyLog }) 
+                            .catch(err => console.error("Erro ao limpar e salvar novo log:", err)); 
                         console.log("Limpeza automática de refeições antigas concluída.");
                     } else {
                         // Mesma data, carrega o log
@@ -688,7 +691,8 @@
                 } else {
                     // Documento não existe, cria um novo para hoje
                      dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
-                     await getMealsDocRef().set({ date: todayString, log: dailyLog });
+                     getMealsDocRef().set({ date: todayString, log: dailyLog })
+                        .catch(err => console.error("Erro ao criar log inicial:", err)); 
                 }
                 
                 renderFoodList();
@@ -903,30 +907,70 @@
             }
         }
 
-        async function clearAllMeals() {
-            // Cria um novo log vazio
-            dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
+        // --- Funções de Compartilhamento ---
+        function handleShareWhatsApp() {
+            const userName = document.getElementById('userNameDisplay').textContent;
+            let waText = `*Resumo de Refeições do ${userName} (${todayString.split('-').reverse().join('/')})*\n`;
+            
+            let totalItems = 0;
+            MEAL_KEYS.forEach(mealKey => {
+                const items = dailyLog[mealKey];
+                if (Array.isArray(items) && items.length > 0) {
+                    totalItems += items.length;
+                    waText += `\n*${mealDisplayNames[mealKey]}*\n`;
+                    items.forEach(item => {
+                        const doneStatus = item.done ? '[OK] ' : '';
+                        waText += `- ${doneStatus}${item.displayName} (${(item.protein || 0).toFixed(1)}g prot, ${(item.cals || 0).toFixed(0)} kcal)\n`;
+                    });
+                }
+            });
 
-            // Salva o log vazio no Firestore
-            try {
-                await getMealsDocRef().set({
-                    date: todayString,
-                    log: dailyLog 
-                });
-            } catch (error) {
-                console.error("Erro ao limpar log no Firestore:", error);
+            if (totalItems === 0) {
+                console.warn("Sem itens para compartilhar.");
+                return;
             }
 
-            // Atualiza a UI
-            renderFoodList();
-            updateTotals();
+            waText += "\n*Resumo Total:*\n";
+            waText += `*Meta:* ${document.getElementById('goalText').textContent.replace('Sua meta (', '').replace('):', '')}\n`;
+            waText += `*Calorias Consumidas:* ${document.getElementById('totalCalsGoalText').textContent.split('/')[0].trim()}\n`;
+            waText += `*Proteínas:* ${document.getElementById('totalProteins').textContent}\n`;
+            waText += `*Carboidratos:* ${document.getElementById('totalCarbs').textContent}\n`;
+
+            const encodedText = encodeURIComponent(waText);
+            const waURL = `https://wa.me/?text=${encodedText}`;
+            window.open(waURL, '_blank');
         }
 
-        // --- Inicialização do App ---
+        function handleShareApp() {
+            const appUrl = window.location.href; 
+            const shareData = {
+                title: 'Fitness-Pro 2.0',
+                text: 'Meu assistente de treino e dieta com sincronização na nuvem!',
+                url: appUrl,
+            };
+
+            // Verifica suporte para compartilhamento nativo
+            if (navigator.share) {
+                navigator.share(shareData)
+                    .catch((error) => console.error('Erro ao compartilhar:', error));
+            } else {
+                // Fallback para navegadores que não suportam navigator.share
+                const errorEl = document.getElementById('registrationError');
+                const originalText = errorEl.textContent;
+                errorEl.textContent = 'Copie o link: ' + appUrl;
+                showElement(errorEl);
+                setTimeout(() => {
+                    errorEl.textContent = originalText;
+                    hideElement(errorEl);
+                }, 5000);
+            }
+        }
+
+        // --- Inicia a Aplicação ---
         function initializeApp() {
-            // 1. Inicializa Firebase
+            // 1. Inicializa Firebase (Método robusto)
             try {
-                firebase.initializeApp(firebaseConfig);
+                firebaseApp = firebase.initializeApp(firebaseConfig);
                 firebaseAuth = firebase.auth();
                 firebaseDb = firebase.firestore();
             } catch (error) {
@@ -1009,7 +1053,6 @@
             document.getElementById('foodList').addEventListener('click', handleRemoveFood);
             document.getElementById('foodList').addEventListener('change', handleToggleDone);
             document.getElementById('shareButton').addEventListener('click', handleShareWhatsApp);
-            document.getElementById('clearMealsButton').addEventListener('click', clearAllMeals); // Botão Limpar
 
             // Modal de Aviso de Limite
             document.getElementById('closeWarningModalButton').addEventListener('click', () => hideModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay')));
@@ -1080,58 +1123,6 @@
             foodQuantityInput.select();
         }
         
-        // --- Funções de Compartilhamento ---
-        function handleShareWhatsApp() {
-            const userName = document.getElementById('userNameDisplay').textContent;
-            let waText = `*Resumo de Refeições do ${userName} (${todayString.split('-').reverse().join('/')})*\n`;
-            
-            let totalItems = 0;
-            MEAL_KEYS.forEach(mealKey => {
-                const items = dailyLog[mealKey];
-                if (Array.isArray(items) && items.length > 0) {
-                    totalItems += items.length;
-                    waText += `\n*${mealDisplayNames[mealKey]}*\n`;
-                    items.forEach(item => {
-                        const doneStatus = item.done ? '[OK] ' : '';
-                        waText += `- ${doneStatus}${item.displayName} (${(item.protein || 0).toFixed(1)}g prot, ${(item.cals || 0).toFixed(0)} kcal)\n`;
-                    });
-                }
-            });
-
-            if (totalItems === 0) {
-                console.warn("Sem itens para compartilhar.");
-                return;
-            }
-
-            waText += "\n*Resumo Total:*\n";
-            waText += `*Meta:* ${document.getElementById('goalText').textContent.replace('Sua meta (', '').replace('):', '')}\n`;
-            waText += `*Calorias Consumidas:* ${document.getElementById('totalCalsGoalText').textContent.split('/')[0].trim()}\n`;
-            waText += `*Proteínas:* ${document.getElementById('totalProteins').textContent}\n`;
-            waText += `*Carboidratos:* ${document.getElementById('totalCarbs').textContent}\n`;
-
-            const encodedText = encodeURIComponent(waText);
-            const waURL = `https://wa.me/?text=${encodedText}`;
-            window.open(waURL, '_blank');
-        }
-
-        function handleShareApp() {
-            const appUrl = window.location.href; 
-            const shareData = {
-                title: 'Fitness-Pro 2.0',
-                text: 'Meu assistente de treino e dieta com sincronização na nuvem!',
-                url: appUrl,
-            };
-
-            if (navigator.share) {
-                navigator.share(shareData)
-                    .catch((error) => console.error('Erro ao compartilhar:', error));
-            } else {
-                // Fallback para navegadores que não suportam navigator.share
-                showRegistrationError('O seu navegador não suporta compartilhamento nativo. Copie o link: ' + appUrl);
-                setTimeout(() => clearRegistrationError(), 5000);
-            }
-        }
-
         // --- Inicia a Aplicação ---
         document.addEventListener('DOMContentLoaded', initializeApp);
 
