@@ -21,10 +21,13 @@
     #calorieProgress { transition: width 0.3s ease-in-out; }
     .modal-transition { transition: opacity 0.3s, transform 0.3s; }
     .spinner { animation: spin 1s linear infinite; }
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes spin { from { transform: rotate(0deg); } to transform: rotate(360deg); } }
     /* Estilos para a nova estrutura de lista */
     .meal-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; }
     .meal-section:first-child { border-top: none; padding-top: 0; }
+    /* Estilo para esconder o ícone padrão do date input no Chrome/Edge/Firefox */
+    input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0; position: absolute; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer; }
+    input[type="date"]::-webkit-inner-spin-button, input[type="date"]::-webkit-clear-button { display: none; }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-teal-50 min-h-screen flex flex-col items-center justify-start p-4 py-8">
@@ -110,20 +113,16 @@
     </details>
     
     <div class="flex justify-between items-center py-3 border-b border-gray-200 border-t pt-4">
-        <button id="prevDayButton" class="p-2 rounded-full text-green-600 hover:bg-green-100 transition-colors" title="Dia Anterior">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        <h3 class="text-xl font-bold text-gray-800">Histórico de Refeições:</h3>
+        <div class="relative flex items-center bg-gray-100 rounded-lg px-3 py-1 border border-gray-300 shadow-sm">
+            <input type="date" id="dateSelector" class="w-32 bg-transparent text-center font-semibold text-gray-700 focus:outline-none p-1" max="<%= new Date().toISOString().split('T')[0] %>">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 ml-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-        </button>
-        <h3 id="currentDateDisplay" class="text-xl font-bold text-gray-800">Hoje</h3>
-        <button id="nextDayButton" disabled class="p-2 rounded-full text-green-600 hover:bg-green-100 transition-colors disabled:opacity-30 disabled:hover:bg-transparent" title="Próximo Dia">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-        </button>
+        </div>
     </div>
     <div id="addFoodSection">
-      <h2 class="text-xl font-semibold text-gray-700 mb-3">Adicionar Alimento (Apenas Hoje)</h2>
+      <h2 class="text-xl font-semibold text-gray-700 mb-3">Adicionar Alimento (Apenas Dia Atual)</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
         <div class="relative sm:col-span-3">
           <label for="foodSearch" class="block text-sm font-medium text-gray-700 mb-1">1. Pesquisar Alimento</label>
@@ -273,13 +272,16 @@
 
     let firebaseApp, firebaseAuth, firebaseDb, userId = null;
 
-    // * ESTADO DE DATA E LISTENER (NOVO) *
+    // * ESTADO DE DATA E LISTENER *
     let calorieGoal = 0;
     let selectedFoodKey = null;
     let dailyLog = {}; 
-    let currentDate = new Date(); // Objeto Date para navegação
-    let currentDateString = currentDate.toISOString().split('T')[0]; // String da data atual
-    const todayString = new Date().toISOString().split('T')[0]; // Data de hoje (imutável)
+    const TODAY = new Date(); // Data de hoje (imutável)
+    TODAY.setHours(0, 0, 0, 0); 
+    const todayString = TODAY.toISOString().split('T')[0]; // String da data de hoje (imutável)
+    
+    let currentDateString = todayString; // Data atualmente visualizada
+    
     let goalExceededNotified = false;
     let profilePicBase64 = null;
     let isEditingProfile = false;
@@ -320,7 +322,7 @@
       }
     };
 
-    // Base de alimentos (mantida)
+    // Base de alimentos (expandida)
     const foodDatabase = {
       'banana': { name: 'Banana', protein: 1.1, carbs: 27, cals: 105, unit: 'unidade', visceralFat: false },
       'maca': { name: 'Maçã', protein: 0.3, carbs: 25, cals: 95, unit: 'unidade', visceralFat: false },
@@ -524,47 +526,17 @@
       el.innerHTML=`💡 <span class="font-semibold">Sugestão p/ ${goalDisplayNames[goalType]}:</span> ${txt}`;
     }
 
-    // * LÓGICA DE NAVEGAÇÃO DE DATA (NOVO) *
-
-    // Formata a data para exibição (ex: "Hoje", "Ontem", "28/Out/2025")
-    function formatDate(date) {
-        const d = date.toISOString().split('T')[0];
-        const today = new Date().toISOString().split('T')[0];
-        if (d === today) return 'Hoje';
-        
-        const yesterdayDate = new Date(Date.now() - 86400000); // 86400000ms = 1 dia
-        const yesterday = yesterdayDate.toISOString().split('T')[0];
-        if (d === yesterday) return 'Ontem';
-
-        return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-
+    // * LÓGICA DE SELETOR DE DATA (NOVO) *
+    
     // Altera a data atual e recarrega os dados
-    function changeDate(days) {
-        const newDate = new Date(currentDate);
-        newDate.setDate(newDate.getDate() + days);
+    function selectDate(dateString) {
+        currentDateString = dateString;
         
-        // Zera o tempo para garantir que a comparação de data seja correta
-        newDate.setHours(0, 0, 0, 0); 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); 
-
-        // Não permite ir além de hoje
-        if (newDate > today && days > 0) {
-            document.getElementById('nextDayButton').disabled = true;
-            return;
-        }
-        
-        currentDate = newDate;
-        currentDateString = currentDate.toISOString().split('T')[0];
-        
-        document.getElementById('currentDateDisplay').textContent = formatDate(currentDate);
+        const selectedDate = new Date(dateString);
+        selectedDate.setHours(0, 0, 0, 0); 
         
         const isToday = (currentDateString === todayString);
 
-        // Habilita/Desabilita botão de "Próximo Dia"
-        document.getElementById('nextDayButton').disabled = isToday;
-        
         // Habilita/Desabilita campos de Adicionar/Compartilhar (só é possível no dia atual)
         document.getElementById('addFoodSection').classList.toggle('opacity-50', !isToday);
         document.getElementById('addFoodButton').disabled = !isToday;
@@ -603,7 +575,6 @@
       }
 
       // 2. OTIMIZAÇÃO CRÍTICA: Listener em tempo real com docChanges
-      // Armazena a função de cancelamento na variável global
       unsubscribeDailyListener = itemsRef.orderBy('clientTs','asc').onSnapshot(
         { includeMetadataChanges: true },
         (snap)=>{
@@ -649,7 +620,7 @@
       
       // Garante que só é possível adicionar no dia atual
       if (currentDateString !== todayString) {
-          alert("Apenas é possível adicionar alimentos no dia atual.");
+          alert("Apenas é possível adicionar alimentos no dia atual. Selecione a data de hoje para continuar.");
           return;
       }
 
@@ -669,7 +640,6 @@
         clientTs: Date.now() 
       };
 
-      // Persistência: a adição ao Firestore aciona o onSnapshot (otimizado)
       await itemsRef.add(payload);
 
       // Limpeza
@@ -686,7 +656,6 @@
           alert("Apenas é possível remover alimentos do dia atual.");
           return;
       }
-      // A remoção do Firestore acionará o listener onSnapshot que fará a atualização da UI (rendering parcial)
       try { 
         await itemsRef.doc(itemId).delete(); 
       } catch (err) { 
@@ -695,12 +664,11 @@
       }
     }
 
-    /* * NOVAS FUNÇÕES DE RENDERING PARCIAL (DOM Manipulation)
+    /* * FUNÇÕES DE RENDERING PARCIAL (DOM Manipulation)
      */
     
     // Função auxiliar para obter a lista de items por refeição
     function getItemsByMeal() {
-      // Ordena todos os itens globalmente pelo timestamp
       const items = Object.values(dailyLog).sort((a, b) => a.clientTs - b.clientTs);
       return MEAL_KEYS.reduce((acc, key) => {
         acc[key] = items.filter(item => item.meal === key);
@@ -721,7 +689,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
         </button>
-      ` : `<div class="w-7 h-7"></div>`; // Div placeholder para manter o layout
+      ` : `<div class="w-7 h-7"></div>`; 
 
       div.innerHTML = `
         <div class="flex-grow">
@@ -760,7 +728,6 @@
         if(listContainer) {
             const newItemElement = createFoodItemElement(item);
             
-            // Adiciona na ordem correta baseada no clientTs (timestamp de criação)
             let inserted = false;
             const children = Array.from(listContainer.children);
             for (const child of children) {
@@ -794,7 +761,6 @@
 
     // Função para atualizar um item (útil se você permitir edição)
     function updateFoodItemElement(item) {
-        // Para garantir a ordem, removemos e adicionamos o elemento atualizado
         removeFoodItemElement(item.id);
         appendFoodItem(item);
     }
@@ -818,7 +784,6 @@
       document.getElementById('totalProteins').textContent = totalProtein.toFixed(1)+' g';
       document.getElementById('totalCarbs').textContent   = totalCarbs.toFixed(1)+' g';
 
-      // A verificação da meta só é relevante se o dia visualizado for hoje
       const isToday = currentDateString === todayString;
 
       if(calorieGoal>0){
@@ -876,6 +841,11 @@
 
     // Compartilhar
     function shareToWhatsApp(){
+      if (currentDateString !== todayString) {
+          alert("Apenas é possível compartilhar o resumo do dia atual. Selecione a data de hoje.");
+          return;
+      }
+
       let totalCals=0,totalProtein=0,totalCarbs=0;
       const itemsByMeal = getItemsByMeal();
 
@@ -884,8 +854,10 @@
       const userName=document.getElementById('userNameDisplay').textContent;
       const goalType=document.getElementById('goalType').value||'ganhar';
       const goalName=goalDisplayNames[goalType];
+      
+      const dateDisplay = (currentDateString === todayString) ? 'de Hoje' : currentDateString;
 
-      let msg = `🏋️ Fitness-Pro 2.0 - Resumo do Dia (${formatDate(currentDate)})\n\n`;
+      let msg = `🏋️ Fitness-Pro 2.0 - Resumo do Dia (${dateDisplay})\n\n`;
       msg += `👤 ${userName}\n`;
       msg += `🎯 Objetivo: ${goalName}\n`;
       msg += `📊 Meta: ${calorieGoal.toFixed(0)} kcal\n\n`;
@@ -935,8 +907,11 @@
 
         await loadProfileAndMetas();
         
-        // * INICIALIZA A DATA PARA HOJE E INICIA O LISTENER *
-        changeDate(0); 
+        // * INICIALIZA O SELETOR DE DATA E CARREGA O DIA ATUAL *
+        const dateSelector = document.getElementById('dateSelector');
+        dateSelector.value = todayString;
+        dateSelector.max = todayString;
+        selectDate(todayString); 
 
         document.getElementById('loadingScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
@@ -962,9 +937,10 @@
     document.addEventListener('DOMContentLoaded', ()=>{
       initializeApp();
 
-      // * LISTENERS DE NAVEGAÇÃO DE DATA (NOVO) *
-      document.getElementById('prevDayButton').addEventListener('click', () => changeDate(-1));
-      document.getElementById('nextDayButton').addEventListener('click', () => changeDate(1));
+      // * LISTENER DO SELETOR DE DATA *
+      document.getElementById('dateSelector').addEventListener('change', (e) => {
+        selectDate(e.target.value);
+      });
 
       // Perfil
       document.getElementById('editProfileButton').addEventListener('click', ()=>{
