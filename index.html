@@ -7,7 +7,7 @@
     <!-- Carrega o Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Configuração do Firebase (Compatibilidade) -->
+    <!-- Configuração do Firebase Compatível -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
@@ -42,53 +42,24 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-teal-50 min-h-screen flex flex-col items-center justify-start p-4 py-8">
 
-    <!-- Seu conteúdo HTML aqui (idêntico ao anterior) -->
+    <!-- TODO: INCLUA AQUI TODO O CONTEÚDO DO SEU HTML E JS ORIGINAL -->
 
-    <!-- Tela de Carregamento/Conexão -->
-    <div id="loadingScreen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-600"></div>
-        <p class="text-xl font-semibold text-green-700 mt-4">Conectando ao app...</p>
-    </div>
-
-    <div id="mainApp" class="bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 hidden">
-        <!-- (Conteúdo do app igual ao código anterior, omitido aqui para brevidade) -->
-    </div>
-
-    <!-- Rodapé -->
-    <footer class="mt-8 text-sm text-gray-500">
-        Desenvolvido por Thiago
-    </footer>
-
-    <!-- Modal de Cadastro/Edição de Perfil -->
-    <div id="profileModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
-    <div id="profileModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
-        <!-- Conteúdo do modal igual código anterior -->
-    </div>
-
-    <!-- Modal de Aviso de Limite -->
-    <div id="warningModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-60 z-40 hidden"></div>
-    <div id="warningModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
-        <!-- Conteúdo do modal igual código anterior -->
-    </div>
-
-    <!-- SCRIPT FIREBASE CONFIG MODIFICADO PARA VERGEL -->
+    <!-- Configuração Firebase diretamente com valores (substitua pelos seus): -->
     <script>
         const firebaseConfig = {
-            apiKey: "[translate:process.env.NEXT_PUBLIC_FIREBASE_API_KEY]",
-            authDomain: "[translate:process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN]",
-            projectId: "[translate:process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID]",
-            storageBucket: "[translate:process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET]",
-            messagingSenderId: "[translate:process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID]",
-            appId: "[translate:process.env.NEXT_PUBLIC_FIREBASE_APP_ID]",
-            measurementId: "[translate:process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID]"
+            apiKey: "SUA_API_KEY_AQUI",
+            authDomain: "SEU_DOMINIO.firebaseapp.com",
+            projectId: "SEU_PROJECT_ID",
+            storageBucket: "SEU_BUCKET.appspot.com",
+            messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+            appId: "SEU_APP_ID",
+            measurementId: "SEU_MEASUREMENT_ID"
         };
-
         firebaseApp = firebase.initializeApp(firebaseConfig);
         firebaseAuth = firebase.auth();
         firebaseDb = firebase.firestore();
 
-        // Resto do seu código JS (funções etc.) aqui.
-        // ...
+        // Aqui continue com seu código JS que já tem, usando firebaseApp, firebaseAuth e firebaseDb...
     </script>
 
 </body>
