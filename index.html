@@ -18,7 +18,7 @@
     body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
-    #calorieProgress, #waterProgress { transition: width 0.3s ease-in-out; }
+    #calorieProgress, #waterProgress, #weightProgress { transition: width 0.3s ease-in-out; }
     .modal-transition { transition: opacity 0.3s, transform 0.3s; }
     .spinner { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -65,8 +65,12 @@
       </summary>
       <div id="profileForm" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div>
-          <label for="weight" class="block text-sm font-medium text-gray-700">Peso (kg)</label>
+          <label for="weight" class="block text-sm font-medium text-gray-700">Peso Atual (kg)</label>
           <input type="number" id="weight" placeholder="70" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label for="targetWeight" class="block text-sm font-medium text-gray-700">Meta Peso (kg)</label>
+          <input type="number" id="targetWeight" placeholder="75" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <div>
           <label for="height" class="block text-sm font-medium text-gray-700">Altura (cm)</label>
@@ -162,26 +166,6 @@
         <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
     </div>
 
-    <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
-        <h2 class="text-xl font-semibold text-blue-600 mb-3">💧 Adicionar Hidratação</h2>
-        <div class="flex items-end space-x-3 mb-4">
-            <div class="flex-grow">
-                <label for="waterQuantityInput" class="block text-sm font-medium text-gray-700">Qtd. de Água (ml)</label>
-                <input
-                    type="number"
-                    id="waterQuantityInput"
-                    placeholder="250"
-                    min="50"
-                    step="50"
-                    value="250"
-                    class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-            </div>
-            <button id="addWaterButton" class="h-10 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
-                Adicionar
-            </button>
-        </div>
-    </div>
     <div class="border-b border-gray-200 py-4">
       <h3 class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
         <span>Refeições do Dia:</span>
@@ -201,21 +185,38 @@
       <p class="text-xs text-gray-500 mt-2">⚠️ indica alimentos que podem aumentar a gordura visceral.</p>
     </div>
 
-    <div id="weightProjection" class="border-t border-gray-200 pt-4 pb-4">
-      <h2 class="text-xl font-semibold text-gray-700 mb-3">Progresso</h2>
-      <div class="grid grid-cols-2 gap-4 text-center">
-        <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-          <p class="text-base font-medium text-indigo-600 mb-1">Seu Peso Atual</p>
-          <p id="currentWeightDisplay" class="text-3xl font-bold text-indigo-700">-- kg</p>
-        </div>
-        <div id="projectionTarget" class="bg-purple-50 p-4 rounded-lg border border-purple-200">
-          <p class="text-base font-medium text-purple-600 mb-1">Meta de Dieta</p>
-          <p id="goalProjectionDisplay" class="text-3xl font-bold text-purple-700">--</p>
-        </div>
-      </div>
-    </div>
     <div class="space-y-4">
       <h2 class="text-xl font-semibold text-gray-800 text-center">Resumo do Dia</h2>
+      
+      <div id="weightProgressSection">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-base font-medium text-indigo-600">Meta de Peso</span>
+          <span id="weightGoalText" class="text-sm font-semibold text-indigo-600">0 kg / 0 kg</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+          <div id="weightProgress" class="bg-indigo-500 h-4 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+      <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
+        <h2 class="text-xl font-semibold text-blue-600 mb-3">💧 Adicionar Hidratação</h2>
+        <div class="flex items-end space-x-3 mb-4">
+            <div class="flex-grow">
+                <label for="waterQuantityInput" class="block text-sm font-medium text-gray-700">Qtd. de Água (ml)</label>
+                <input
+                    type="number"
+                    id="waterQuantityInput"
+                    placeholder="250"
+                    min="50"
+                    step="50"
+                    value="250"
+                    class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+            </div>
+            <button id="addWaterButton" class="h-10 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                Adicionar
+            </button>
+        </div>
+      </div>
       
       <div>
         <div class="flex justify-between items-center mb-1">
@@ -312,10 +313,11 @@
 
     let firebaseApp, firebaseAuth, firebaseDb, userId = null;
 
-    // * ESTADO DE DATA E LISTENER * (MANTIDO)
+    // * ESTADO DE DATA E LISTENER * (ATUALIZADO)
     let calorieGoal = 0;
     let waterGoal = 0; 
-    let currentWeight = 0; // NOVO: Armazena o peso atual
+    let currentWeight = 0; 
+    let targetWeight = 0; // NOVO: Armazena o peso alvo
     let selectedFoodKey = null;
     let dailyLog = {}; 
     let waterLog = 0; 
@@ -344,12 +346,6 @@
       ganhar: 'Ganho de Massa',
       manter: 'Manutenção',
       perder: 'Perda de Peso'
-    };
-
-    const goalProjectionText = {
-        ganhar: 'Ganhar Peso',
-        perder: 'Perder Peso',
-        manter: 'Manter Peso'
     };
 
     const mealSuggestions = {
@@ -493,6 +489,7 @@
         if(mSnap.exists){
           const d=mSnap.data();
           document.getElementById('weight').value=d.weight||'';
+          document.getElementById('targetWeight').value=d.targetWeight||''; // NOVO: Carrega Meta de Peso
           document.getElementById('height').value=d.height||'';
           document.getElementById('age').value=d.age||'';
           document.getElementById('gender').value=d.gender||'male';
@@ -501,7 +498,8 @@
           calorieGoal = parseFloat(d.calorieGoal)||0;
           waterGoal = parseFloat(d.waterGoal)||0; 
           currentGoalType = d.goalType||'ganhar';
-          currentWeight = parseFloat(d.weight)||0; // NOVO: Captura o peso atual
+          currentWeight = parseFloat(d.weight)||0; 
+          targetWeight = parseFloat(d.targetWeight)||0; // NOVO: Captura o peso alvo
         }
         updateGoalDisplay();
         updateMealSuggestion();
@@ -529,6 +527,8 @@
 
     async function saveMetas(){
       const weight=parseFloat(document.getElementById('weight').value);
+      const targetWeightInput=document.getElementById('targetWeight'); // NOVO: Pega o input
+      const targetWeightValue=parseFloat(targetWeightInput.value); // NOVO: Pega o valor
       const height=parseFloat(document.getElementById('height').value);
       const age=parseFloat(document.getElementById('age').value);
       const gender=document.getElementById('gender').value;
@@ -537,11 +537,19 @@
       const goalText=document.getElementById('goalText');
 
       if(isNaN(weight)||isNaN(height)||isNaN(age)||weight<=0||height<=0||age<=0){
-        goalText.textContent="Por favor, preencha todos os campos corretamente.";
+        goalText.textContent="Por favor, preencha Peso, Altura e Idade corretamente.";
         goalText.classList.remove('hidden','text-green-700');
         goalText.classList.add('text-red-600');
         return;
       }
+      
+      if(goalType !== 'manter' && (isNaN(targetWeightValue) || targetWeightValue <= 0 || targetWeightValue === weight)){
+        goalText.textContent="Por favor, insira uma Meta de Peso válida, diferente do peso atual, para o seu objetivo.";
+        goalText.classList.remove('hidden','text-green-700');
+        goalText.classList.add('text-red-600');
+        return;
+      }
+
 
       // Cálculo da Meta Calórica
       let bmr = (10*weight)+(6.25*height)-(5*age)+(gender==='male'?5:-161);
@@ -561,17 +569,19 @@
       calorieGoal=finalCalorieGoal;
       waterGoal=finalWaterGoal;
       currentGoalType=goalType;
-      currentWeight = weight; // NOVO: Salva o peso atual no estado
+      currentWeight = weight; 
+      targetWeight = targetWeightValue; // NOVO: Salva o peso alvo
 
       try{
         await getMetasDocRef().set({ 
-            weight,height,age,gender,activity,goalType, 
+            weight, targetWeight: targetWeightValue, height, age, gender, activity, goalType, 
             calorieGoal: finalCalorieGoal.toFixed(0),
             waterGoal: finalWaterGoal.toFixed(0) 
         });
         updateGoalDisplay();
         updateTotals(false);
         updateWaterTracker(true); 
+        updateWeightProgress(); // NOVO: Atualiza a barra de progresso
         updateMealSuggestion();
       }catch(e){
         goalText.textContent="Erro ao salvar meta. Verifique sua conexão.";
@@ -597,34 +607,69 @@
         hideElement(document.getElementById('goalTag'));
       }
       updateWaterTracker(true); 
-      updateWeightProjection(); // NOVO: Chama a função de projeção
+      updateWeightProgress(); // NOVO: Chamada
     }
     
-    // * NOVO: Função para atualizar a seção de Projeção de Peso *
-    function updateWeightProjection() {
-        const weightDisplay = document.getElementById('currentWeightDisplay');
-        const goalProjection = document.getElementById('goalProjectionDisplay');
-        const goalType = document.getElementById('goalType').value || 'manter';
-        
-        weightDisplay.textContent = currentWeight > 0 ? `${currentWeight.toFixed(1)} kg` : '-- kg';
-        
-        const goalText = goalProjectionText[goalType] || '--';
-        goalProjection.textContent = goalText;
+    // * NOVO: Função para atualizar a BARRA de Progresso de Peso *
+    function updateWeightProgress() {
+        const goalText = document.getElementById('weightGoalText');
+        const progressEl = document.getElementById('weightProgress');
+        const progressSection = document.getElementById('weightProgressSection');
 
-        const projectionTarget = document.getElementById('projectionTarget');
-        // Limpa classes antigas de cor e aplica a nova
-        projectionTarget.classList.remove('bg-purple-50', 'bg-red-50', 'bg-green-50');
-        projectionTarget.classList.remove('border-purple-200', 'border-red-200', 'border-green-200');
-        
-        if (goalType === 'perder') {
-             projectionTarget.classList.add('bg-red-50', 'border-red-200');
-        } else if (goalType === 'ganhar') {
-             projectionTarget.classList.add('bg-green-50', 'border-green-200');
-        } else {
-             projectionTarget.classList.add('bg-purple-50', 'border-purple-200');
+        if (currentWeight === 0 || targetWeight === 0 || currentGoalType === 'manter') {
+            goalText.textContent = `${currentWeight.toFixed(1)} kg / ${targetWeight.toFixed(1) || '--'} kg`;
+            progressEl.style.width = '0%';
+            progressEl.classList.remove('bg-green-500', 'bg-red-500');
+            progressEl.classList.add('bg-gray-400'); // Cor neutra
+            return;
         }
+
+        const initialWeight = currentWeight;
+        const target = targetWeight;
+        
+        // Simplesmente, mostra o peso atual e o objetivo
+        goalText.textContent = `${currentWeight.toFixed(1)} kg / ${target.toFixed(1)} kg`;
+
+        // Lógica de cálculo de progresso
+        let progress = 0;
+        let totalChange = Math.abs(target - initialWeight);
+        let currentChange = Math.abs(initialWeight - currentWeight); // Se o peso for atualizado
+
+        // Por enquanto, o "currentWeight" é o que está no input. Usamos o "initialWeight"
+        // como ponto de partida e o "currentWeight" (que é o mesmo que initialWeight
+        // até o usuário atualizar) como a posição.
+
+        // Por enquanto, vamos simular o progresso assumindo que o peso atual
+        // é o que foi salvo por último (currentWeight).
+
+        if (totalChange > 0) {
+            // Se o objetivo for perder peso (Target < Initial)
+            if (target < initialWeight) {
+                // Progresso é a distância percorrida (Initial - Current) sobre o total (Initial - Target)
+                progress = ((initialWeight - currentWeight) / (initialWeight - target)) * 100;
+                progressEl.classList.remove('bg-green-500');
+                progressEl.classList.add('bg-red-500'); // Cor vermelha para Perda
+            } 
+            // Se o objetivo for ganhar peso (Target > Initial)
+            else if (target > initialWeight) {
+                // Progresso é a distância percorrida (Current - Initial) sobre o total (Target - Initial)
+                progress = ((currentWeight - initialWeight) / (target - initialWeight)) * 100;
+                progressEl.classList.remove('bg-red-500');
+                progressEl.classList.add('bg-green-500'); // Cor verde para Ganho
+            }
+        } else {
+             progress = 0;
+        }
+
+
+        // Garante que o progresso não passe de 100%
+        progress = Math.min(Math.max(progress, 0), 100); 
+
+        progressEl.style.width = progress + '%';
+        progressEl.classList.remove('bg-gray-400');
     }
-    // * FIM NOVO: Projeção de Peso *
+    // * FIM NOVO: Barra de Progresso de Peso *
+
 
     function updateMealSuggestion(){
       const el=document.getElementById('mealSuggestion');
@@ -777,7 +822,7 @@
         }
 
         const addWaterButton = document.getElementById('addWaterButton');
-        addWaterButton.disabled = true; // Desabilita para evitar clique duplo
+        addWaterButton.disabled = true; 
         
         const input = document.getElementById('waterQuantityInput');
         const quantity = parseInt(input.value);
@@ -792,7 +837,7 @@
 
         try {
             const now = new Date();
-            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; // NOVO: Captura e formata o horário
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; 
             
             const payload = {
                 type: 'water', 
@@ -801,17 +846,17 @@
                 unit: 'ml',
                 ts: firebase.firestore.FieldValue.serverTimestamp(), 
                 clientTs: Date.now(),
-                timeStr: timeStr // NOVO: Salva o horário
+                timeStr: timeStr 
             };
 
             await itemsRef.add(payload);
 
-            input.value = '250'; // Reseta para o valor padrão
+            input.value = '250'; 
         } catch (e) {
             alert("Erro ao registrar água. Tente novamente. Verifique as regras do Firebase.");
             console.error("Erro ao adicionar água:", e);
         } finally {
-            addWaterButton.disabled = false; // Re-habilita
+            addWaterButton.disabled = false; 
         }
     }
 
@@ -848,7 +893,7 @@
 
       const f=foodDatabase[selectedFoodKey];
       const now = new Date();
-      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; // NOVO: Captura e formata o horário
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; 
       
       const payload = {
         type: 'food', 
@@ -863,7 +908,7 @@
         meal,
         ts: firebase.firestore.FieldValue.serverTimestamp(), 
         clientTs: Date.now(),
-        timeStr: timeStr // NOVO: Salva o horário
+        timeStr: timeStr 
       };
 
       const itemsRef = getItemsRef(userId, currentDateString);
@@ -1265,13 +1310,7 @@
       document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
       document.getElementById('mealTimeSelect').addEventListener('change', updateMealSuggestion);
       
-      // Atualizar a projeção ao fechar o modal de metas (para o caso de ter alterado o peso)
-      document.getElementById('goalsDetails').addEventListener('toggle', (e) => {
-          if (!e.target.open) {
-              updateWeightProjection();
-          }
-      });
-
+      // NÃO HÁ MAIS NECESSIDADE DE ATUALIZAR AO FECHAR O MODAL, POIS O SAVE METAS JÁ FAZ ISSO.
 
       // Alimentos
       document.getElementById('foodSearch').addEventListener('input', searchFood);
