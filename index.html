@@ -61,9 +61,9 @@
                 Fitness-Pro 2.0
             </h1>
             <button id="shareAppButton" class="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600 transition-colors" title="Compartilhar o App">
-                <!-- Ícone de Partilha (Três pontos ligados por linhas) -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
-                    <path d="M18 16c-1.33 0-2.52.55-3.39 1.43l-4.22-2.31c.06-.24.11-.49.11-.75s-.05-.51-.11-.75l4.22-2.31c.87.88 2.06 1.43 3.39 1.43a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-4.81-4.72L9 14.52c-.87-.88-2.06-1.43-3.39-1.43a4 4 0 1 0 0 8 4 4 0 0 0 3.39-1.43l4.22 2.31c-.06.24-.11.49-.11.75s.05.51.11.75l-4.22 2.31A4 4 0 1 0 18 16l-4.22-2.31c-.06.24-.11.49-.11.75s.05.51.11.75l4.22 2.31A4 4 0 1 0 18 16Zm-7.81 7.22a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+                <!-- Ícone de Partilha (Seta Diagonal/Facebook) -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6 transform -rotate-45">
+                    <path d="M12 21a1 1 0 0 0 1-1V4a1 1 0 0 0-2 0v16a1 1 0 0 0 1 1ZM17 12a1 1 0 0 0 .707-.293l3.5-3.5a1 1 0 0 0-1.414-1.414L17 9.586V4a1 1 0 0 0-2 0v5.586l-2.793-2.793a1 1 0 0 0-1.414 1.414l3.5 3.5A1 1 0 0 0 17 12Z"/>
                 </svg>
             </button>
         </header>
@@ -206,13 +206,14 @@
 
         <!-- Lista de Alimentos Adicionados -->
         <div class="border-t border-b border-gray-200 py-4">
-            <!-- LINHA CORRIGIDA: Usa flex e ajusta o tamanho da fonte da tag para caber -->
+            <!-- LINHA CORRIGIDA: Adiciona os dois pontos e mantém layout compacto -->
             <h3 id="foodListTitle" class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
-                <span>Suas Refeições</span>
+                <span>Suas Refeições:</span>
                 <!-- O Objetivo será inserido aqui pelo JS -->
                 <span id="goalTag" class="text-xs font-medium text-blue-700 bg-blue-100 py-0.5 px-2 rounded-full flex-shrink-0 hidden"></span>
             </h3>
             <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50">
+                <!-- Mensagem de erro de carregamento removida do HTML para evitar poluição visual -->
                 <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
                 <!-- Seções de refeição serão injetadas aqui -->
             </div>
@@ -712,7 +713,7 @@
 
             } catch (error) {
                  console.error("Erro ao carregar log diário:", error);
-                 document.getElementById('foodList').innerHTML = `<p class="text-red-500 text-center">Erro ao carregar suas refeições. Tente recarregar o app.</p>`;
+                 // Apenas loga o erro, não exibe mais na tela
             }
         }
 
@@ -1137,7 +1138,7 @@
                  foodQuantityInput.placeholder = 'Colheres';
             } else {
                 foodQuantityInput.value = '1';
-                foodQuantityInput.placeholder = 'Unidades';
+                 foodQuantityInput.placeholder = 'Unidades';
             }
             hideElement(document.getElementById('searchDropdown'));
             foodQuantityInput.focus();
