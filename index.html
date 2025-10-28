@@ -392,12 +392,8 @@
     function loadProfilePicLocally(){ const pic=localStorage.getItem(`profilePic_${userId}`); if(pic){ profilePicBase64=pic; document.getElementById('profileImageDisplay').src=pic; document.getElementById('modalProfileImage').src=pic; } }
 
     // Perfil/Metas (coleção data/)
-    function getProfileDocRef() {
-      return firebaseDb.collection('users').doc(userId).collection('data').doc('profile');
-    }
-    function getMetasDocRef() {
-      return firebaseDb.collection('users').doc(userId).collection('data').doc('metas');
-    }
+    function getProfileDocRef() { return firebaseDb.collection('users').doc(userId).collection('data').doc('profile'); }
+    function getMetasDocRef() { return firebaseDb.collection('users').doc(userId).collection('data').doc('metas'); }
 
     async function loadProfileAndMetas(){
       try{
@@ -520,17 +516,20 @@
       // Garante doc do dia
       dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
 
-      // Listener em tempo real com metadados para refletir mudanças locais
-      itemsRef.orderBy('ts','asc').onSnapshot({ includeMetadataChanges: true }, (snap)=>{
-        const base = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
-        snap.forEach(doc=>{
-          const it = doc.data();
-          base[it.meal]?.push({ ...it, id: doc.id });
-        });
-        dailyLog = base;
-        renderFoodList();
-        updateTotals(false);
-      });
+      // Listener em tempo real com metadados e ordenação por clientTs
+      itemsRef.orderBy('clientTs','asc').onSnapshot(
+        { includeMetadataChanges: true },
+        (snap)=>{
+          const base = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
+          snap.forEach(doc=>{
+            const it = doc.data();
+            base[it.meal]?.push({ ...it, id: doc.id });
+          });
+          dailyLog = base;
+          renderFoodList();
+          updateTotals(false);
+        }
+      );
     }
 
     // Adicionar item (um doc por alimento)
@@ -551,10 +550,11 @@
         cals: parseFloat((f.cals*quantity).toFixed(0)),
         visceralFat: f.visceralFat,
         meal,
-        ts: firebase.firestore.FieldValue.serverTimestamp()
+        ts: firebase.firestore.FieldValue.serverTimestamp(), // canônico
+        clientTs: Date.now() // ordenação instantânea local
       };
 
-      // Persistência: doc por item (onSnapshot reflete local instantaneamente)
+      // Persistência: doc por item (onSnapshot reflete local com cache)
       await itemsRef.add(payload);
 
       // Limpeza
@@ -571,11 +571,7 @@
       renderFoodList();
       updateTotals(false);
       // Persistência
-      try {
-        await itemsRef.doc(itemId).delete();
-      } catch (err) {
-        console.warn('Falha ao excluir, sincronizará pelo listener:', err);
-      }
+      try { await itemsRef.doc(itemId).delete(); } catch (err) { console.warn('Falha ao excluir, listener vai reconciliar:', err); }
     }
 
     function renderFoodList(){
@@ -723,83 +719,3 @@
     }
 
     // Inicialização
-    async function initializeApp(){
-      try{
-        firebaseApp = firebase.initializeApp(firebaseConfig);
-        firebaseAuth = firebase.auth();
-        firebaseDb = firebase.firestore();
-
-        // Persistência offline com multi-aba
-        try{
-          await firebaseDb.enablePersistence({ synchronizeTabs: true });
-        }catch(err){
-          console.warn('Persistência não habilitada:', err?.code||err);
-        }
-
-        await firebaseAuth.signInAnonymously();
-        userId = firebaseAuth.currentUser.uid;
-
-        await loadProfileAndMetas();
-        startDayListener();
-
-        document.getElementById('loadingScreen').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-      }catch(e){
-        const l=document.getElementById('loadingScreen');
-        l.innerHTML = `
-          <p class="text-red-600 font-semibold">Erro ao conectar com o servidor</p>
-          <p class="text-gray-600 mt-2">Verifique sua conexão e recarregue a página</p>
-          <button onclick="location.reload()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg">Tentar Novamente</button>
-        `;
-      }
-    }
-
-    // Expor funções globais para onclick
-    window.selectFood = selectFood;
-    window.addFoodToLog = addFoodToLog;
-    window.removeFoodFromLog = removeFoodFromLog;
-
-    // Listeners
-    document.addEventListener('DOMContentLoaded', ()=>{
-      initializeApp();
-
-      // Perfil
-      document.getElementById('editProfileButton').addEventListener('click', ()=>{
-        isEditingProfile=true;
-        document.getElementById('modalTitle').textContent='Editar Perfil';
-        showModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
-      });
-      document.getElementById('saveProfileButton').addEventListener('click', saveProfileData);
-      document.getElementById('profilePicInput').addEventListener('change', async (e)=>{
-        const file=e.target.files[0];
-        if(file){ profilePicBase64=await fileToBase64(file); document.getElementById('modalProfileImage').src=profilePicBase64; }
-      });
-
-      // Metas
-      document.getElementById('calculateButton').addEventListener('click', saveMetas);
-      document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
-      document.getElementById('mealTimeSelect').addEventListener('change', updateMealSuggestion);
-
-      // Alimentos
-      document.getElementById('foodSearch').addEventListener('input', searchFood);
-      document.getElementById('addFoodButton').addEventListener('click', addFoodToLog);
-
-      // Compartilhar
-      document.getElementById('shareButton').addEventListener('click', shareToWhatsApp);
-      document.getElementById('shareAppButton').addEventListener('click', shareApp);
-
-      // Modal aviso
-      document.getElementById('closeWarningModalButton').addEventListener('click', ()=>{
-        hideModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay'));
-      });
-
-      // Fechar dropdown ao clicar fora
-      document.addEventListener('click', (e)=>{
-        if(!e.target.closest('#foodSearch') && !e.target.closest('#searchDropdown')){
-          hideElement(document.getElementById('searchDropdown'));
-        }
-      });
-    });
-  </script>
-</body>
-</html>
