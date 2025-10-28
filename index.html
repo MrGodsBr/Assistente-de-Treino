@@ -960,3 +960,10 @@
       // Fechar dropdown ao clicar fora
       document.addEventListener('click', (e)=>{
         if(!e.target.closest('#foodSearch') && !e.target.closest('#searchDropdown')){
+          hideElement(document.getElementById('searchDropdown'));
+        }
+      });
+    });
+  </script>
+</body>
+</html>
