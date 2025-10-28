@@ -61,9 +61,9 @@
                 Fitness-Pro 2.0
             </h1>
             <button id="shareAppButton" class="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600 transition-colors" title="Compartilhar o App">
-                <!-- Ícone de Partilha (3 Pontos) - Estilo universal de compartilhamento -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18 16a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM6 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM12 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM18 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM6 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>
+                <!-- Ícone de Partilha (Três pontos ligados por linhas) -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                    <path d="M18 16c-1.33 0-2.52.55-3.39 1.43l-4.22-2.31c.06-.24.11-.49.11-.75s-.05-.51-.11-.75l4.22-2.31c.87.88 2.06 1.43 3.39 1.43a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-4.81-4.72L9 14.52c-.87-.88-2.06-1.43-3.39-1.43a4 4 0 1 0 0 8 4 4 0 0 0 3.39-1.43l4.22 2.31c-.06.24-.11.49-.11.75s.05.51.11.75l-4.22 2.31A4 4 0 1 0 18 16l-4.22-2.31c-.06.24-.11.49-.11.75s.05.51.11.75l4.22 2.31A4 4 0 1 0 18 16Zm-7.81 7.22a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
                 </svg>
             </button>
         </header>
@@ -208,7 +208,8 @@
         <div class="border-t border-b border-gray-200 py-4">
             <h3 id="foodListTitle" class="text-xl font-semibold text-gray-700 mb-3 flex justify-between items-center">
                 <span>Suas Refeições (Hoje):</span>
-                <!-- O Botão Limpar Refeições foi removido a pedido do usuário -->
+                <!-- O Objetivo será inserido aqui pelo JS -->
+                <span id="goalTag" class="hidden text-sm font-medium text-blue-700 bg-blue-100 py-0.5 px-3 rounded-full"></span>
             </h3>
             <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50">
                 <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
@@ -344,7 +345,8 @@
         let goalExceededNotified = false;
         let profilePicBase64 = null;
         let isEditingProfile = false;
-        
+        let currentGoalType = 'ganhar'; // Padrão
+
         const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
         const mealDisplayNames = {
             cafe_da_manha: "☕ Café da Manhã",
@@ -538,6 +540,7 @@
                     document.getElementById('activity').value = data.activity || '1.55';
                     document.getElementById('goalType').value = data.goalType || 'ganhar';
                     calorieGoal = parseFloat(data.calorieGoal) || 0;
+                    currentGoalType = data.goalType || 'ganhar'; // Atualiza a variável global do objetivo
                 }
 
                 updateGoalDisplay();
@@ -623,6 +626,7 @@
                     break;
             }
             calorieGoal = finalGoal;
+            currentGoalType = goalType;
 
             try {
                 await getMetasDocRef().set({
@@ -633,6 +637,7 @@
                 updateGoalDisplay();
                 updateTotals(false); // Atualiza os totais e verifica o modal
                 updateMealSuggestion();
+                renderFoodList(); // Atualiza o título das refeições com o novo objetivo
 
             } catch (error) {
                 console.error("Erro ao salvar metas:", error);
@@ -650,10 +655,16 @@
                  goalText.textContent = `Sua meta (${goalName}): ${calorieGoal.toFixed(0)} kcal/dia`;
                  goalText.classList.remove('hidden', 'text-red-600', 'text-gray-600');
                  goalText.classList.add('text-green-700');
+                 
+                 // Atualiza a tag do objetivo na lista de refeições
+                 document.getElementById('goalTag').textContent = goalName;
+                 showElement(document.getElementById('goalTag'));
+
             } else {
                  goalText.textContent = "Clique em 'Calcular e Salvar Meta'.";
                  goalText.classList.remove('hidden', 'text-green-700', 'text-red-600');
                  goalText.classList.add('text-gray-600');
+                 hideElement(document.getElementById('goalTag'));
             }
         }
         
@@ -771,6 +782,15 @@
             const foodListContainer = document.getElementById('foodList');
             foodListContainer.innerHTML = '';
             let totalItems = 0;
+
+            // Define o Goal Tag no título da lista de refeições
+            const goalTagEl = document.getElementById('goalTag');
+            if (calorieGoal > 0) {
+                goalTagEl.textContent = goalDisplayNames[currentGoalType];
+                showElement(goalTagEl);
+            } else {
+                hideElement(goalTagEl);
+            }
 
             MEAL_KEYS.forEach(mealKey => {
                 const items = dailyLog[mealKey];
