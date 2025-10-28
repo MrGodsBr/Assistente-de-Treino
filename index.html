@@ -206,10 +206,11 @@
 
         <!-- Lista de Alimentos Adicionados -->
         <div class="border-t border-b border-gray-200 py-4">
-            <h3 id="foodListTitle" class="text-xl font-semibold text-gray-700 mb-3 flex justify-between items-center">
-                <span>Suas Refeições (Hoje):</span>
+            <!-- LINHA CORRIGIDA: Usa flex e ajusta o tamanho da fonte da tag para caber -->
+            <h3 id="foodListTitle" class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
+                <span>Suas Refeições</span>
                 <!-- O Objetivo será inserido aqui pelo JS -->
-                <span id="goalTag" class="hidden text-sm font-medium text-blue-700 bg-blue-100 py-0.5 px-3 rounded-full"></span>
+                <span id="goalTag" class="text-xs font-medium text-blue-700 bg-blue-100 py-0.5 px-2 rounded-full flex-shrink-0 hidden"></span>
             </h3>
             <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50">
                 <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
