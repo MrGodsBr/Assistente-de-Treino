@@ -201,6 +201,19 @@
       <p class="text-xs text-gray-500 mt-2">⚠️ indica alimentos que podem aumentar a gordura visceral.</p>
     </div>
 
+    <div id="weightProjection" class="border-t border-gray-200 pt-4 pb-4">
+      <h2 class="text-xl font-semibold text-gray-700 mb-3">Progresso</h2>
+      <div class="grid grid-cols-2 gap-4 text-center">
+        <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+          <p class="text-base font-medium text-indigo-600 mb-1">Seu Peso Atual</p>
+          <p id="currentWeightDisplay" class="text-3xl font-bold text-indigo-700">-- kg</p>
+        </div>
+        <div id="projectionTarget" class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+          <p class="text-base font-medium text-purple-600 mb-1">Meta de Dieta</p>
+          <p id="goalProjectionDisplay" class="text-3xl font-bold text-purple-700">--</p>
+        </div>
+      </div>
+    </div>
     <div class="space-y-4">
       <h2 class="text-xl font-semibold text-gray-800 text-center">Resumo do Dia</h2>
       
@@ -302,6 +315,7 @@
     // * ESTADO DE DATA E LISTENER * (MANTIDO)
     let calorieGoal = 0;
     let waterGoal = 0; 
+    let currentWeight = 0; // NOVO: Armazena o peso atual
     let selectedFoodKey = null;
     let dailyLog = {}; 
     let waterLog = 0; 
@@ -330,6 +344,12 @@
       ganhar: 'Ganho de Massa',
       manter: 'Manutenção',
       perder: 'Perda de Peso'
+    };
+
+    const goalProjectionText = {
+        ganhar: 'Ganhar Peso',
+        perder: 'Perder Peso',
+        manter: 'Manter Peso'
     };
 
     const mealSuggestions = {
@@ -481,6 +501,7 @@
           calorieGoal = parseFloat(d.calorieGoal)||0;
           waterGoal = parseFloat(d.waterGoal)||0; 
           currentGoalType = d.goalType||'ganhar';
+          currentWeight = parseFloat(d.weight)||0; // NOVO: Captura o peso atual
         }
         updateGoalDisplay();
         updateMealSuggestion();
@@ -540,6 +561,7 @@
       calorieGoal=finalCalorieGoal;
       waterGoal=finalWaterGoal;
       currentGoalType=goalType;
+      currentWeight = weight; // NOVO: Salva o peso atual no estado
 
       try{
         await getMetasDocRef().set({ 
@@ -575,7 +597,34 @@
         hideElement(document.getElementById('goalTag'));
       }
       updateWaterTracker(true); 
+      updateWeightProjection(); // NOVO: Chama a função de projeção
     }
+    
+    // * NOVO: Função para atualizar a seção de Projeção de Peso *
+    function updateWeightProjection() {
+        const weightDisplay = document.getElementById('currentWeightDisplay');
+        const goalProjection = document.getElementById('goalProjectionDisplay');
+        const goalType = document.getElementById('goalType').value || 'manter';
+        
+        weightDisplay.textContent = currentWeight > 0 ? `${currentWeight.toFixed(1)} kg` : '-- kg';
+        
+        const goalText = goalProjectionText[goalType] || '--';
+        goalProjection.textContent = goalText;
+
+        const projectionTarget = document.getElementById('projectionTarget');
+        // Limpa classes antigas de cor e aplica a nova
+        projectionTarget.classList.remove('bg-purple-50', 'bg-red-50', 'bg-green-50');
+        projectionTarget.classList.remove('border-purple-200', 'border-red-200', 'border-green-200');
+        
+        if (goalType === 'perder') {
+             projectionTarget.classList.add('bg-red-50', 'border-red-200');
+        } else if (goalType === 'ganhar') {
+             projectionTarget.classList.add('bg-green-50', 'border-green-200');
+        } else {
+             projectionTarget.classList.add('bg-purple-50', 'border-purple-200');
+        }
+    }
+    // * FIM NOVO: Projeção de Peso *
 
     function updateMealSuggestion(){
       const el=document.getElementById('mealSuggestion');
@@ -603,7 +652,7 @@
             const listContainer = document.getElementById(`list-${k}`);
             if (listContainer) listContainer.innerHTML = '';
             const section = document.getElementById(`section-${k}`);
-            if (section && k !== 'water') section.remove(); // Não remove a section de água que está no HTML
+            if (section && k !== 'water') section.remove(); 
         });
         manageEmptyListText();
         updateTotals(false);
@@ -689,7 +738,7 @@
                 dailyLog[item.id] = item;
                 // Usa a função correta de renderização
                 if (item.type === 'water') {
-                    updateFoodItemElement(item, true); // true para forçar re-render na água
+                    updateFoodItemElement(item, true); 
                 } else {
                     updateFoodItemElement(item, false);
                 }
@@ -720,7 +769,7 @@
       );
     }
     
-    // * Função para Adicionar Água (CORRIGIDA) *
+    // * Função para Adicionar Água (COM HORÁRIO) *
     async function addWater() {
         if (currentDateString !== todayDateString) {
             alert("Você só pode registrar o consumo de água no dia de hoje.");
@@ -1215,6 +1264,14 @@
       document.getElementById('calculateButton').addEventListener('click', saveMetas);
       document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
       document.getElementById('mealTimeSelect').addEventListener('change', updateMealSuggestion);
+      
+      // Atualizar a projeção ao fechar o modal de metas (para o caso de ter alterado o peso)
+      document.getElementById('goalsDetails').addEventListener('toggle', (e) => {
+          if (!e.target.open) {
+              updateWeightProjection();
+          }
+      });
+
 
       // Alimentos
       document.getElementById('foodSearch').addEventListener('input', searchFood);
