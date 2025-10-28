@@ -155,7 +155,13 @@
         </button>
       </div>
     </div>
-    
+
+    <div class="border-t border-gray-200 pt-4">
+        <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2">Histórico:</label>
+        <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
+    </div>
+
     <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
         <h2 class="text-xl font-semibold text-blue-600 mb-3">💧 Rastrear Hidratação</h2>
         <div class="flex items-end space-x-3 mb-4">
@@ -179,11 +185,6 @@
         <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
             <div id="waterProgress" class="bg-blue-500 h-4 rounded-full" style="width: 0%"></div>
         </div>
-    </div>
-    <div class="border-t border-gray-200 pt-4">
-        <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2">Histórico:</label>
-        <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-        <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
     </div>
     <div class="border-b border-gray-200 py-4">
       <h3 class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
@@ -427,7 +428,7 @@
       
       // ITENS DE CAFÉ
       'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false },
-      'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, cals: 24, unit: 'xícara', visceralFat: false }, // NOVO ITEM
+      'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, cals: 24, unit: 'xícara', visceralFat: false }, // Adicionado
       'cafe_leite_integral_acucar': { name: 'Café c/ Leite Integral e Açúcar', protein: 1.6, carbs: 5, cals: 81, unit: 'xícara 200ml', visceralFat: true },
       'cafe_leite_desnatado_acucar': { name: 'Café c/ Leite Desnatado e Açúcar', protein: 1.7, carbs: 5, cals: 65, unit: 'xícara 200ml', visceralFat: false },
 
@@ -444,7 +445,7 @@
     function getItemsRef(uid, date) {
       return getDayRef(uid, date).collection('items');
     }
-    // NOVO: Referência para a coleção de água
+    // Referência para a coleção de água
     function getWaterRef(uid, date) {
         return firebaseDb.collection('users').doc(uid).collection('days').doc(date).collection('water');
     }
@@ -488,7 +489,7 @@
           document.getElementById('activity').value=d.activity||'1.55';
           document.getElementById('goalType').value=d.goalType||'ganhar';
           calorieGoal = parseFloat(d.calorieGoal)||0;
-          waterGoal = parseFloat(d.waterGoal)||0; // NOVO: Carrega meta de água
+          waterGoal = parseFloat(d.waterGoal)||0; // Carrega meta de água
           currentGoalType = d.goalType||'ganhar';
         }
         updateGoalDisplay();
@@ -531,12 +532,12 @@
         return;
       }
 
-      // Cálculo da Meta Calórica (MANTIDO)
+      // Cálculo da Meta Calórica
       let bmr = (10*weight)+(6.25*height)-(5*age)+(gender==='male'?5:-161);
       const tdee = bmr*activity;
       let finalCalorieGoal = goalType==='perder'? tdee-400 : goalType==='manter'? tdee : tdee+400;
 
-      // * NOVO: CÁLCULO DA META DE ÁGUA (35ml/kg ajustado pela idade) *
+      // * CÁLCULO DA META DE ÁGUA (35ml/kg ajustado pela idade) *
       let mlPerKg = 35;
       if (age >= 56 && age <= 65) {
           mlPerKg = 30;
@@ -554,11 +555,11 @@
         await getMetasDocRef().set({ 
             weight,height,age,gender,activity,goalType, 
             calorieGoal: finalCalorieGoal.toFixed(0),
-            waterGoal: finalWaterGoal.toFixed(0) // NOVO: Salva meta de água
+            waterGoal: finalWaterGoal.toFixed(0) // Salva meta de água
         });
         updateGoalDisplay();
         updateTotals(false);
-        updateWaterTracker(); // NOVO: Atualiza o tracker de água
+        updateWaterTracker(true); // Atualiza o tracker de água
         updateMealSuggestion();
       }catch(e){
         goalText.textContent="Erro ao salvar meta. Verifique sua conexão.";
@@ -583,7 +584,7 @@
         goalText.classList.add('text-gray-600');
         hideElement(document.getElementById('goalTag'));
       }
-      updateWaterTracker(); // NOVO: Garante que a meta de água seja atualizada junto
+      updateWaterTracker(true); // Garante que a meta de água seja atualizada junto
     }
 
     function updateMealSuggestion(){
@@ -602,41 +603,44 @@
             unsubscribeListener(); 
             unsubscribeListener = null;
         }
-        if (unsubscribeWaterListener) { // NOVO: Limpa listener de água
+        if (unsubscribeWaterListener) { 
             unsubscribeWaterListener();
             unsubscribeWaterListener = null;
         }
 
         currentDateString = dateString;
         dailyLog = {}; 
-        waterLog = 0; // NOVO: Zera o rastreio de água
+        waterLog = 0; 
 
         clearFoodListUI();
         updateTotals(false);
-        updateWaterTracker(false); // NOVO: Força atualização do tracker
+        updateWaterTracker(false); 
 
         const isToday = currentDateString === todayDateString;
         const addFoodSection = document.getElementById('addFoodSection');
         const shareButton = document.getElementById('shareButton');
         const dateStatus = document.getElementById('dateStatus');
-        const addWaterButton = document.getElementById('addWaterButton'); // NOVO
+        const addWaterButton = document.getElementById('addWaterButton'); 
+        const waterInput = document.getElementById('waterQuantityInput');
 
         if (isToday) {
             addFoodSection.classList.remove('opacity-50');
             addFoodSection.querySelectorAll('input, select, button').forEach(el => el.disabled = false);
             shareButton.disabled = false;
-            addWaterButton.disabled = false; // NOVO
+            addWaterButton.disabled = false; 
+            waterInput.disabled = false;
             dateStatus.textContent = 'Visualizando e Editando o dia de Hoje';
         } else {
             addFoodSection.classList.add('opacity-50');
             addFoodSection.querySelectorAll('input, select, button').forEach(el => el.disabled = true);
             shareButton.disabled = true;
-            addWaterButton.disabled = true; // NOVO
+            addWaterButton.disabled = true; 
+            waterInput.disabled = true;
             dateStatus.textContent = `Visualizando Histórico (Somente Leitura) em ${dateString}`;
         }
 
         startDayListener(dateString);
-        startWaterListener(dateString); // NOVO: Inicia o listener de água
+        startWaterListener(dateString); 
     }
     
     function clearFoodListUI() {
@@ -696,7 +700,7 @@
       );
     }
     
-    // * NOVO: Listener para Rastreamento de Água *
+    // * Listener para Rastreamento de Água *
     function startWaterListener(date) {
         const waterRef = getWaterRef(userId, date).doc('current');
         
@@ -707,11 +711,11 @@
             } else {
                 waterLog = 0;
             }
-            updateWaterTracker(true); // Sempre atualiza o tracker após o snapshot
+            updateWaterTracker(true);
         });
     }
 
-    // * NOVO: Função para Adicionar Água *
+    // * Função para Adicionar Água *
     async function addWater() {
         if (currentDateString !== todayDateString) {
             alert("Você só pode registrar o consumo de água no dia de hoje.");
@@ -739,7 +743,7 @@
         }
     }
 
-    // * NOVO: Função para Atualizar a UI do Rastreamento de Água *
+    // * Função para Atualizar a UI do Rastreamento de Água *
     function updateWaterTracker(checkGoal = true) {
         const goalText = document.getElementById('waterGoalText');
         const progressEl = document.getElementById('waterProgress');
@@ -752,8 +756,6 @@
         } else {
             progressEl.style.width = '0%';
         }
-        
-        // Opcional: Adicionar um aviso de meta de água atingida
     }
 
 
@@ -987,10 +989,10 @@
       msg += `👤 ${userName}\n`;
       msg += `🎯 Objetivo: ${goalName}\n`;
       msg += `📊 Meta Calorias: ${calorieGoal.toFixed(0)} kcal\n`;
-      msg += `💧 Meta Água: ${waterGoal.toFixed(0)} ml\n\n`; // NOVO: Incluído
+      msg += `💧 Meta Água: ${waterGoal.toFixed(0)} ml\n\n`; 
       msg += `Consumo do Dia:\n`;
       msg += `🔥 Calorias: ${totalCals.toFixed(0)} kcal\n`;
-      msg += `💧 Água Consumida: ${waterLog} ml\n`; // NOVO: Incluído
+      msg += `💧 Água Consumida: ${waterLog} ml\n`; 
       msg += `💪 Proteínas: ${totalProtein.toFixed(1)}g\n`;
       msg += `🍞 Carboidratos: ${totalCarbs.toFixed(1)}g\n\n`;
 
