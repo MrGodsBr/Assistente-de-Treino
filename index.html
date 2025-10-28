@@ -439,10 +439,6 @@
     function getItemsRef(uid, date) {
       return getDayRef(uid, date).collection('items');
     }
-    // A coleção water_log não é mais necessária, usamos 'items' para tudo
-    // function getWaterLogRef(uid, date) {
-    //     return getDayRef(uid, date).collection('water_log');
-    // }
 
     // UI helpers
     function showElement(el){ el.classList.remove('hidden'); }
@@ -607,7 +603,7 @@
             const listContainer = document.getElementById(`list-${k}`);
             if (listContainer) listContainer.innerHTML = '';
             const section = document.getElementById(`section-${k}`);
-            if (section) section.remove();
+            if (section && k !== 'water') section.remove(); // Não remove a section de água que está no HTML
         });
         manageEmptyListText();
         updateTotals(false);
@@ -663,7 +659,6 @@
         dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
       }
 
-      // Adiciona um lock para evitar re-renderização completa desnecessária
       let initialLoad = true;
 
       // OTIMIZAÇÃO CRÍTICA: Listener em tempo real com docChanges
@@ -673,7 +668,7 @@
           let shouldUpdateTotals = false;
           
           if (snap.docChanges().length > 0 && snap.metadata.fromCache && initialLoad) {
-              clearFoodListUI(); // Garante limpeza se for o primeiro load do cache
+              clearFoodListUI();
           }
           
           // Se for o primeiro load e não houver cache, limpar antes de renderizar
@@ -725,7 +720,7 @@
       );
     }
     
-    // * CORREÇÃO: Função para Adicionar Água (SALVA COMO ITEM NO itemsRef) *
+    // * Função para Adicionar Água (CORRIGIDA) *
     async function addWater() {
         if (currentDateString !== todayDateString) {
             alert("Você só pode registrar o consumo de água no dia de hoje.");
@@ -747,17 +742,19 @@
         const itemsRef = getItemsRef(userId, todayDateString);
 
         try {
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; // NOVO: Captura e formata o horário
+            
             const payload = {
                 type: 'water', 
                 name: 'Água Pura',
                 quantity: quantity,
                 unit: 'ml',
                 ts: firebase.firestore.FieldValue.serverTimestamp(), 
-                clientTs: Date.now() 
+                clientTs: Date.now(),
+                timeStr: timeStr // NOVO: Salva o horário
             };
 
-            // Adicionar um ID único na lógica do cliente antes de enviar 
-            // não é necessário se usamos o .add() do Firestore, que garante unicidade.
             await itemsRef.add(payload);
 
             input.value = '250'; // Reseta para o valor padrão
@@ -801,6 +798,9 @@
       if(isNaN(quantity)||quantity<=0){ alert("Por favor, insira uma quantidade válida."); addFoodButton.disabled = false; return; }
 
       const f=foodDatabase[selectedFoodKey];
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; // NOVO: Captura e formata o horário
+      
       const payload = {
         type: 'food', 
         key: selectedFoodKey,
@@ -813,7 +813,8 @@
         visceralFat: f.visceralFat,
         meal,
         ts: firebase.firestore.FieldValue.serverTimestamp(), 
-        clientTs: Date.now() 
+        clientTs: Date.now(),
+        timeStr: timeStr // NOVO: Salva o horário
       };
 
       const itemsRef = getItemsRef(userId, currentDateString);
@@ -871,7 +872,7 @@
       }, { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] });
     }
     
-    // NOVO: Função para criar o elemento de ÁGUA
+    // NOVO: Função para criar o elemento de ÁGUA (COM HORÁRIO)
     function createWaterItemElement(item){
         const warn = '';
         const div = document.createElement('div');
@@ -891,7 +892,8 @@
             <div class="flex-grow">
                 <p class="font-medium text-blue-800">${item.name}</p>
                 <p class="text-sm">
-                    <span class="text-gray-600">${item.quantity} ml</span>
+                    <span class="text-gray-600">${item.quantity} ml</span> 
+                    ${item.timeStr ? `<span class="text-gray-400 mx-1">|</span> <span class="text-gray-500 font-medium">${item.timeStr}</span>` : ''}
                 </p>
             </div>
             ${deleteButtonHtml}
@@ -899,7 +901,7 @@
         return div;
     }
 
-    // Função para criar o elemento de Refeição
+    // Função para criar o elemento de Refeição (COM HORÁRIO)
     function createFoodItemElement(item){
       const warn=item.visceralFat?' ⚠️':'';
       const div = document.createElement('div');
@@ -921,6 +923,7 @@
           <p class="text-sm">
             <span class="text-gray-600">${item.quantity} ${item.unit} • </span>
             <span class="text-orange-600 font-semibold">${item.cals} kcal</span>
+            ${item.timeStr ? `<span class="text-gray-400 mx-1">|</span> <span class="text-gray-500 font-medium">${item.timeStr}</span>` : ''}
           </p>
           <p class="text-xs">
             <span class="text-emerald-600 font-medium">P: ${item.protein}g</span>
@@ -1110,7 +1113,9 @@
           msg += `${mealDisplayNames[k]}\n`;
           items.forEach(i=>{
             const warn=i.visceralFat?' ⚠️':'';
-            msg += `• ${i.name}${warn} (${i.quantity} ${i.unit}) - ${i.cals} kcal\n`;
+            // Inclui o horário no resumo
+            const time = i.timeStr ? ` [${i.timeStr}]` : '';
+            msg += `• ${i.name}${warn} (${i.quantity} ${i.unit})${time} - ${i.cals} kcal\n`;
           });
           msg += `\n`;
         }
@@ -1121,7 +1126,8 @@
       if (waterItems.length > 0) {
         msg += `💧 Registros de Água\n`;
         waterItems.forEach(i => {
-             msg += `• ${i.quantity} ml\n`;
+            const time = i.timeStr ? ` [${i.timeStr}]` : '';
+             msg += `• ${i.quantity} ml${time}\n`;
         });
         msg += `\n`;
       }
@@ -1176,7 +1182,7 @@
 
     // Expor funções globais para onclick
     window.selectFood = selectFood;
-    window.addWater = addWater; // Exporta para o botão
+    window.addWater = addWater; 
     window.addFoodToLog = addFoodToLog;
     window.removeFoodFromLog = removeFoodFromLog; 
 
@@ -1191,7 +1197,6 @@
       });
       
       // NOVO LISTENER: Botão Adicionar Água
-      // O botão já tem addEventListener, remove o 'onclick' do HTML anterior
       document.getElementById('addWaterButton').addEventListener('click', addWater);
 
       // Perfil
