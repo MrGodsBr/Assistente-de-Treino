@@ -18,7 +18,7 @@
     body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
-    #calorieProgress { transition: width 0.3s ease-in-out; }
+    #calorieProgress, #waterProgress { transition: width 0.3s ease-in-out; }
     .modal-transition { transition: opacity 0.3s, transform 0.3s; }
     .spinner { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -155,7 +155,31 @@
         </button>
       </div>
     </div>
-
+    
+    <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
+        <h2 class="text-xl font-semibold text-blue-600 mb-3">💧 Rastrear Hidratação</h2>
+        <div class="flex items-end space-x-3 mb-4">
+            <div class="flex-grow">
+                <label for="waterQuantityInput" class="block text-sm font-medium text-gray-700">Qtd. de Água (ml)</label>
+                <input
+                    type="number"
+                    id="waterQuantityInput"
+                    placeholder="250"
+                    min="50"
+                    step="50"
+                    value="250"
+                    class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+            </div>
+            <button id="addWaterButton" class="h-10 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                Adicionar
+            </button>
+        </div>
+        <p id="waterGoalText" class="text-sm font-medium text-blue-700 text-center mb-2">Meta: 0 ml</p>
+        <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+            <div id="waterProgress" class="bg-blue-500 h-4 rounded-full" style="width: 0%"></div>
+        </div>
+    </div>
     <div class="border-t border-gray-200 pt-4">
         <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2">Histórico:</label>
         <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
@@ -266,8 +290,10 @@
 
     // * ESTADO DE DATA E LISTENER *
     let calorieGoal = 0;
+    let waterGoal = 0; // NOVA META
     let selectedFoodKey = null;
     let dailyLog = {}; 
+    let waterLog = 0; // NOVO: Rastreamento diário de água
     const TODAY = new Date(); 
     TODAY.setHours(0, 0, 0, 0); 
     const todayDateString = TODAY.toISOString().split('T')[0]; 
@@ -279,6 +305,7 @@
     let isEditingProfile = false;
     let currentGoalType = 'ganhar';
     let unsubscribeListener = null; 
+    let unsubscribeWaterListener = null; // NOVO: Listener de água
 
     const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
     const mealDisplayNames = {
@@ -400,7 +427,7 @@
       
       // ITENS DE CAFÉ
       'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false },
-      'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, cals: 24, unit: 'xícara', visceralFat: false }, // NOVO ITEM SOLICITADO
+      'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, cals: 24, unit: 'xícara', visceralFat: false }, // NOVO ITEM
       'cafe_leite_integral_acucar': { name: 'Café c/ Leite Integral e Açúcar', protein: 1.6, carbs: 5, cals: 81, unit: 'xícara 200ml', visceralFat: true },
       'cafe_leite_desnatado_acucar': { name: 'Café c/ Leite Desnatado e Açúcar', protein: 1.7, carbs: 5, cals: 65, unit: 'xícara 200ml', visceralFat: false },
 
@@ -416,6 +443,10 @@
     }
     function getItemsRef(uid, date) {
       return getDayRef(uid, date).collection('items');
+    }
+    // NOVO: Referência para a coleção de água
+    function getWaterRef(uid, date) {
+        return firebaseDb.collection('users').doc(uid).collection('days').doc(date).collection('water');
     }
 
     // UI helpers
@@ -457,6 +488,7 @@
           document.getElementById('activity').value=d.activity||'1.55';
           document.getElementById('goalType').value=d.goalType||'ganhar';
           calorieGoal = parseFloat(d.calorieGoal)||0;
+          waterGoal = parseFloat(d.waterGoal)||0; // NOVO: Carrega meta de água
           currentGoalType = d.goalType||'ganhar';
         }
         updateGoalDisplay();
@@ -499,17 +531,34 @@
         return;
       }
 
+      // Cálculo da Meta Calórica (MANTIDO)
       let bmr = (10*weight)+(6.25*height)-(5*age)+(gender==='male'?5:-161);
       const tdee = bmr*activity;
-      let finalGoal = goalType==='perder'? tdee-400 : goalType==='manter'? tdee : tdee+400;
+      let finalCalorieGoal = goalType==='perder'? tdee-400 : goalType==='manter'? tdee : tdee+400;
 
-      calorieGoal=finalGoal;
+      // * NOVO: CÁLCULO DA META DE ÁGUA (35ml/kg ajustado pela idade) *
+      let mlPerKg = 35;
+      if (age >= 56 && age <= 65) {
+          mlPerKg = 30;
+      } else if (age > 65) {
+          mlPerKg = 25;
+      }
+      const finalWaterGoal = Math.round(weight * mlPerKg);
+      // * FIM CÁLCULO ÁGUA *
+
+      calorieGoal=finalCalorieGoal;
+      waterGoal=finalWaterGoal;
       currentGoalType=goalType;
 
       try{
-        await getMetasDocRef().set({ weight,height,age,gender,activity,goalType, calorieGoal: finalGoal.toFixed(0) });
+        await getMetasDocRef().set({ 
+            weight,height,age,gender,activity,goalType, 
+            calorieGoal: finalCalorieGoal.toFixed(0),
+            waterGoal: finalWaterGoal.toFixed(0) // NOVO: Salva meta de água
+        });
         updateGoalDisplay();
         updateTotals(false);
+        updateWaterTracker(); // NOVO: Atualiza o tracker de água
         updateMealSuggestion();
       }catch(e){
         goalText.textContent="Erro ao salvar meta. Verifique sua conexão.";
@@ -534,6 +583,7 @@
         goalText.classList.add('text-gray-600');
         hideElement(document.getElementById('goalTag'));
       }
+      updateWaterTracker(); // NOVO: Garante que a meta de água seja atualizada junto
     }
 
     function updateMealSuggestion(){
@@ -547,41 +597,46 @@
 
     // * LÓGICA DE SELETOR DE DATA *
     
-    // Altera a data atualmente visualizada e recarrega os dados
     function loadLogForDate(dateString) {
         if (unsubscribeListener) {
-            unsubscribeListener(); // Remove o listener anterior
+            unsubscribeListener(); 
             unsubscribeListener = null;
+        }
+        if (unsubscribeWaterListener) { // NOVO: Limpa listener de água
+            unsubscribeWaterListener();
+            unsubscribeWaterListener = null;
         }
 
         currentDateString = dateString;
-        dailyLog = {}; // Limpa o log local
+        dailyLog = {}; 
+        waterLog = 0; // NOVO: Zera o rastreio de água
 
-        // Limpa a UI
         clearFoodListUI();
         updateTotals(false);
+        updateWaterTracker(false); // NOVO: Força atualização do tracker
 
-        // Verifica se a data é hoje para habilitar a edição
         const isToday = currentDateString === todayDateString;
         const addFoodSection = document.getElementById('addFoodSection');
         const shareButton = document.getElementById('shareButton');
         const dateStatus = document.getElementById('dateStatus');
+        const addWaterButton = document.getElementById('addWaterButton'); // NOVO
 
-        // Habilita/Desabilita a seção de adicionar/compartilhar
         if (isToday) {
             addFoodSection.classList.remove('opacity-50');
             addFoodSection.querySelectorAll('input, select, button').forEach(el => el.disabled = false);
             shareButton.disabled = false;
+            addWaterButton.disabled = false; // NOVO
             dateStatus.textContent = 'Visualizando e Editando o dia de Hoje';
         } else {
             addFoodSection.classList.add('opacity-50');
             addFoodSection.querySelectorAll('input, select, button').forEach(el => el.disabled = true);
             shareButton.disabled = true;
+            addWaterButton.disabled = true; // NOVO
             dateStatus.textContent = `Visualizando Histórico (Somente Leitura) em ${dateString}`;
         }
 
-        // Inicia o novo listener para a data selecionada
         startDayListener(dateString);
+        startWaterListener(dateString); // NOVO: Inicia o listener de água
     }
     
     function clearFoodListUI() {
@@ -591,17 +646,15 @@
         });
     }
 
-    // Inicia o listener para a data fornecida
+    // Inicia o listener de Refeições
     function startDayListener(date) {
       const dayRef = getDayRef(userId, date);
       const itemsRef = getItemsRef(userId, date);
       
-      // Se for o dia atual, garante o doc do dia
       if (date === todayDateString) {
         dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
       }
 
-      // OTIMIZAÇÃO CRÍTICA: Listener em tempo real com docChanges
       unsubscribeListener = itemsRef.orderBy('clientTs','asc').onSnapshot(
         { includeMetadataChanges: true },
         (snap)=>{
@@ -643,6 +696,67 @@
       );
     }
     
+    // * NOVO: Listener para Rastreamento de Água *
+    function startWaterListener(date) {
+        const waterRef = getWaterRef(userId, date).doc('current');
+        
+        unsubscribeWaterListener = waterRef.onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                waterLog = data.totalWater || 0;
+            } else {
+                waterLog = 0;
+            }
+            updateWaterTracker(true); // Sempre atualiza o tracker após o snapshot
+        });
+    }
+
+    // * NOVO: Função para Adicionar Água *
+    async function addWater() {
+        if (currentDateString !== todayDateString) {
+            alert("Você só pode registrar o consumo de água no dia de hoje.");
+            return;
+        }
+
+        const input = document.getElementById('waterQuantityInput');
+        const quantity = parseInt(input.value);
+
+        if (isNaN(quantity) || quantity <= 0) {
+            alert("Por favor, insira uma quantidade de água válida em mililitros.");
+            return;
+        }
+        
+        const waterRef = getWaterRef(userId, todayDateString).doc('current');
+
+        try {
+            await waterRef.set({
+                totalWater: firebase.firestore.FieldValue.increment(quantity),
+                lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        } catch (e) {
+            alert("Erro ao registrar água. Tente novamente.");
+            console.error("Erro ao adicionar água:", e);
+        }
+    }
+
+    // * NOVO: Função para Atualizar a UI do Rastreamento de Água *
+    function updateWaterTracker(checkGoal = true) {
+        const goalText = document.getElementById('waterGoalText');
+        const progressEl = document.getElementById('waterProgress');
+        
+        goalText.textContent = `Consumo: ${waterLog} ml / Meta: ${waterGoal} ml`;
+
+        if (waterGoal > 0) {
+            const pct = Math.min((waterLog / waterGoal) * 100, 100);
+            progressEl.style.width = pct + '%';
+        } else {
+            progressEl.style.width = '0%';
+        }
+        
+        // Opcional: Adicionar um aviso de meta de água atingida
+    }
+
+
     // Novo: Adicionar o item (um doc por alimento)
     async function addFoodToLog(){
       if(currentDateString !== todayDateString) {
@@ -872,9 +986,11 @@
       let msg = `🏋️ Fitness-Pro 2.0 - Resumo do Dia (${currentDateString})\n\n`; 
       msg += `👤 ${userName}\n`;
       msg += `🎯 Objetivo: ${goalName}\n`;
-      msg += `📊 Meta: ${calorieGoal.toFixed(0)} kcal\n\n`;
+      msg += `📊 Meta Calorias: ${calorieGoal.toFixed(0)} kcal\n`;
+      msg += `💧 Meta Água: ${waterGoal.toFixed(0)} ml\n\n`; // NOVO: Incluído
       msg += `Consumo do Dia:\n`;
       msg += `🔥 Calorias: ${totalCals.toFixed(0)} kcal\n`;
+      msg += `💧 Água Consumida: ${waterLog} ml\n`; // NOVO: Incluído
       msg += `💪 Proteínas: ${totalProtein.toFixed(1)}g\n`;
       msg += `🍞 Carboidratos: ${totalCarbs.toFixed(1)}g\n\n`;
 
@@ -953,6 +1069,9 @@
       document.getElementById('dateSelector').addEventListener('change', (e) => {
           loadLogForDate(e.target.value);
       });
+      
+      // NOVO LISTENER: Botão Adicionar Água
+      document.getElementById('addWaterButton').addEventListener('click', addWater);
 
       // Perfil
       document.getElementById('editProfileButton').addEventListener('click', ()=>{
