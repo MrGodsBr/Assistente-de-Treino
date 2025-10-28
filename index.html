@@ -608,50 +608,60 @@
       updateWeightProgress(); 
     }
     
-    // * NOVO: Função para atualizar a BARRA de Progresso de Peso *
+    // * CORREÇÃO: Função para atualizar a BARRA de Progresso de Peso *
     function updateWeightProgress() {
         const goalText = document.getElementById('weightGoalText');
         const progressEl = document.getElementById('weightProgress');
+        const progressSection = document.getElementById('weightProgressSection');
 
         if (currentWeight === 0 || targetWeight === 0 || currentGoalType === 'manter') {
-            goalText.textContent = `${currentWeight.toFixed(1)} kg / ${targetWeight.toFixed(1) || '--'} kg`;
+            // Esconde a barra se não houver meta de peso válida definida (ou se for manutenção)
+            hideElement(progressSection);
+            return;
+        }
+        
+        showElement(progressSection); // Garante que a barra esteja visível
+
+        const startWeight = parseFloat(getMetasDocRef().weight) || 0; // Usar o peso inicial (opcionalmente salvo)
+        const current = currentWeight;
+        const target = targetWeight;
+
+        // Se o peso inicial for 0 (primeiro uso), usa o 'currentWeight'
+        const initial = startWeight > 0 ? startWeight : current;
+
+        // Verifica se há meta para calcular o progresso
+        if (target === initial) {
             progressEl.style.width = '0%';
-            progressEl.classList.remove('bg-green-500', 'bg-red-500');
-            progressEl.classList.add('bg-gray-400'); // Cor neutra
+            progressEl.classList.remove('bg-green-500', 'bg-red-500', 'bg-gray-400');
+            progressEl.classList.add('bg-indigo-500');
+            goalText.textContent = `${current.toFixed(1)} kg / ${target.toFixed(1)} kg`;
             return;
         }
 
-        const initialWeight = currentWeight;
-        const target = targetWeight;
-        
-        // Simplesmente, mostra o peso atual e o objetivo
-        goalText.textContent = `${currentWeight.toFixed(1)} kg / ${target.toFixed(1)} kg`;
-
         // Lógica de cálculo de progresso
         let progress = 0;
-        let totalChange = Math.abs(target - initialWeight);
+        let totalChange = Math.abs(target - initial);
         
-        // Se o objetivo for perder peso (Target < Initial)
-        if (target < initialWeight) {
-            // Progresso é a distância percorrida (Initial - Current) sobre o total (Initial - Target)
-            progress = ((initialWeight - currentWeight) / (initialWeight - target)) * 100;
-            progressEl.classList.remove('bg-green-500', 'bg-gray-400');
-            progressEl.classList.add('bg-red-500'); // Cor vermelha para Perda
-        } 
-        // Se o objetivo for ganhar peso (Target > Initial)
-        else if (target > initialWeight) {
-            // Progresso é a distância percorrida (Current - Initial) sobre o total (Target - Initial)
-            progress = ((currentWeight - initialWeight) / (target - initialWeight)) * 100;
-            progressEl.classList.remove('bg-red-500', 'bg-gray-400');
-            progressEl.classList.add('bg-green-500'); // Cor verde para Ganho
+        if (totalChange > 0) {
+            // Progresso é sempre a distância percorrida (diferença do inicial para o atual) sobre a distância total
+            if (target < initial) { // Objetivo: Perder Peso
+                progress = ((initial - current) / totalChange) * 100;
+                progressEl.classList.remove('bg-green-500', 'bg-gray-400');
+                progressEl.classList.add('bg-red-500'); 
+            } else { // Objetivo: Ganhar Peso
+                progress = ((current - initial) / totalChange) * 100;
+                progressEl.classList.remove('bg-red-500', 'bg-gray-400');
+                progressEl.classList.add('bg-green-500'); 
+            }
         }
         
         // Garante que o progresso não passe de 100%
         progress = Math.min(Math.max(progress, 0), 100); 
 
         progressEl.style.width = progress + '%';
+        goalText.textContent = `${current.toFixed(1)} kg / ${target.toFixed(1)} kg (${progress.toFixed(0)}%)`;
     }
-    // * FIM NOVO: Barra de Progresso de Peso *
+    // * FIM CORREÇÃO: Barra de Progresso de Peso *
 
 
     function updateMealSuggestion(){
