@@ -166,6 +166,26 @@
         <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
     </div>
 
+    <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
+        <h2 class="text-xl font-semibold text-blue-600 mb-3">💧 Adicionar Hidratação</h2>
+        <div class="flex items-end space-x-3 mb-4">
+            <div class="flex-grow">
+                <label for="waterQuantityInput" class="block text-sm font-medium text-gray-700">Qtd. de Água (ml)</label>
+                <input
+                    type="number"
+                    id="waterQuantityInput"
+                    placeholder="250"
+                    min="50"
+                    step="50"
+                    value="250"
+                    class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+            </div>
+            <button id="addWaterButton" class="h-10 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                Adicionar
+            </button>
+        </div>
+    </div>
     <div class="border-b border-gray-200 py-4">
       <h3 class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
         <span>Refeições do Dia:</span>
@@ -197,27 +217,6 @@
           <div id="weightProgress" class="bg-indigo-500 h-4 rounded-full" style="width: 0%"></div>
         </div>
       </div>
-      <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
-        <h2 class="text-xl font-semibold text-blue-600 mb-3">💧 Adicionar Hidratação</h2>
-        <div class="flex items-end space-x-3 mb-4">
-            <div class="flex-grow">
-                <label for="waterQuantityInput" class="block text-sm font-medium text-gray-700">Qtd. de Água (ml)</label>
-                <input
-                    type="number"
-                    id="waterQuantityInput"
-                    placeholder="250"
-                    min="50"
-                    step="50"
-                    value="250"
-                    class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-            </div>
-            <button id="addWaterButton" class="h-10 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
-                Adicionar
-            </button>
-        </div>
-      </div>
-      
       <div>
         <div class="flex justify-between items-center mb-1">
           <span class="text-base font-medium text-blue-600">Água</span>
@@ -313,11 +312,10 @@
 
     let firebaseApp, firebaseAuth, firebaseDb, userId = null;
 
-    // * ESTADO DE DATA E LISTENER * (ATUALIZADO)
-    let calorieGoal = 0;
+    // * ESTADO DE DATA E LISTENER * let calorieGoal = 0;
     let waterGoal = 0; 
     let currentWeight = 0; 
-    let targetWeight = 0; // NOVO: Armazena o peso alvo
+    let targetWeight = 0; 
     let selectedFoodKey = null;
     let dailyLog = {}; 
     let waterLog = 0; 
@@ -489,7 +487,7 @@
         if(mSnap.exists){
           const d=mSnap.data();
           document.getElementById('weight').value=d.weight||'';
-          document.getElementById('targetWeight').value=d.targetWeight||''; // NOVO: Carrega Meta de Peso
+          document.getElementById('targetWeight').value=d.targetWeight||''; 
           document.getElementById('height').value=d.height||'';
           document.getElementById('age').value=d.age||'';
           document.getElementById('gender').value=d.gender||'male';
@@ -499,7 +497,7 @@
           waterGoal = parseFloat(d.waterGoal)||0; 
           currentGoalType = d.goalType||'ganhar';
           currentWeight = parseFloat(d.weight)||0; 
-          targetWeight = parseFloat(d.targetWeight)||0; // NOVO: Captura o peso alvo
+          targetWeight = parseFloat(d.targetWeight)||0; 
         }
         updateGoalDisplay();
         updateMealSuggestion();
@@ -527,8 +525,8 @@
 
     async function saveMetas(){
       const weight=parseFloat(document.getElementById('weight').value);
-      const targetWeightInput=document.getElementById('targetWeight'); // NOVO: Pega o input
-      const targetWeightValue=parseFloat(targetWeightInput.value); // NOVO: Pega o valor
+      const targetWeightInput=document.getElementById('targetWeight'); 
+      const targetWeightValue=parseFloat(targetWeightInput.value); 
       const height=parseFloat(document.getElementById('height').value);
       const age=parseFloat(document.getElementById('age').value);
       const gender=document.getElementById('gender').value;
@@ -570,7 +568,7 @@
       waterGoal=finalWaterGoal;
       currentGoalType=goalType;
       currentWeight = weight; 
-      targetWeight = targetWeightValue; // NOVO: Salva o peso alvo
+      targetWeight = targetWeightValue; 
 
       try{
         await getMetasDocRef().set({ 
@@ -581,7 +579,7 @@
         updateGoalDisplay();
         updateTotals(false);
         updateWaterTracker(true); 
-        updateWeightProgress(); // NOVO: Atualiza a barra de progresso
+        updateWeightProgress(); 
         updateMealSuggestion();
       }catch(e){
         goalText.textContent="Erro ao salvar meta. Verifique sua conexão.";
@@ -607,14 +605,13 @@
         hideElement(document.getElementById('goalTag'));
       }
       updateWaterTracker(true); 
-      updateWeightProgress(); // NOVO: Chamada
+      updateWeightProgress(); 
     }
     
     // * NOVO: Função para atualizar a BARRA de Progresso de Peso *
     function updateWeightProgress() {
         const goalText = document.getElementById('weightGoalText');
         const progressEl = document.getElementById('weightProgress');
-        const progressSection = document.getElementById('weightProgressSection');
 
         if (currentWeight === 0 || targetWeight === 0 || currentGoalType === 'manter') {
             goalText.textContent = `${currentWeight.toFixed(1)} kg / ${targetWeight.toFixed(1) || '--'} kg`;
@@ -633,40 +630,26 @@
         // Lógica de cálculo de progresso
         let progress = 0;
         let totalChange = Math.abs(target - initialWeight);
-        let currentChange = Math.abs(initialWeight - currentWeight); // Se o peso for atualizado
-
-        // Por enquanto, o "currentWeight" é o que está no input. Usamos o "initialWeight"
-        // como ponto de partida e o "currentWeight" (que é o mesmo que initialWeight
-        // até o usuário atualizar) como a posição.
-
-        // Por enquanto, vamos simular o progresso assumindo que o peso atual
-        // é o que foi salvo por último (currentWeight).
-
-        if (totalChange > 0) {
-            // Se o objetivo for perder peso (Target < Initial)
-            if (target < initialWeight) {
-                // Progresso é a distância percorrida (Initial - Current) sobre o total (Initial - Target)
-                progress = ((initialWeight - currentWeight) / (initialWeight - target)) * 100;
-                progressEl.classList.remove('bg-green-500');
-                progressEl.classList.add('bg-red-500'); // Cor vermelha para Perda
-            } 
-            // Se o objetivo for ganhar peso (Target > Initial)
-            else if (target > initialWeight) {
-                // Progresso é a distância percorrida (Current - Initial) sobre o total (Target - Initial)
-                progress = ((currentWeight - initialWeight) / (target - initialWeight)) * 100;
-                progressEl.classList.remove('bg-red-500');
-                progressEl.classList.add('bg-green-500'); // Cor verde para Ganho
-            }
-        } else {
-             progress = 0;
+        
+        // Se o objetivo for perder peso (Target < Initial)
+        if (target < initialWeight) {
+            // Progresso é a distância percorrida (Initial - Current) sobre o total (Initial - Target)
+            progress = ((initialWeight - currentWeight) / (initialWeight - target)) * 100;
+            progressEl.classList.remove('bg-green-500', 'bg-gray-400');
+            progressEl.classList.add('bg-red-500'); // Cor vermelha para Perda
+        } 
+        // Se o objetivo for ganhar peso (Target > Initial)
+        else if (target > initialWeight) {
+            // Progresso é a distância percorrida (Current - Initial) sobre o total (Target - Initial)
+            progress = ((currentWeight - initialWeight) / (target - initialWeight)) * 100;
+            progressEl.classList.remove('bg-red-500', 'bg-gray-400');
+            progressEl.classList.add('bg-green-500'); // Cor verde para Ganho
         }
-
-
+        
         // Garante que o progresso não passe de 100%
         progress = Math.min(Math.max(progress, 0), 100); 
 
         progressEl.style.width = progress + '%';
-        progressEl.classList.remove('bg-gray-400');
     }
     // * FIM NOVO: Barra de Progresso de Peso *
 
@@ -1310,8 +1293,6 @@
       document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
       document.getElementById('mealTimeSelect').addEventListener('change', updateMealSuggestion);
       
-      // NÃO HÁ MAIS NECESSIDADE DE ATUALIZAR AO FECHAR O MODAL, POIS O SAVE METAS JÁ FAZ ISSO.
-
       // Alimentos
       document.getElementById('foodSearch').addEventListener('input', searchFood);
       document.getElementById('addFoodButton').addEventListener('click', addFoodToLog);
