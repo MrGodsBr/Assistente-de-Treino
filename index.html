@@ -506,7 +506,7 @@
       }
     }
 
-    // * CORREÇÃO: Função de Salvar Perfil Otimizada e mais tolerante a erros *
+    // * REVISÃO FINAL DA FUNÇÃO DE SALVAMENTO DE PERFIL *
     async function saveProfileData(){
       clearRegistrationError();
       const userName = document.getElementById('userNameInput').value.trim();
@@ -518,11 +518,24 @@
         return; 
       }
       
+      if (!userId) {
+         // Esta condição é CRÍTICA. Tenta forçar a autenticação caso o user ID esteja nulo.
+         showRegistrationError("Aguarde, o aplicativo está tentando reconectar...");
+         try {
+             await firebaseAuth.signInAnonymously();
+             userId = firebaseAuth.currentUser.uid;
+         } catch (e) {
+             showRegistrationError("Falha na autenticação inicial. Verifique sua conexão ou regras do Firebase.");
+             console.error("Falha na re-autenticação:", e);
+             return;
+         }
+      }
+      
       try{
         // Garante que o documento de perfil seja criado com os dados mínimos
         await getProfileDocRef().set({ 
             userName, 
-            phone: phone || null, // Se o telefone estiver vazio, salva como null ou campo inexistente
+            phone: phone || null, 
             userId 
         });
         
@@ -531,12 +544,11 @@
         hideModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
         isEditingProfile=false;
         
-        // Se a meta não foi calculada, recarrega para mostrar o modal de metas.
         if(calorieGoal===0){ loadProfileAndMetas(); }
       
       }catch(e){
-        // Exibe o novo erro da imagem, mais específico
-        showRegistrationError("Erro ao salvar perfil. Verifique sua conexão ou tente novamente.");
+        // Este erro é o que o seu amigo está vendo. Se ele aparecer, é quase certeza que a Regra de Segurança não permite a CRIAÇÃO.
+        showRegistrationError("Erro ao salvar perfil. Por favor, verifique a regra de segurança do Firebase e tente novamente.");
         console.error("Erro ao salvar perfil:", e);
       }
     }
@@ -1186,7 +1198,7 @@
     // Compartilhar
     function shareToWhatsApp(){
       if (currentDateString !== todayDateString) {
-          alert("Apenas é possível compartilhar o resumo do dia atual. Selecione a data de hoje.");
+          alert("Você só pode compartilhar o resumo do dia atual. Selecione a data de hoje.");
           return;
       }
 
@@ -1246,23 +1258,28 @@
       window.open(url,'_blank');
     }
 
-    // Inicialização
-    async function initializeApp(){
+    // * REVISÃO CRÍTICA DA FUNÇÃO DE INICIALIZAÇÃO *
+    async function initializeApp(reauth = false){
       try{
-        firebaseApp = firebase.initializeApp(firebaseConfig);
-        firebaseAuth = firebase.auth();
-        firebaseDb = firebase.firestore();
-
-        // Persistência offline com multi-aba
-        try{
-          await firebaseDb.enablePersistence({ synchronizeTabs: true });
-        }catch(err){
-          console.warn('Persistência não habilitada:', err?.code||err);
+        if (!firebaseApp || reauth) {
+          firebaseApp = firebase.initializeApp(firebaseConfig);
+          firebaseAuth = firebase.auth();
+          firebaseDb = firebase.firestore();
         }
 
+        // Persistência offline com multi-aba
+        if (!reauth) {
+          try{
+            await firebaseDb.enablePersistence({ synchronizeTabs: true });
+          }catch(err){
+            console.warn('Persistência não habilitada:', err?.code||err);
+          }
+        }
+
+        // Garante que a autenticação anônima termine antes de continuar
         await firebaseAuth.signInAnonymously();
         userId = firebaseAuth.currentUser.uid;
-
+        
         await loadProfileAndMetas();
         
         // Configura o seletor de data para hoje e carrega o log
