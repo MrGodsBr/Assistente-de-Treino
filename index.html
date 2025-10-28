@@ -189,6 +189,10 @@
       </h3>
       <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50 min-h-48">
         <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
+        <div id="water_container" class="mb-2"> 
+            <h4 class="font-semibold text-gray-700 mb-2 text-lg">💧 Registros de Água</h4>
+            <div class="space-y-2" id="list-water"></div>
+        </div>
         <div id="cafe_da_manha_container"></div>
         <div id="almoco_container"></div>
         <div id="lanche_container"></div>
@@ -209,6 +213,7 @@
           <div id="waterProgress" class="bg-blue-500 h-4 rounded-full" style="width: 0%"></div>
         </div>
       </div>
+
       <div>
         <div class="flex justify-between items-center mb-1">
           <span class="text-base font-medium text-orange-600">Calorias</span>
@@ -311,7 +316,6 @@
     let isEditingProfile = false;
     let currentGoalType = 'ganhar';
     let unsubscribeListener = null; 
-    let unsubscribeWaterListener = null; 
 
     const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
     const mealDisplayNames = {
@@ -320,6 +324,9 @@
       lanche: "🍎 Lanche",
       jantar: "🍲 Jantar",
     };
+    // NOVO: Adiciona a chave 'water' para display, mas ela não é uma "refeição" no sentido macro
+    const ALL_LOG_KEYS = ['water', ...MEAL_KEYS];
+
     const goalDisplayNames = {
       ganhar: 'Ganho de Massa',
       manter: 'Manutenção',
@@ -347,9 +354,8 @@
       }
     };
 
-    // Base de alimentos (FINALMENTE ATUALIZADA E EXPANDIDA)
+    // Base de alimentos (MANTIDA)
     const foodDatabase = {
-      // Frutas
       'banana': { name: 'Banana', protein: 1.1, carbs: 27, cals: 105, unit: 'unidade', visceralFat: false },
       'maca': { name: 'Maçã', protein: 0.3, carbs: 25, cals: 95, unit: 'unidade', visceralFat: false },
       'abacate': { name: 'Abacate', protein: 2, carbs: 9, cals: 160, unit: '100g', visceralFat: false },
@@ -363,16 +369,12 @@
       'kiwi': { name: 'Kiwi', protein: 1.1, carbs: 15, cals: 61, unit: 'unidade', visceralFat: false },
       'abacaxi': { name: 'Abacaxi', protein: 0.5, carbs: 13, cals: 50, unit: '100g', visceralFat: false },
       'limao': { name: 'Limão (suco)', protein: 0.4, carbs: 9.3, cals: 29, unit: 'unidade', visceralFat: false },
-      
-      // Vegetais e Legumes
       'brocolis': { name: 'Brócolis (cozido)', protein: 2.4, carbs: 7, cals: 35, unit: '100g', visceralFat: false },
       'alface': { name: 'Alface Crespa', protein: 1.4, carbs: 2.9, cals: 15, unit: '100g', visceralFat: false },
       'tomate': { name: 'Tomate', protein: 0.9, carbs: 3.9, cals: 18, unit: '100g', visceralFat: false },
       'cenoura': { name: 'Cenoura (crua)', protein: 0.9, carbs: 10, cals: 41, unit: '100g', visceralFat: false },
       'couve_flor': { name: 'Couve-Flor (cozida)', protein: 1.9, carbs: 5, cals: 25, unit: '100g', visceralFat: false },
       'abobrinha': { name: 'Abobrinha (cozida)', protein: 1.2, carbs: 3, cals: 17, unit: '100g', visceralFat: false },
-      
-      // Proteínas (Carnes, Ovos, Suplementos)
       'peito_frango': { name: 'Peito de Frango (grelhado)', protein: 31, carbs: 0, cals: 165, unit: '100g', visceralFat: false },
       'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, cals: 77, unit: 'unidade', visceralFat: false },
       'ovo_frito': { name: 'Ovo Frito (em óleo)', protein: 6.2, carbs: 0.6, cals: 95, unit: 'unidade', visceralFat: false },
@@ -385,8 +387,6 @@
       'salmao': { name: 'Salmão (grelhado)', protein: 20, carbs: 0, cals: 208, unit: '100g', visceralFat: false },
       'atum_lata': { name: 'Atum em Lata (em óleo)', protein: 29, carbs: 0, cals: 186, unit: '100g', visceralFat: false },
       'lentilha': { name: 'Lentilha (cozida)', protein: 9, carbs: 20, cals: 116, unit: '100g', visceralFat: false },
-      
-      // Laticínios
       'leite_integral': { name: 'Leite Integral', protein: 3.2, carbs: 5, cals: 61, unit: '100ml', visceralFat: true },
       'leite_desnatado': { name: 'Leite Desnatado', protein: 3.4, carbs: 5, cals: 35, unit: '100ml', visceralFat: false },
       'queijo_mussarela': { name: 'Queijo Mussarela', protein: 22, carbs: 3.1, cals: 300, unit: '100g (fatia 30g)', visceralFat: true },
@@ -395,8 +395,6 @@
       'iogurte_grego': { name: 'Iogurte Grego (natural)', protein: 10, carbs: 3.6, cals: 59, unit: '100g', visceralFat: false },
       'iogurte_natural': { name: 'Iogurte Natural Desnatado', protein: 4.1, carbs: 7, cals: 57, unit: '100g', visceralFat: false },
       'iogurte_sabor': { name: 'Iogurte Desn. (Sabor)', protein: 3.5, carbs: 15, cals: 85, unit: '100g', visceralFat: true }, 
-
-      // Carboidratos (Cereais, Raízes, Grãos)
       'arroz_branco': { name: 'Arroz Branco (cozido)', protein: 2.7, carbs: 28, cals: 130, unit: '100g', visceralFat: false },
       'arroz_integral': { name: 'Arroz Integral (cozido)', protein: 2.6, carbs: 23, cals: 111, unit: '100g', visceralFat: false },
       'pao_frances': { name: 'Pão Francês', protein: 7.5, carbs: 55, cals: 288, unit: '100g (unid 50g)', visceralFat: false },
@@ -415,29 +413,21 @@
       'cuscuz': { name: 'Cuscuz (hidratado)', protein: 3.8, carbs: 23, cals: 112, unit: '100g', visceralFat: false },
       'tapioca': { name: 'Tapioca (goma)', protein: 0, carbs: 89, cals: 355, unit: '100g', visceralFat: false },
       'batata_frita': { name: 'Batata Frita', protein: 3.4, carbs: 41, cals: 319, unit: '100g', visceralFat: true },
-      
-      // Gorduras/Pastas
       'pasta_amendoim': { name: 'Pasta de Amendoim (integral)', protein: 25, carbs: 20, cals: 588, unit: '100g (colher 15g)', visceralFat: false },
       'manteiga_amendoim_doce': { name: 'Manteiga de Amendoim (doce)', protein: 21, carbs: 30, cals: 600, unit: '100g (colher 15g)', visceralFat: true }, 
       'azeite': { name: 'Azeite de Oliva', protein: 0, carbs: 0, cals: 119, unit: 'colher sopa', visceralFat: false },
       'castanha_caju': { name: 'Castanha de Caju', protein: 18, carbs: 30, cals: 553, unit: '100g', visceralFat: false },
       'amendoim': { name: 'Amendoim', protein: 26, carbs: 16, cals: 567, unit: '100g', visceralFat: false },
       'manteiga': { name: 'Manteiga com sal', protein: 0.9, carbs: 0.1, cals: 717, unit: '100g (colher 5g)', visceralFat: true },
-
-      // Bebidas e Doces
       'refrigerante': { name: 'Refrigerante (Cola)', protein: 0, carbs: 26, cals: 105, unit: 'lata 350ml', visceralFat: true },
       'chocolate_ao_leite': { name: 'Chocolate ao Leite', protein: 8, carbs: 59, cals: 535, unit: '100g (barra 25g)', visceralFat: true },
       'biscoito_recheado': { name: 'Biscoito Recheado (Chocolate)', protein: 5, carbs: 70, cals: 450, unit: '100g (unid 10g)', visceralFat: true },
       'pizza_mussarela': { name: 'Pizza Mussarela', protein: 11, carbs: 33, cals: 271, unit: '100g (1 fatia)', visceralFat: true },
       'mel': { name: 'Mel', protein: 0.3, carbs: 82, cals: 304, unit: '100g', visceralFat: true },
-      
-      // ITENS DE CAFÉ
       'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false },
       'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, cals: 24, unit: 'xícara', visceralFat: false }, 
       'cafe_leite_integral_acucar': { name: 'Café c/ Leite Integral e Açúcar', protein: 1.6, carbs: 5, cals: 81, unit: 'xícara 200ml', visceralFat: true },
       'cafe_leite_desnatado_acucar': { name: 'Café c/ Leite Desnatado e Açúcar', protein: 1.7, carbs: 5, cals: 65, unit: 'xícara 200ml', visceralFat: false },
-
-      // OUTROS
       'pudim': { name: 'Pudim de Leite', protein: 5, carbs: 30, cals: 200, unit: '100g (fatia)', visceralFat: true },
       'paçoca': { name: 'Paçoca (rolha)', protein: 5, carbs: 12, cals: 100, unit: 'unidade 20g', visceralFat: false },
       'creatina': { name: 'Creatina (pura)', protein: 0, carbs: 0, cals: 0, unit: 'scoop 3g', visceralFat: false },
@@ -450,9 +440,9 @@
     function getItemsRef(uid, date) {
       return getDayRef(uid, date).collection('items');
     }
-    // Referência para a coleção de água
-    function getWaterRef(uid, date) {
-        return firebaseDb.collection('users').doc(uid).collection('days').doc(date).collection('water');
+    // NOVO: Referência para a coleção de água (agora armazena itens individuais)
+    function getWaterLogRef(uid, date) {
+        return getDayRef(uid, date).collection('water_log');
     }
 
     // UI helpers
@@ -608,10 +598,6 @@
             unsubscribeListener(); 
             unsubscribeListener = null;
         }
-        if (unsubscribeWaterListener) { 
-            unsubscribeWaterListener();
-            unsubscribeWaterListener = null;
-        }
 
         currentDateString = dateString;
         dailyLog = {}; 
@@ -645,25 +631,28 @@
         }
 
         startDayListener(dateString);
-        startWaterListener(dateString); 
     }
     
     function clearFoodListUI() {
-        MEAL_KEYS.forEach(k => {
+        // Limpa todos os containers de refeição E o container de água
+        ALL_LOG_KEYS.forEach(k => { 
             const container = document.getElementById(`${k}_container`);
-            if (container) container.innerHTML = '';
+            if (container) container.querySelector(`#list-${k}`).innerHTML = '';
         });
+        manageEmptyListText();
     }
 
-    // Inicia o listener de Refeições
+    // Inicia o listener de Refeições E Água (Unificado para o itemsRef)
     function startDayListener(date) {
       const dayRef = getDayRef(userId, date);
-      const itemsRef = getItemsRef(userId, date);
+      // MANTEMOS ITENS REFEIÇÃO, VAMOS USAR ESTE PARA ÁGUA TAMBÉM NO FUTURO SE NECESSÁRIO
+      const itemsRef = getItemsRef(userId, date); 
       
       if (date === todayDateString) {
         dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
       }
 
+      // OTIMIZAÇÃO CRÍTICA: Listener em tempo real com docChanges
       unsubscribeListener = itemsRef.orderBy('clientTs','asc').onSnapshot(
         { includeMetadataChanges: true },
         (snap)=>{
@@ -673,28 +662,48 @@
               clearFoodListUI();
           }
 
+          waterLog = 0; // Resetamos o log de água antes de re-somar
+
           snap.docChanges().forEach(change => {
             const item = { ...change.doc.data(), id: change.doc.id };
-
-            if (change.type === "added") {
-              dailyLog[item.id] = item;
-              appendFoodItem(item); 
-              shouldUpdateTotals = true;
-            }
-            if (change.type === "modified") {
-              dailyLog[item.id] = item;
-              updateFoodItemElement(item); 
-              shouldUpdateTotals = true;
-            }
-            if (change.type === "removed") {
-              delete dailyLog[item.id];
-              removeFoodItemElement(item.id); 
-              shouldUpdateTotals = true;
+            
+            if (item.type === 'water') {
+                // É um item de água, atualiza o waterLog
+                if (change.type === "added" || change.type === "modified") {
+                    dailyLog[item.id] = item;
+                    appendWaterItem(item); // NOVO: Função específica para água
+                } else if (change.type === "removed") {
+                    delete dailyLog[item.id];
+                    removeFoodItemElement(item.id);
+                }
+                shouldUpdateTotals = true;
+                
+            } else {
+                // É um item de refeição (macro)
+                if (change.type === "added") {
+                  dailyLog[item.id] = item;
+                  appendFoodItem(item); 
+                }
+                if (change.type === "modified") {
+                  dailyLog[item.id] = item;
+                  updateFoodItemElement(item); 
+                }
+                if (change.type === "removed") {
+                  delete dailyLog[item.id];
+                  removeFoodItemElement(item.id); 
+                }
+                shouldUpdateTotals = true;
             }
           });
+          
+          // Calculamos o total de água somando todos os itens de água no dailyLog
+          waterLog = Object.values(dailyLog)
+                       .filter(i => i.type === 'water')
+                       .reduce((total, item) => total + item.quantity, 0);
 
           if(shouldUpdateTotals) {
             updateTotals(true);
+            updateWaterTracker(true); // NOVO: Atualiza o tracker
           }
           
           manageEmptyListText();
@@ -705,22 +714,7 @@
       );
     }
     
-    // * Listener para Rastreamento de Água *
-    function startWaterListener(date) {
-        const waterRef = getWaterRef(userId, date).doc('current');
-        
-        unsubscribeWaterListener = waterRef.onSnapshot((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                waterLog = data.totalWater || 0;
-            } else {
-                waterLog = 0;
-            }
-            updateWaterTracker(true);
-        });
-    }
-
-    // * Função para Adicionar Água *
+    // * Função para Adicionar Água (SALVA COMO ITEM NO itemsRef) *
     async function addWater() {
         if (currentDateString !== todayDateString) {
             alert("Você só pode registrar o consumo de água no dia de hoje.");
@@ -735,15 +729,21 @@
             return;
         }
         
-        const waterRef = getWaterRef(userId, todayDateString).doc('current');
+        const itemsRef = getItemsRef(userId, todayDateString);
 
         try {
-            await waterRef.set({
-                totalWater: firebase.firestore.FieldValue.increment(quantity),
-                lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
+            const payload = {
+                type: 'water', // Marcador para distinguir no log
+                name: 'Água Pura',
+                quantity: quantity,
+                unit: 'ml',
+                ts: firebase.firestore.FieldValue.serverTimestamp(), 
+                clientTs: Date.now() 
+            };
+
+            await itemsRef.add(payload);
         } catch (e) {
-            alert("Erro ao registrar água. Tente novamente.");
+            alert("Erro ao registrar água. Tente novamente. Verifique as regras do Firebase.");
             console.error("Erro ao adicionar água:", e);
         }
     }
@@ -778,6 +778,7 @@
 
       const f=foodDatabase[selectedFoodKey];
       const payload = {
+        type: 'food', // Marcador para distinguir no log
         key: selectedFoodKey,
         name: f.name,
         quantity,
@@ -821,13 +822,51 @@
      */
     
     function getItemsByMeal() {
-      const items = Object.values(dailyLog).sort((a, b) => a.clientTs - b.clientTs); 
+      // Filtra apenas itens de comida (não água) e ordena
+      const items = Object.values(dailyLog)
+        .filter(i => i.type === 'food')
+        .sort((a, b) => a.clientTs - b.clientTs); 
+        
       return MEAL_KEYS.reduce((acc, key) => {
         acc[key] = items.filter(item => item.meal === key);
         return acc;
       }, { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] });
     }
+    
+    // NOVO: Função para adicionar o item de ÁGUA na lista
+    function appendWaterItem(item){
+        const listContainer = document.getElementById('list-water');
+        if (!listContainer) return;
 
+        const warn = ''; // Água não tem aviso de gordura visceral
+        const div = document.createElement('div');
+        div.id = `food-item-${item.id}`;
+        div.className = "flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-gray-200";
+        
+        const isToday = currentDateString === todayDateString;
+        const deleteButtonHtml = isToday ? `
+            <button onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </button>
+        ` : `<div class="w-7 h-7"></div>`;
+
+        div.innerHTML = `
+            <div class="flex-grow">
+                <p class="font-medium text-blue-800">${item.name}</p>
+                <p class="text-sm">
+                    <span class="text-gray-600">${item.quantity} ml</span>
+                </p>
+            </div>
+            ${deleteButtonHtml}
+        `;
+        
+        // Adiciona na ordem correta dentro do container de água
+        listContainer.appendChild(div);
+    }
+    
+    // Função para adicionar item de Refeição
     function createFoodItemElement(item){
       const warn=item.visceralFat?' ⚠️':'';
       const div = document.createElement('div');
@@ -889,21 +928,31 @@
 
             if (listContainer && listContainer.children.length === 0) {
                 const mealSection = listContainer.parentNode;
-                mealSection.remove();
+                // Só removemos a seção se não for o container principal de água
+                if (mealSection.id !== 'water_container') {
+                    mealSection.remove();
+                }
             }
         }
     }
 
     function updateFoodItemElement(item) {
         removeFoodItemElement(item.id);
-        appendFoodItem(item);
+        if (item.type === 'water') {
+            appendWaterItem(item);
+        } else {
+            appendFoodItem(item);
+        }
     }
     
     function manageEmptyListText(){
         const empty = document.getElementById('emptyListText');
-        const hasFood = Object.keys(dailyLog).length > 0;
         
-        if (hasFood) {
+        // Verifica se há itens de comida OU itens de água no log
+        const hasFoodItems = Object.values(dailyLog).some(i => i.type === 'food');
+        const hasWaterItems = Object.values(dailyLog).some(i => i.type === 'water');
+        
+        if (hasFoodItems || hasWaterItems) {
             hideElement(empty);
         } else {
             showElement(empty);
@@ -912,7 +961,8 @@
 
     function updateTotals(checkGoal=true){
       let totalCals=0, totalProtein=0, totalCarbs=0;
-      Object.values(dailyLog).forEach(i=>{ totalCals+=i.cals; totalProtein+=i.protein; totalCarbs+=i.carbs; });
+      // Calcula macros APENAS de itens de comida
+      Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ totalCals+=i.cals; totalProtein+=i.protein; totalCarbs+=i.carbs; });
       
       document.getElementById('totalProteins').textContent = totalProtein.toFixed(1)+' g';
       document.getElementById('totalCarbs').textContent   = totalCarbs.toFixed(1)+' g';
@@ -985,7 +1035,7 @@
       let totalCals=0,totalProtein=0,totalCarbs=0;
       const itemsByMeal = getItemsByMeal();
 
-      Object.values(dailyLog).forEach(i=>{ totalCals+=i.cals; totalProtein+=i.protein; totalCarbs+=i.carbs; });
+      Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ totalCals+=i.cals; totalProtein+=i.protein; totalCarbs+=i.carbs; });
       
       const userName=document.getElementById('userNameDisplay').textContent;
       const goalType=document.getElementById('goalType').value||'ganhar';
@@ -1013,6 +1063,17 @@
           msg += `\n`;
         }
       });
+      
+      // NOVO: Adiciona a lista de Água no resumo
+      const waterItems = Object.values(dailyLog).filter(i => i.type === 'water');
+      if (waterItems.length > 0) {
+        msg += `💧 Registros de Água\n`;
+        waterItems.forEach(i => {
+             msg += `• ${i.quantity} ml\n`;
+        });
+        msg += `\n`;
+      }
+
 
       const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;
       window.open(url,'_blank');
