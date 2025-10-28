@@ -372,7 +372,7 @@
       'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false }
     };
 
-    // Helpers Firestore (nova estrutura)
+    // Helpers Firestore (subcoleções)
     function getDayRef(uid, date) {
       return firebaseDb.collection('users').doc(uid).collection('days').doc(date);
     }
@@ -391,7 +391,7 @@
     function saveProfilePicLocally(){ if(profilePicBase64){ localStorage.setItem(`profilePic_${userId}`, profilePicBase64); document.getElementById('profileImageDisplay').src=profilePicBase64; document.getElementById('modalProfileImage').src=profilePicBase64; } }
     function loadProfilePicLocally(){ const pic=localStorage.getItem(`profilePic_${userId}`); if(pic){ profilePicBase64=pic; document.getElementById('profileImageDisplay').src=pic; document.getElementById('modalProfileImage').src=pic; } }
 
-    // Perfil e Metas (mantidos)
+    // Perfil/Metas (coleção data/)
     function getProfileDocRef() {
       return firebaseDb.collection('users').doc(userId).collection('data').doc('profile');
     }
@@ -520,8 +520,8 @@
       // Garante doc do dia
       dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
 
-      // Listener em tempo real
-      itemsRef.orderBy('ts','asc').onSnapshot((snap)=>{
+      // Listener em tempo real com metadados para refletir mudanças locais
+      itemsRef.orderBy('ts','asc').onSnapshot({ includeMetadataChanges: true }, (snap)=>{
         const base = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
         snap.forEach(doc=>{
           const it = doc.data();
@@ -554,7 +554,7 @@
         ts: firebase.firestore.FieldValue.serverTimestamp()
       };
 
-      // Persistência: doc por item (onSnapshot reflete imediatamente com cache offline)
+      // Persistência: doc por item (onSnapshot reflete local instantaneamente)
       await itemsRef.add(payload);
 
       // Limpeza
@@ -564,10 +564,18 @@
       hideElement(document.getElementById('searchDropdown'));
     }
 
-    // Remover item (delete direto no doc)
+    // Remover item (UI otimista + delete)
     async function removeFoodFromLog(meal, itemId){
-      // Exclusão direta; onSnapshot atualiza a UI
-      await itemsRef.doc(itemId).delete();
+      // UI otimista
+      dailyLog[meal] = (dailyLog[meal] || []).filter(i => i.id !== itemId);
+      renderFoodList();
+      updateTotals(false);
+      // Persistência
+      try {
+        await itemsRef.doc(itemId).delete();
+      } catch (err) {
+        console.warn('Falha ao excluir, sincronizará pelo listener:', err);
+      }
     }
 
     function renderFoodList(){
@@ -721,7 +729,7 @@
         firebaseAuth = firebase.auth();
         firebaseDb = firebase.firestore();
 
-        // Persistência offline com multi-aba (melhor UX)
+        // Persistência offline com multi-aba
         try{
           await firebaseDb.enablePersistence({ synchronizeTabs: true });
         }catch(err){
@@ -734,7 +742,6 @@
         await loadProfileAndMetas();
         startDayListener();
 
-        // UI pronta
         document.getElementById('loadingScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
       }catch(e){
@@ -746,6 +753,11 @@
         `;
       }
     }
+
+    // Expor funções globais para onclick
+    window.selectFood = selectFood;
+    window.addFoodToLog = addFoodToLog;
+    window.removeFoodFromLog = removeFoodFromLog;
 
     // Listeners
     document.addEventListener('DOMContentLoaded', ()=>{
