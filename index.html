@@ -163,7 +163,7 @@
     </div>
 
     <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
-        <h2 class="text-xl font-semibold text-blue-600 mb-3">💧 Rastrear Hidratação</h2>
+        <h2 class="text-xl font-semibold text-blue-600 mb-3">💧 Adicionar Hidratação</h2>
         <div class="flex items-end space-x-3 mb-4">
             <div class="flex-grow">
                 <label for="waterQuantityInput" class="block text-sm font-medium text-gray-700">Qtd. de Água (ml)</label>
@@ -180,10 +180,6 @@
             <button id="addWaterButton" class="h-10 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
                 Adicionar
             </button>
-        </div>
-        <p id="waterGoalText" class="text-sm font-medium text-blue-700 text-center mb-2">Meta: 0 ml</p>
-        <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-            <div id="waterProgress" class="bg-blue-500 h-4 rounded-full" style="width: 0%"></div>
         </div>
     </div>
     <div class="border-b border-gray-200 py-4">
@@ -203,7 +199,16 @@
 
     <div class="space-y-4">
       <h2 class="text-xl font-semibold text-gray-800 text-center">Resumo do Dia</h2>
-
+      
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-base font-medium text-blue-600">Água</span>
+          <span id="waterGoalText" class="text-sm font-semibold text-blue-600">Consumo: 0 ml / Meta: 0 ml</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+          <div id="waterProgress" class="bg-blue-500 h-4 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
       <div>
         <div class="flex justify-between items-center mb-1">
           <span class="text-base font-medium text-orange-600">Calorias</span>
@@ -291,10 +296,10 @@
 
     // * ESTADO DE DATA E LISTENER *
     let calorieGoal = 0;
-    let waterGoal = 0; // NOVA META
+    let waterGoal = 0; 
     let selectedFoodKey = null;
     let dailyLog = {}; 
-    let waterLog = 0; // NOVO: Rastreamento diário de água
+    let waterLog = 0; 
     const TODAY = new Date(); 
     TODAY.setHours(0, 0, 0, 0); 
     const todayDateString = TODAY.toISOString().split('T')[0]; 
@@ -306,7 +311,7 @@
     let isEditingProfile = false;
     let currentGoalType = 'ganhar';
     let unsubscribeListener = null; 
-    let unsubscribeWaterListener = null; // NOVO: Listener de água
+    let unsubscribeWaterListener = null; 
 
     const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
     const mealDisplayNames = {
@@ -428,7 +433,7 @@
       
       // ITENS DE CAFÉ
       'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false },
-      'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, cals: 24, unit: 'xícara', visceralFat: false }, // Adicionado
+      'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, cals: 24, unit: 'xícara', visceralFat: false }, 
       'cafe_leite_integral_acucar': { name: 'Café c/ Leite Integral e Açúcar', protein: 1.6, carbs: 5, cals: 81, unit: 'xícara 200ml', visceralFat: true },
       'cafe_leite_desnatado_acucar': { name: 'Café c/ Leite Desnatado e Açúcar', protein: 1.7, carbs: 5, cals: 65, unit: 'xícara 200ml', visceralFat: false },
 
@@ -489,7 +494,7 @@
           document.getElementById('activity').value=d.activity||'1.55';
           document.getElementById('goalType').value=d.goalType||'ganhar';
           calorieGoal = parseFloat(d.calorieGoal)||0;
-          waterGoal = parseFloat(d.waterGoal)||0; // Carrega meta de água
+          waterGoal = parseFloat(d.waterGoal)||0; 
           currentGoalType = d.goalType||'ganhar';
         }
         updateGoalDisplay();
@@ -555,11 +560,11 @@
         await getMetasDocRef().set({ 
             weight,height,age,gender,activity,goalType, 
             calorieGoal: finalCalorieGoal.toFixed(0),
-            waterGoal: finalWaterGoal.toFixed(0) // Salva meta de água
+            waterGoal: finalWaterGoal.toFixed(0) 
         });
         updateGoalDisplay();
         updateTotals(false);
-        updateWaterTracker(true); // Atualiza o tracker de água
+        updateWaterTracker(true); 
         updateMealSuggestion();
       }catch(e){
         goalText.textContent="Erro ao salvar meta. Verifique sua conexão.";
@@ -584,7 +589,7 @@
         goalText.classList.add('text-gray-600');
         hideElement(document.getElementById('goalTag'));
       }
-      updateWaterTracker(true); // Garante que a meta de água seja atualizada junto
+      updateWaterTracker(true); 
     }
 
     function updateMealSuggestion(){
@@ -914,6 +919,7 @@
 
       const isToday = currentDateString === todayDateString;
 
+      // Atualiza Calorias
       if(calorieGoal>0){
         document.getElementById('totalCalsGoalText').textContent = `${totalCals.toFixed(0)} / ${calorieGoal.toFixed(0)} kcal`;
         const pct=Math.min((totalCals/calorieGoal)*100, 100);
