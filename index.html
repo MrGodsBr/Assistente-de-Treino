@@ -519,13 +519,14 @@
       }
       
       if (!userId) {
-         // Esta condição é CRÍTICA. Tenta forçar a autenticação caso o user ID esteja nulo.
+         // CRÍTICO: Se o userId for nulo, a autenticação inicial falhou.
+         // Tentamos reautenticar rapidamente.
          showRegistrationError("Aguarde, o aplicativo está tentando reconectar...");
          try {
              await firebaseAuth.signInAnonymously();
              userId = firebaseAuth.currentUser.uid;
          } catch (e) {
-             showRegistrationError("Falha na autenticação inicial. Verifique sua conexão ou regras do Firebase.");
+             showRegistrationError("Falha na autenticação inicial. Verifique sua conexão e habilite o Login Anônimo no Firebase.");
              console.error("Falha na re-autenticação:", e);
              return;
          }
@@ -547,7 +548,7 @@
         if(calorieGoal===0){ loadProfileAndMetas(); }
       
       }catch(e){
-        // Este erro é o que o seu amigo está vendo. Se ele aparecer, é quase certeza que a Regra de Segurança não permite a CRIAÇÃO.
+        // Este erro provavelmente ainda é de PERMISSÃO, indicando falha na Regra de Segurança.
         showRegistrationError("Erro ao salvar perfil. Por favor, verifique a regra de segurança do Firebase e tente novamente.");
         console.error("Erro ao salvar perfil:", e);
       }
@@ -1292,6 +1293,7 @@
         document.getElementById('mainApp').classList.remove('hidden');
       }catch(e){
         const l=document.getElementById('loadingScreen');
+        // Este é o erro que o vídeo mostrou: falha na inicialização/autenticação
         l.innerHTML = `
           <p class="text-red-600 font-semibold">Erro ao conectar com o servidor</p>
           <p class="text-gray-600 mt-2">Verifique sua conexão e recarregue a página</p>
