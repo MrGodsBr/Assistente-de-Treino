@@ -450,7 +450,7 @@
         </div>
 
 
-        <!-- Seção: Minhas Metas (ATUALIZADO) -->
+        <!-- Seção: Minhas Metas -->
         <details class="group bg-gray-50 p-4 rounded-lg border border-gray-200" open> <!-- Deixei aberto por padrão -->
             <summary class="text-xl font-semibold text-green-600 cursor-pointer list-none flex justify-between items-center">
                 <span>Minhas Metas</span>
@@ -503,8 +503,6 @@
                     Calcular e Salvar Meta
                 </button>
             </div>
-            
-            <!-- SEÇÃO DE BACKUP LOCAL REMOVIDA -->
             
             <p id="goalText" class="text-center text-lg font-semibold text-green-700 mt-4 hidden"></p>
         </details>
@@ -567,18 +565,14 @@
             </div>
         </div>
 
-        <!-- SEÇÃO DE HISTÓRICO (DIÁRIO) REMOVIDA -->
-
         <!-- Lista de Alimentos Adicionados -->
         <div>
             <div class="flex justify-between items-center mb-3">
                  <h3 id="foodListTitle" class="text-lg font-semibold text-gray-700 flex items-center gap-2">
+                    <!-- BOTÃO 'Limpar Refeições' REMOVIDO -->
                     <span>Refeições de Hoje:</span>
                     <span id="goalTag" class="hidden text-xs sm:text-sm font-medium text-blue-700 bg-blue-100 py-0.5 px-3 rounded-full"></span>
                 </h3>
-                <button id="clearButton" class="text-sm text-red-500 hover:text-red-700">
-                    Limpar Refeições
-                </button>
             </div>
             <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50">
                 <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
@@ -625,7 +619,8 @@
     </div> <!-- Fim do <div id="main-app-content"> -->
 
     <footer class="mt-8 text-center text-sm text-gray-500">
-        <p>Desenvolvido por Thiago</p>
+        <!-- RODAPÉ LIMPO -->
+        Desenvolvido por Thiago
     </footer>
 
     <!-- Modal de Aviso de Limite -->
@@ -760,10 +755,9 @@
         const mealSuggestion = document.getElementById('mealSuggestion'); 
         const addFoodButton = document.getElementById('addFoodButton');
         
-        // Seletores do DOM - Histórico (Agora apenas 'Limpar')
+        // Seletores do DOM - Histórico (Limpar foi removido)
         const foodListTitle = document.getElementById('foodListTitle');
         const goalTag = document.getElementById('goalTag'); 
-        const clearButton = document.getElementById('clearButton');
 
         // Seletores do DOM - Lista e Totais
         const foodListContainer = document.getElementById('foodList');
@@ -897,7 +891,7 @@
                  foodQuantityInput.placeholder = 'Colheres';
             } else {
                 foodQuantityInput.value = '1';
-                foodQuantityInput.placeholder = 'Unidades';
+                 foodQuantityInput.placeholder = 'Unidades';
             }
             searchDropdown.classList.add('hidden');
             foodQuantityInput.focus();
@@ -1161,15 +1155,7 @@
             }
         }
 
-        // --- ATUALIZADO ---
-        function clearAll() {
-            dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
-            goalExceededNotified = false;
-            
-            renderFoodList();
-            updateTotals();
-            saveTodayMeals(); // Salva o log limpo no Firestore
-        }
+        // --- CLEAR ALL REMOVIDO POIS O BOTÃO FOI REMOVIDO DA UI ---
         
         function showWarningModal() {
             warningModal.classList.remove('hidden', 'scale-95', 'opacity-0');
@@ -1188,14 +1174,8 @@
             }, 150);
         }
 
-        // --- Funções de Importar/Exportar (REMOVIDAS, pois os dados estão na cloud) ---
-
 // --- Inicialização e Event Listeners (ATUALIZADOS) ---
 document.addEventListener('DOMContentLoaded', () => {
-    // A inicialização agora é feita pelo 'initializeFirebase'
-    
-    // O listener de 'calculateButton' foi movido para uma função global
-    // para garantir que 'calculateGoal' esteja disponível.
     
     goalTypeSelect.addEventListener('change', updateMealSuggestion);
     mealTimeSelect.addEventListener('change', updateMealSuggestion);
@@ -1210,9 +1190,8 @@ document.addEventListener('DOMContentLoaded', () => {
     foodListContainer.addEventListener('change', handleToggleDone); 
     shareButton.addEventListener('click', handleShareWhatsApp);
     shareAppButton.addEventListener('click', handleShareApp);
-    clearButton.addEventListener('click', clearAll);
     
-    // O 'historySelect' foi removido
+    // clearButton foi removido
     
     closeModalButton.addEventListener('click', hideWarningModal);
     modalOverlay.addEventListener('click', hideWarningModal);
@@ -1227,15 +1206,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.handleToggleDone = handleToggleDone;
     window.handleShareWhatsApp = handleShareWhatsApp;
     window.handleShareApp = handleShareApp; 
-    window.clearAll = clearAll;
     window.calculateGoal = calculateGoal; // Função principal de metas
     window.calculateButton.addEventListener('click', calculateGoal); // Adiciona listener
     window.updateMealSuggestion = updateMealSuggestion;
     window.hideWarningModal = hideWarningModal;
+    
+    initializeFirebase();
 });
     </script>
 
 </body>
 </html>
-
-// 2.0
