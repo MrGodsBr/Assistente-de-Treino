@@ -1,201 +1,1163 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fitness-Pro 2.0</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body {
-      font-family: 'Inter', sans-serif;
-      scroll-behavior: smooth;
-    }
-    input::-webkit-outer-spin-button,input::-webkit-inner-spin-button {
-      -webkit-appearance:none;margin:0;
-    }
-    input[type=number] {
-      -moz-appearance:textfield;
-    }
-    #calorieProgress {
-      transition: width 0.3s ease-in-out;
-    }
-    #foodList {
-      min-height: 12rem;
-    }
-    .rotated {
-      transform: rotate(180deg);
-    }
-    .modal-transition {
-      transition: opacity 0.3s, transform 0.3s;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness-Pro 2.0</title>
+    <!-- Carrega o Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuração do Firebase - Método de Carregamento Robusto (CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* Define a fonte Inter como padrão */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        /* Remove as setas do input number */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        /* Estilo para a barra de progresso */
+        #calorieProgress {
+            transition: width 0.3s ease-in-out;
+        }
+        /* Estilo para a lista de alimentos para evitar encolhimento */
+        #foodList {
+            min-height: 12rem; /* 192px */
+        }
+        .rotated {
+            transform: rotate(180deg);
+        }
+        .modal-transition {
+            transition: opacity 0.3s, transform 0.3s;
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-teal-50 min-h-screen flex flex-col items-center justify-start p-4 py-8">
-
-  <!-- Loading Screen -->
-  <div id="loadingScreen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center transition-opacity duration-500">
-    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-600"></div>
-    <p class="text-xl font-semibold text-green-700 mt-4">Conectando ao app...</p>
-  </div>
-
-  <!-- Main App Card -->
-  <div id="mainApp" class="bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 hidden">
-
-    <!-- Header -->
-    <header class="flex justify-between items-center border-b pb-4">
-      <h1 class="text-3xl font-bold text-green-600">Fitness-Pro 2.0</h1>
-      <button id="shareAppButton" class="text-blue-600 p-2 rounded-full hover:bg-gray-100 transition-colors" title="Compartilhar o App">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-          <path d="M18 13v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-6"></path>
-          <path d="M15 9l-3-3-3 3"></path>
-          <path d="M12 3v12"></path>
-        </svg>
-      </button>
-    </header>
-
-    <!-- User Profile -->
-    <div id="userProfileDisplay" class="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-      <img id="profileImageDisplay" src="https://placehold.co/64x64/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-16 h-16 rounded-full object-cover shadow-md" />
-      <div class="flex-grow">
-        <span id="userNameDisplay" class="block text-xl font-semibold text-gray-800">Usuário</span>
-      </div>
-      <button id="editProfileButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">Editar</button>
+    
+    <!-- Tela de Carregamento/Conexão -->
+    <div id="loadingScreen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-600"></div>
+        <p class="text-xl font-semibold text-green-700 mt-4">Conectando ao app...</p>
     </div>
 
-    <!-- Goals Section -->
-    <details id="goalsDetails" class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-      <summary class="text-xl font-semibold text-gray-700 cursor-pointer list-none">
-        <div class="flex justify-between items-center text-green-600">
-          <span>Minhas Metas</span>
-          <svg id="arrowIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-          </svg>
-        </div>
-      </summary>
-      <div id="profileForm" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <div>
-          <label for="weight" class="block text-sm font-medium text-gray-700">Peso (kg)</label>
-          <input type="number" id="weight" placeholder="70" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-        <div>
-          <label for="height" class="block text-sm font-medium text-gray-700">Altura (cm)</label>
-          <input type="number" id="height" placeholder="175" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-        <div>
-          <label for="age" class="block text-sm font-medium text-gray-700">Idade</label>
-          <input type="number" id="age" placeholder="25" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-        <div class="col-span-2 sm:col-span-3">
-          <label for="gender" class="block text-sm font-medium text-gray-700">Gênero</label>
-          <select id="gender" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="male">Masculino</option>
-            <option value="female">Feminino</option>
-          </select>
-        </div>
-        <div class="col-span-2 sm:col-span-3">
-          <label for="activity" class="block text-sm font-medium text-gray-700">Nível de Atividade</label>
-          <select id="activity" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="1.2">Sedentário (pouco ou nenhum)</option>
-            <option value="1.375">Leve (1-3 dias/semana)</option>
-            <option value="1.55" selected>Moderado (3-5 dias/semana)</option>
-            <option value="1.725">Ativo (6-7 dias/semana)</option>
-            <option value="1.9">Muito Ativo (trabalho físico + treino)</option>
-          </select>
-        </div>
-        <div class="col-span-2 sm:col-span-3">
-          <label for="goalType" class="block text-sm font-medium text-gray-700">Meu Objetivo</label>
-          <select id="goalType" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="ganhar">Ganhar Massa (Bulking)</option>
-            <option value="manter">Manter Peso (Manutenção)</option>
-            <option value="perder">Perder Peso (Cutting)</option>
-          </select>
-        </div>
-        <button id="calculateButton" class="col-span-2 sm:col-span-3 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">Calcular e Salvar Meta</button>
-      </div>
-      <p id="goalText" class="text-center text-lg font-semibold text-green-700 mt-4 hidden"></p>
-    </details>
+    <!-- Card Principal -->
+    <div id="mainApp" class="bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 hidden">
+        
+        <!-- Header: Título e Botão de Compartilhar App -->
+        <header class="flex justify-between items-center border-b pb-4">
+            <h1 class="text-3xl font-bold text-green-600">
+                Fitness-Pro 2.0
+            </h1>
+            <button id="shareAppButton" class="text-blue-600 p-2 rounded-full hover:bg-gray-100 transition-colors" title="Compartilhar o App">
+                <!-- ÍCONE FINAL: Seta apontando para fora (Compartilhar/Exportar) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-6"></path>
+                    <path d="M15 9l-3-3-3 3"></path>
+                    <path d="M12 3v12"></path>
+                </svg>
+            </button>
+        </header>
 
-    <!-- Add Food Section -->
-    <div id="addFoodSection" class="transition-opacity duration-300">
-      <h2 class="text-xl font-semibold text-gray-700 mb-3">Adicionar Alimento</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
-        <div class="relative sm:col-span-3">
-          <label for="foodSearch" class="block text-sm font-medium text-gray-700 mb-1">1. Pesquisar Alimento</label>
-          <input type="text" id="foodSearch" placeholder="Digite o nome do alimento..." class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500" autocomplete="off" />
-          <div id="searchDropdown" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-b-lg shadow-lg max-h-48 overflow-y-auto"></div>
+        <!-- Seção: Meu Perfil (Foto, Nome e Botão Editar) -->
+        <div id="userProfileDisplay" class="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <img id="profileImageDisplay" src="https://placehold.co/64x64/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-16 h-16 rounded-full object-cover shadow-md">
+            <div class="flex-grow">
+                <span id="userNameDisplay" class="block text-xl font-semibold text-gray-800">Usuário</span>
+            </div>
+            <button id="editProfileButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                Editar
+            </button>
         </div>
-        <div class="sm:col-span-2">
-          <label for="mealTimeSelect" class="block text-sm font-medium text-gray-700 mb-1">2. Escolher Refeição</label>
-          <select id="mealTimeSelect" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
-            <option value="cafe_da_manha">Café da Manhã</option>
-            <option value="almoco">Almoço</option>
-            <option value="lanche">Lanche</option>
-            <option value="jantar">Jantar</option>
-          </select>
+
+        <!-- Seção: Minhas Metas (Perfil) -->
+        <details id="goalsDetails" class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <summary class="text-xl font-semibold text-gray-700 cursor-pointer list-none">
+                <div class="flex justify-between items-center text-green-600">
+                    <span>Minhas Metas</span>
+                    <svg id="arrowIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </summary>
+            <div id="profileForm" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div>
+                    <label for="weight" class="block text-sm font-medium text-gray-700">Peso (kg)</label>
+                    <input type="number" id="weight" placeholder="70" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="height" class="block text-sm font-medium text-gray-700">Altura (cm)</label>
+                    <input type="number" id="height" placeholder="175" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="age" class="block text-sm font-medium text-gray-700">Idade</label>
+                    <input type="number" id="age" placeholder="25" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="col-span-2 sm:col-span-3">
+                    <label for="gender" class="block text-sm font-medium text-gray-700">Gênero</label>
+                    <select id="gender" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="male">Masculino</option>
+                        <option value="female">Feminino</option>
+                    </select>
+                </div>
+                <div class="col-span-2 sm:col-span-3">
+                    <label for="activity" class="block text-sm font-medium text-gray-700">Nível de Atividade</label>
+                    <select id="activity" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="1.2">Sedentário (pouco ou nenhum)</option>
+                        <option value="1.375">Leve (1-3 dias/semana)</option>
+                        <option value="1.55" selected>Moderado (3-5 dias/semana)</option>
+                        <option value="1.725">Ativo (6-7 dias/semana)</option>
+                        <option value="1.9">Muito Ativo (trabalho físico + treino)</option>
+                    </select>
+                </div>
+                
+                <div class="col-span-2 sm:col-span-3">
+                    <label for="goalType" class="block text-sm font-medium text-gray-700">Meu Objetivo</label>
+                    <select id="goalType" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="ganhar">Ganhar Massa (Bulking)</option>
+                        <option value="manter">Manter Peso (Manutenção)</option>
+                        <option value="perder">Perder Peso (Cutting)</option>
+                    </select>
+                </div>
+
+                <button id="calculateButton" class="col-span-2 sm:col-span-3 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                    Calcular e Salvar Meta
+                </button>
+            </div>
+            
+            <p id="goalText" class="text-center text-lg font-semibold text-green-700 mt-4 hidden"></p>
+        </details>
+
+        <!-- Seção: Adicionar Alimento -->
+        <div id="addFoodSection" class="transition-opacity duration-300">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3">Adicionar Alimento</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                <!-- Barra de Pesquisa -->
+                <div class="relative sm:col-span-3">
+                    <label for="foodSearch" class="block text-sm font-medium text-gray-700 mb-1">
+                        1. Pesquisar Alimento
+                    </label>
+                    <input 
+                        type="text" 
+                        id="foodSearch" 
+                        placeholder="Digite o nome do alimento..."
+                        class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        autocomplete="off"
+                    >
+                    <!-- Dropdown de Resultados -->
+                    <div id="searchDropdown" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-b-lg shadow-lg max-h-48 overflow-y-auto">
+                        <!-- Resultados da pesquisa aqui -->
+                    </div>
+                </div>
+
+                <!-- Seção: Refeição -->
+                <div class="sm:col-span-2">
+                    <label for="mealTimeSelect" class="block text-sm font-medium text-gray-700 mb-1">
+                        2. Escolher Refeição
+                    </label>
+                    <select id="mealTimeSelect" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                        <option value="cafe_da_manha">Café da Manhã</option>
+                        <option value="almoco">Almoço</option>
+                        <option value="lanche">Lanche</option>
+                        <option value="jantar">Jantar</option>
+                    </select>
+                </div>
+                
+                <!-- Quantidade -->
+                <div class="sm:col-span-1">
+                    <label for="foodQuantity" class="block text-sm font-medium text-gray-700 mb-1">
+                        3. Qtd.
+                    </label>
+                    <input 
+                        type="number" 
+                        id="foodQuantity" 
+                        placeholder="Qtd."
+                        min="0"
+                        step="0.1"
+                        class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                </div>
+                
+                <!-- Sugestão de Refeição -->
+                <div id="mealSuggestion" class="text-sm text-gray-600 mt-1 sm:col-span-3 px-1">
+                    <!-- Sugestão será injetada aqui -->
+                </div>
+
+                <!-- Botão Adicionar -->
+                <button id="addFoodButton" class="sm:col-span-3 w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors mt-3">
+                    Adicionar Alimento
+                </button>
+                
+                <!-- Botão de Compartilhamento -->
+                <button id="shareButton" class="sm:col-span-3 w-full bg-cyan-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors mt-3">
+                    Compartilhar Resumo no WhatsApp
+                </button>
+            </div>
         </div>
-        <div class="sm:col-span-1">
-          <label for="foodQuantity" class="block text-sm font-medium text-gray-700 mb-1">3. Qtd.</label>
-          <input type="number" id="foodQuantity" placeholder="Qtd." min="0" step="0.1" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+
+        <!-- Lista de Alimentos Adicionados -->
+        <div class="border-t border-b border-gray-200 py-4">
+            <!-- LINHA CORRIGIDA: Adiciona os dois pontos e mantém layout compacto -->
+            <h3 id="foodListTitle" class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
+                <span>Suas Refeições:</span>
+                <!-- O Objetivo será inserido aqui pelo JS -->
+                <span id="goalTag" class="text-xs font-medium text-blue-700 bg-blue-100 py-0.5 px-2 rounded-full flex-shrink-0 hidden"></span>
+            </h3>
+            <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50">
+                <!-- Mensagem de erro de carregamento removida do HTML para evitar poluição visual -->
+                <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
+                <!-- Seções de refeição serão injetadas aqui -->
+            </div>
         </div>
-        <div id="mealSuggestion" class="text-sm text-gray-600 mt-1 sm:col-span-3 px-1"></div>
-        <button id="addFoodButton" class="sm:col-span-3 w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors mt-3">Adicionar Alimento</button>
-        <button id="shareButton" class="sm:col-span-3 w-full bg-cyan-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors mt-3">Compartilhar Resumo no WhatsApp</button>
-      </div>
+        
+        <!-- Divisor -->
+        <hr class="border-t border-gray-200">
+
+        <!-- Resumo -->
+        <div class="space-y-4">
+            <h2 class="text-xl font-semibold text-gray-800 text-center">Resumo do Dia</h2>
+            
+            <!-- Barra de Progresso de Calorias -->
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-base font-medium text-orange-600">Calorias</span>
+                    <span id="totalCalsGoalText" class="text-sm font-medium text-gray-600">0 / 0 kcal</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+                    <div id="calorieProgress" class="bg-orange-500 h-4 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- TOTAIS LADO A LADO -->
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <!-- Total de Proteínas -->
+                <div>
+                    <p class="text-base font-medium text-emerald-600 mb-1">
+                        Proteínas
+                    </p>
+                    <p id="totalProteins" class="text-3xl font-bold text-emerald-600">
+                        0 g
+                    </p>
+                </div>
+                <!-- Total de Carboidratos -->
+                <div>
+                    <p class="text-base font-medium text-blue-600 mb-1">
+                        Carboidratos
+                    </p>
+                    <p id="totalCarbs" class="text-3xl font-bold text-blue-600">
+                        0 g
+                    </p>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Food List -->
-    <div class="border-t border-b border-gray-200 py-4">
-      <h3 id="foodListTitle" class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
-        <span>Suas Refeições:</span>
-        <span id="goalTag" class="text-xs font-medium text-blue-700 bg-blue-100 py-0.5 px-2 rounded-full flex-shrink-0 hidden"></span>
-      </h3>
-      <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50">
-        <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
-      </div>
+    <!-- Rodapé -->
+    <footer class="mt-8 text-sm text-gray-500">
+        Desenvolvido por Thiago
+    </footer>
+
+    <!-- Modal de Cadastro/Edição de Perfil -->
+    <div id="profileModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
+    <div id="profileModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
+        <h3 id="modalTitle" class="text-2xl font-bold text-gray-800 text-center mb-4">Crie seu Perfil</h3>
+        <p id="registrationError" class="text-red-600 text-center font-medium text-sm mb-3 hidden"></p>
+
+        <div class="space-y-4">
+            <!-- Foto de Perfil -->
+            <div class="flex flex-col items-center">
+                <img id="modalProfileImage" src="https://placehold.co/96x96/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-24 h-24 rounded-full object-cover shadow-lg mb-2 cursor-pointer" onclick="document.getElementById('profilePicInput').click()">
+                <button type="button" onclick="document.getElementById('profilePicInput').click()" class="text-sm text-blue-600 hover:underline">
+                    Selecionar Foto
+                </button>
+                <input type="file" id="profilePicInput" class="hidden" accept="image/*">
+            </div>
+
+            <!-- Nome de Usuário -->
+            <div>
+                <label for="userNameInput" class="block text-sm font-medium text-gray-700">Nome de Usuário *</label>
+                <input type="text" id="userNameInput" placeholder="Seu nome" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <!-- Telefone -->
+            <div>
+                <label for="phoneInput" class="block text-sm font-medium text-gray-700">Telefone (opcional)</label>
+                <input type="tel" id="phoneInput" placeholder="(99) 99999-9999" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+
+            <button id="saveProfileButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors mt-4">
+                Começar a Usar
+            </button>
+        </div>
     </div>
+    <!-- Fim do Modal -->
 
-    <hr class="border-t border-gray-200" />
-
-    <!-- Summary -->
-    <div class="space-y-4">
-      <h2 class="text-xl font-semibold text-gray-800 text-center">Resumo do Dia</h2>
-      <div>
-        <div class="flex justify-between items-center mb-1">
-          <span class="text-base font-medium text-orange-600">Calorias</span>
-          <span id="totalCalsGoalText" class="text-sm font-medium text-gray-600">0 / 0 kcal</span>
+    <!-- Modal de Aviso de Limite -->
+    <div id="warningModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-60 z-40 hidden"></div>
+    <div id="warningModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
+        <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100">
+                <!-- Ícone de Aviso -->
+                <svg class="h-10 w-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mt-4">Meta Atingida!</h3>
+            <p class="text-base text-gray-600 mt-2">
+                Você ultrapassou sua meta de calorias do dia.
+            </p>
+            <p id="modalGoalText" class="text-sm text-gray-500 mt-1"></p>
+            <button id="closeWarningModalButton" class="mt-6 w-full bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
+                Entendi
+            </button>
         </div>
-        <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-          <div id="calorieProgress" class="bg-orange-500 h-4 rounded-full" style="width: 0%"></div>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-4 text-center">
-        <div>
-          <p class="text-base font-medium text-emerald-600 mb-1">Proteínas</p>
-          <p id="totalProteins" class="text-3xl font-bold text-emerald-600">0 g</p>
-        </div>
-        <div>
-          <p class="text-base font-medium text-blue-600 mb-1">Carboidratos</p>
-          <p id="totalCarbs" class="text-3xl font-bold text-blue-600">0 g</p>
-        </div>
-      </div>
     </div>
-  </div>
+    <!-- Fim do Modal de Aviso -->
 
-  <!-- Footer -->
-  <footer class="mt-8 text-sm text-gray-500 text-center">Desenvolvido por Thiago</footer>
 
-  <!-- Modals aqui (Cadastro, aviso, etc) (sem alteração necessária agora) -->
+    <script>
+        // *** CONFIGURAÇÃO DO FIREBASE (SEU CÓDIGO AQUI) ***
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9WSxM9GA64fq9lkLhsTyvMbD1AlO1MM4",
+            authDomain: "assistente-de-treino-668ce.firebaseapp.com",
+            projectId: "assistente-de-treino-668ce",
+            storageBucket: "assistente-de-treino-668ce.firebasestorage.app",
+            messagingSenderId: "878456748339",
+            appId: "1:878456748339:web:5b310b5e91a7b23d0ba646",
+            measurementId: "G-FCQ5CQT1WY"
+        };
+        
+        let firebaseApp, firebaseAuth, firebaseDb, userId = null;
 
-  <!-- JavaScript -->
-  <script>
-    // Código JavaScript do seu app (incluindo firebase inicialização, funções, eventos) conforme exemplo corrigido enviado no outro trecho.
-  </script>
+        // *** VARIÁVEIS DE ESTADO GLOBAL ***
+        let calorieGoal = 0;
+        let selectedFoodKey = null;
+        let dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
+        const todayString = new Date().toISOString().split('T')[0];
+        let goalExceededNotified = false;
+        let profilePicBase64 = null;
+        let isEditingProfile = false;
+        let currentGoalType = 'ganhar'; // Padrão
+
+        const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
+        const mealDisplayNames = {
+            cafe_da_manha: "☕ Café da Manhã",
+            almoco: "🍽️ Almoço",
+            lanche: "🍎 Lanche",
+            jantar: "🍲 Jantar",
+        };
+        const goalDisplayNames = {
+            ganhar: 'Ganho de Massa',
+            manter: 'Manutenção',
+            perder: 'Perda de Peso'
+        };
+
+        const mealSuggestions = {
+            ganhar: {
+                cafe_da_manha: "Ex: Ovos, Aveia, Banana, Whey Protein.",
+                almoco: "Ex: Arroz, Peito de Frango, Feijão, Batata Doce.",
+                lanche: "Ex: Pão Integral, Pasta de Amendoim, Iogurte Grego.",
+                jantar: "Ex: Macarrão, Carne Moída, Salada com Azeite.",
+            },
+            perder: {
+                cafe_da_manha: "Ex: Ovos, Morangos, Café Preto, Iogurte Natural.",
+                almoco: "Ex: Salada, Tilápia, Brócolis, Pouco Arroz Integral.",
+                lanche: "Ex: Maçã, Queijo Minas, Castanhas (pouco).",
+                jantar: "Ex: Sopa de legumes, Peito de Frango, Alface.",
+            },
+            manter: {
+                cafe_da_manha: "Refeição balanceada. Ex: Pão Integral, Ovos, Mamão.",
+                almoco: "Equilibre prato. Ex: Arroz, Feijão, Bife, Salada.",
+                lanche: "Ex: Uvas, Iogurte, Aveia.",
+                jantar: "Refeição leve. Ex: Batata Doce, Frango, Brócolis.",
+            }
+        };
+
+        // *** BANCO DE DADOS DE ALIMENTOS ***
+        const foodDatabase = {
+            'banana': { name: 'Banana', protein: 1.1, carbs: 27, cals: 105, unit: 'unidade', visceralFat: false },
+            'maca': { name: 'Maçã', protein: 0.3, carbs: 25, cals: 95, unit: 'unidade', visceralFat: false },
+            'abacate': { name: 'Abacate', protein: 2, carbs: 9, cals: 160, unit: '100g', visceralFat: false },
+            'mamao': { name: 'Mamão Formosa', protein: 0.5, carbs: 11, cals: 43, unit: '100g', visceralFat: false },
+            'melancia': { name: 'Melancia', protein: 0.6, carbs: 8, cals: 30, unit: '100g', visceralFat: false },
+            'uva': { name: 'Uva', protein: 0.7, carbs: 18, cals: 69, unit: '100g', visceralFat: false },
+            'laranja': { name: 'Laranja', protein: 1, carbs: 12, cals: 47, unit: 'unidade', visceralFat: false },
+            'morango': { name: 'Morango', protein: 0.7, carbs: 8, cals: 32, unit: '100g', visceralFat: false },
+            'brocolis': { name: 'Brócolis (cozido)', protein: 2.4, carbs: 7, cals: 35, unit: '100g', visceralFat: false },
+            'alface': { name: 'Alface Crespa', protein: 1.4, carbs: 2.9, cals: 15, unit: '100g', visceralFat: false },
+            'tomate': { name: 'Tomate', protein: 0.9, carbs: 3.9, cals: 18, unit: '100g', visceralFat: false },
+            'cenoura': { name: 'Cenoura (crua)', protein: 0.9, carbs: 10, cals: 41, unit: '100g', visceralFat: false },
+            'peito_frango': { name: 'Peito de Frango (grelhado)', protein: 31, carbs: 0, cals: 165, unit: '100g', visceralFat: false },
+            'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, cals: 77, unit: 'unidade', visceralFat: false },
+            'ovo_frito': { name: 'Ovo Frito (em óleo)', protein: 6.2, carbs: 0.6, cals: 95, unit: 'unidade', visceralFat: false },
+            'ovos_mexidos': { name: 'Ovos Mexidos (c/ manteiga)', protein: 6.5, carbs: 1.5, cals: 105, unit: 'unidade (1 ovo)', visceralFat: true },
+            'whey_protein': { name: 'Whey Protein', protein: 24, carbs: 3, cals: 120, unit: 'scoop 30g', visceralFat: false },
+            'carne_moida': { name: 'Carne Moída (patinho, cozida)', protein: 26, carbs: 0, cals: 180, unit: '100g', visceralFat: false },
+            'bife_alcatra': { name: 'Bife (Alcatra, grelhado)', protein: 28, carbs: 0, cals: 165, unit: '100g', visceralFat: false },
+            'tilapia': { name: 'Tilápia (grelhada)', protein: 26, carbs: 0, cals: 128, unit: '100g', visceralFat: false },
+            'salmao': { name: 'Salmão (grelhado)', protein: 20, carbs: 0, cals: 208, unit: '100g', visceralFat: false },
+            'atum_lata': { name: 'Atum em Lata (em óleo)', protein: 29, carbs: 0, cals: 186, unit: '100g', visceralFat: false },
+            'leite_integral': { name: 'Leite Integral', protein: 3.2, carbs: 5, cals: 61, unit: '100ml', visceralFat: true },
+            'leite_desnatado': { name: 'Leite Desnatado', protein: 3.4, carbs: 5, cals: 35, unit: '100ml', visceralFat: false },
+            'queijo_mussarela': { name: 'Queijo Mussarela', protein: 22, carbs: 3.1, cals: 300, unit: '100g (fatia 30g)', visceralFat: true },
+            'queijo_minas': { name: 'Queijo Minas Frescal', protein: 17, carbs: 3, cals: 264, unit: '100g', visceralFat: false },
+            'iogurte_grego': { name: 'Iogurte Grego (natural)', protein: 10, carbs: 3.6, cals: 59, unit: '100g', visceralFat: false },
+            'iogurte_natural': { name: 'Iogurte Natural Desnatado', protein: 4.1, carbs: 7, cals: 57, unit: '100g', visceralFat: false },
+            'arroz_branco': { name: 'Arroz Branco (cozido)', protein: 2.7, carbs: 28, cals: 130, unit: '100g', visceralFat: false },
+            'arroz_integral': { name: 'Arroz Integral (cozido)', protein: 2.6, carbs: 23, cals: 111, unit: '100g', visceralFat: false },
+            'pao_forma': { name: 'Pão de Forma (Branco)', protein: 2.5, carbs: 15, cals: 80, unit: 'fatia', visceralFat: true },
+            'pao_integral': { name: 'Pão de Forma (Integral)', protein: 3, carbs: 12, cals: 70, unit: 'fatia', visceralFat: false },
+            'batata_doce': { name: 'Batata Doce (cozida)', protein: 1.6, carbs: 20, cals: 86, unit: '100g', visceralFat: false },
+            'batata_inglesa': { name: 'Batata Inglesa (cozida)', protein: 2, carbs: 20, cals: 87, unit: '100g', visceralFat: false },
+            'feijao_preto': { name: 'Feijão Preto (cozido)', protein: 9, carbs: 24, cals: 131, unit: '100g', visceralFat: false },
+            'feijao_carioca': { name: 'Feijão Carioca (cozido)', protein: 4.8, carbs: 14, cals: 76, unit: '100g', visceralFat: false },
+            'aveia': { name: 'Aveia em Flocos', protein: 17, carbs: 66, cals: 389, unit: '100g', visceralFat: false },
+            'macarrao': { name: 'Macarrão (cozido)', protein: 5, carbs: 25, cals: 131, unit: '100g', visceralFat: false },
+            'cuscuz': { name: 'Cuscuz (hidratado)', protein: 3.8, carbs: 23, cals: 112, unit: '100g', visceralFat: false },
+            'tapioca': { name: 'Tapioca (goma)', protein: 0, carbs: 89, cals: 355, unit: '100g', visceralFat: false },
+            'pasta_amendoim': { name: 'Pasta de Amendoim (integral)', protein: 25, carbs: 20, cals: 588, unit: '100g (colher 15g)', visceralFat: false },
+            'azeite': { name: 'Azeite de Oliva', protein: 0, carbs: 0, cals: 119, unit: 'colher sopa', visceralFat: false },
+            'castanha_caju': { name: 'Castanha de Caju', protein: 18, carbs: 30, cals: 553, unit: '100g', visceralFat: false },
+            'amendoim': { name: 'Amendoim', protein: 26, carbs: 16, cals: 567, unit: '100g', visceralFat: false },
+            'manteiga': { name: 'Manteiga com sal', protein: 0.9, carbs: 0.1, cals: 717, unit: '100g (colher 5g)', visceralFat: true },
+            'refrigerante': { name: 'Refrigerante (Cola)', protein: 0, carbs: 26, cals: 105, unit: 'lata 350ml', visceralFat: true },
+            'chocolate_ao_leite': { name: 'Chocolate ao Leite', protein: 8, carbs: 59, cals: 535, unit: '100g (barra 25g)', visceralFat: true },
+            'biscoito_recheado': { name: 'Biscoito Recheado (Chocolate)', protein: 5, carbs: 70, cals: 450, unit: '100g (unid 10g)', visceralFat: true },
+            'pizza_mussarela': { name: 'Pizza Mussarela', protein: 11, carbs: 33, cals: 271, unit: '100g (1 fatia)', visceralFat: true },
+            'mel': { name: 'Mel', protein: 0.3, carbs: 82, cals: 304, unit: '100g', visceralFat: true },
+            'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false }
+        };
+
+        // --- Funções de Ajuda ---
+        function getProfileDocRef() {
+            // Caminho Simplificado: /users/{userId}/data (para funcionar com a Regra Simples)
+            return firebaseDb.collection('users').doc(userId).collection('data').doc('profile');
+        }
+        function getMetasDocRef() {
+            // Caminho Simplificado: /users/{userId}/metas
+            return firebaseDb.collection('users').doc(userId).collection('data').doc('metas');
+        }
+        function getMealsDocRef() {
+            // Caminho Simplificado: /users/{userId}/meals_today
+            return firebaseDb.collection('users').doc(userId).collection('data').doc('meals_today');
+        }
+
+        function showElement(el) { el.classList.remove('hidden'); }
+        function hideElement(el) { el.classList.add('hidden'); }
+
+        function showModal(modal, overlay) {
+            showElement(overlay);
+            showElement(modal);
+            requestAnimationFrame(() => {
+                modal.classList.remove('scale-90', 'opacity-0');
+                modal.classList.add('scale-100', 'opacity-100');
+            });
+        }
+
+        function hideModal(modal, overlay) {
+            modal.classList.remove('scale-100', 'opacity-100');
+            modal.classList.add('scale-90', 'opacity-0');
+            setTimeout(() => {
+                hideElement(modal);
+                hideElement(overlay);
+                clearRegistrationError();
+            }, 150);
+        }
+
+        function showRegistrationError(message) {
+            const errorEl = document.getElementById('registrationError');
+            errorEl.textContent = message;
+            showElement(errorEl);
+        }
+
+        function clearRegistrationError() {
+            const errorEl = document.getElementById('registrationError');
+            errorEl.textContent = '';
+            hideElement(errorEl);
+        }
+        
+        // --- Conversores de Imagem ---
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // --- Funções de Estado e Dados ---
+        function saveProfilePicLocally() {
+            if (profilePicBase64) {
+                localStorage.setItem(`profilePic_${userId}`, profilePicBase64);
+                document.getElementById('profileImageDisplay').src = profilePicBase64;
+                document.getElementById('modalProfileImage').src = profilePicBase64;
+            }
+        }
+        
+        function loadProfilePicLocally() {
+            const localPic = localStorage.getItem(`profilePic_${userId}`);
+            if (localPic) {
+                profilePicBase64 = localPic;
+                document.getElementById('profileImageDisplay').src = localPic;
+                document.getElementById('modalProfileImage').src = localPic;
+            } else {
+                 document.getElementById('profileImageDisplay').src = "https://placehold.co/64x64/E0F2F1/065F46?text=FP";
+                 document.getElementById('modalProfileImage').src = "https://placehold.co/96x96/E0F2F1/065F46?text=FP";
+                 profilePicBase64 = null;
+            }
+        }
+
+        async function loadProfileAndMetas() {
+            try {
+                // 1. Carregar Perfil (Nome do Usuário)
+                const profileSnap = await getProfileDocRef().get();
+                if (profileSnap.exists) {
+                    const data = profileSnap.data();
+                    document.getElementById('userNameDisplay').textContent = data.userName || 'Usuário';
+                    document.getElementById('userNameInput').value = data.userName || '';
+                    document.getElementById('phoneInput').value = data.phone || '';
+                    loadProfilePicLocally(); // Carrega a foto local
+                } else if (isEditingProfile === false) {
+                    // Se o perfil não existe e não estamos editando, abrimos o modal de cadastro.
+                    showModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
+                    return; // Parar o carregamento se o perfil não existir
+                }
+                
+                // 2. Carregar Metas
+                const metasSnap = await getMetasDocRef().get();
+                if (metasSnap.exists) {
+                    const data = metasSnap.data();
+                    document.getElementById('weight').value = data.weight || '';
+                    document.getElementById('height').value = data.height || '';
+                    document.getElementById('age').value = data.age || '';
+                    document.getElementById('gender').value = data.gender || 'male';
+                    document.getElementById('activity').value = data.activity || '1.55';
+                    document.getElementById('goalType').value = data.goalType || 'ganhar';
+                    calorieGoal = parseFloat(data.calorieGoal) || 0;
+                    currentGoalType = data.goalType || 'ganhar'; // Atualiza a variável global do objetivo
+                }
+
+                updateGoalDisplay();
+                updateMealSuggestion(); 
+                
+            } catch (error) {
+                console.error("Erro ao carregar perfil/metas:", error);
+                // Se for a primeira vez e não estiver editando, mostra o modal
+                if (isEditingProfile === false) {
+                    showModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
+                }
+            }
+        }
+
+        async function saveProfileData() {
+            clearRegistrationError();
+            const userName = document.getElementById('userNameInput').value.trim();
+            const phone = document.getElementById('phoneInput').value.trim();
+            
+            if (!userName) {
+                showRegistrationError("Por favor, insira um nome de usuário.");
+                return;
+            }
+
+            try {
+                // Usa a versão 'set' compatível
+                await getProfileDocRef().set({
+                    userName: userName,
+                    phone: phone,
+                    userId: userId 
+                });
+                saveProfilePicLocally(); // Salva a foto localmente
+                
+                document.getElementById('userNameDisplay').textContent = userName;
+                
+                hideModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
+                isEditingProfile = false;
+                
+                // Se for o primeiro cadastro, tenta carregar as metas (que podem ser zero)
+                if (calorieGoal === 0) {
+                     loadProfileAndMetas(); 
+                }
+
+            } catch (error) {
+                console.error("Erro ao salvar perfil:", error);
+                showRegistrationError("Erro ao salvar perfil. Verifique sua conexão.");
+            }
+        }
+
+        async function saveMetas() {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const age = parseFloat(document.getElementById('age').value);
+            const gender = document.getElementById('gender').value;
+            const activity = parseFloat(document.getElementById('activity').value);
+            const goalType = document.getElementById('goalType').value; 
+
+            if (isNaN(weight) || isNaN(height) || isNaN(age) || weight <= 0 || height <= 0 || age <= 0) {
+                goalText.textContent = "Por favor, preencha todos os campos.";
+                goalText.classList.remove('hidden', 'text-green-700');
+                goalText.classList.add('text-red-600');
+                return;
+            }
+
+            let bmr;
+            if (gender === 'male') {
+                bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+            } else {
+                bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+            }
+
+            const tdee = bmr * activity;
+            let finalGoal;
+            switch (goalType) {
+                case 'perder':
+                    finalGoal = tdee - 400; 
+                    break;
+                case 'manter':
+                    finalGoal = tdee; 
+                    break;
+                case 'ganhar':
+                default:
+                    finalGoal = tdee + 400; 
+                    break;
+            }
+            calorieGoal = finalGoal;
+            currentGoalType = goalType;
+
+            try {
+                // Usa a versão 'set' compatível
+                await getMetasDocRef().set({
+                    weight, height, age, gender, activity, goalType,
+                    calorieGoal: finalGoal.toFixed(0)
+                });
+                
+                updateGoalDisplay();
+                updateTotals(false); // Atualiza os totais e verifica o modal
+                updateMealSuggestion();
+                renderFoodList(); // Atualiza o título das refeições com o novo objetivo
+
+            } catch (error) {
+                console.error("Erro ao salvar metas no servidor:", error);
+                goalText.textContent = "Erro ao salvar meta no servidor. (Verifique as regras do Firebase)";
+                goalText.classList.remove('hidden', 'text-green-700');
+                goalText.classList.add('text-red-600');
+            }
+        }
+
+        function updateGoalDisplay() {
+            const goalText = document.getElementById('goalText');
+            if (calorieGoal > 0) {
+                 const goalType = document.getElementById('goalType').value || 'ganhar';
+                 const goalName = goalDisplayNames[goalType];
+                 goalText.textContent = `Sua meta (${goalName}): ${calorieGoal.toFixed(0)} kcal/dia`;
+                 goalText.classList.remove('hidden', 'text-red-600', 'text-gray-600');
+                 goalText.classList.add('text-green-700');
+                 
+                 // Atualiza a tag do objetivo na lista de refeições
+                 document.getElementById('goalTag').textContent = goalName;
+                 showElement(document.getElementById('goalTag'));
+
+            } else {
+                 goalText.textContent = "Clique em 'Calcular e Salvar Meta'.";
+                 goalText.classList.remove('hidden', 'text-green-700', 'text-red-600');
+                 goalText.classList.add('text-gray-600');
+                 hideElement(document.getElementById('goalTag'));
+            }
+        }
+        
+        function updateMealSuggestion() {
+            const mealSuggestion = document.getElementById('mealSuggestion');
+            if (calorieGoal === 0) {
+                mealSuggestion.innerHTML = 'Preencha e salve suas metas acima para ver sugestões de refeições.';
+                return;
+            }
+            const goalType = document.getElementById('goalType').value || 'ganhar';
+            const mealTime = document.getElementById('mealTimeSelect').value || 'cafe_da_manha';
+            const suggestionText = mealSuggestions[goalType][mealTime];
+            mealSuggestion.innerHTML = `💡 <span class="font-semibold">Sugestão p/ ${goalDisplayNames[goalType]}:</span> ${suggestionText}`;
+        }
+
+        // --- Funções de Refeições ---
+        async function loadDailyLog() {
+            try {
+                const mealsSnap = await getMealsDocRef().get();
+
+                if (mealsSnap.exists) {
+                    const data = mealsSnap.data();
+                    
+                    if (data.date !== todayString) {
+                        // Data é diferente, limpar e começar novo dia (limpeza automática 00:00)
+                        dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
+                        // Não é necessário await, para não travar o carregamento
+                        getMealsDocRef().set({ date: todayString, log: dailyLog }) 
+                            .catch(err => console.error("Erro ao limpar e salvar novo log:", err)); 
+                        console.log("Limpeza automática de refeições antigas concluída.");
+                    } else {
+                        // Mesma data, carrega o log
+                        dailyLog = data.log || { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
+                    }
+                } else {
+                    // Documento não existe, cria um novo para hoje
+                     dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
+                     // Usa a versão 'set' compatível
+                     getMealsDocRef().set({ date: todayString, log: dailyLog })
+                        .catch(err => console.error("Erro ao criar log inicial:", err)); 
+                }
+                
+                renderFoodList();
+                updateTotals(true); // IsLoading = true (para não disparar o modal)
+
+            } catch (error) {
+                 console.error("Erro ao carregar log diário:", error);
+                 // Apenas loga o erro, não exibe mais na tela
+            }
+        }
+
+        async function saveDailyLog() {
+            try {
+                // Usa a versão 'set' compatível
+                await getMealsDocRef().set({
+                    date: todayString,
+                    log: dailyLog 
+                });
+            } catch (error) {
+                console.error("Erro ao salvar log diário:", error);
+            }
+        }
+
+        function handleAddFood() {
+            const quantityInput = parseFloat(document.getElementById('foodQuantity').value);
+            const selectedMealKey = document.getElementById('mealTimeSelect').value;
+            
+            if (!selectedFoodKey || isNaN(quantityInput) || quantityInput <= 0) {
+                console.warn("Tentativa de adicionar alimento inválido.");
+                return;
+            }
+
+            const foodData = foodDatabase[selectedFoodKey];
+            let calculationFactor = quantityInput;
+            
+            if (foodData.unit.includes('100g') || foodData.unit.includes('100ml')) {
+                calculationFactor = quantityInput / 100.0;
+            }
+
+            const itemProtein = (foodData.protein || 0) * calculationFactor; 
+            const itemCarbs = (foodData.carbs || 0) * calculationFactor;
+            const itemCals = (foodData.cals || 0) * calculationFactor;
+            
+            let quantityDisplay;
+            if (foodData.unit.includes('100g')) {
+                quantityDisplay = `${quantityInput.toLocaleString('pt-BR')} g`;
+            } else if (foodData.unit.includes('100ml')) {
+                quantityDisplay = `${quantityInput.toLocaleString('pt-BR')} ml`;
+            } else {
+                quantityDisplay = `${quantityInput.toLocaleString('pt-BR')}x`;
+            }
+
+            const logItem = {
+                id: Date.now(),
+                displayName: `${quantityDisplay} ${foodData.name}`,
+                protein: itemProtein, 
+                carbs: itemCarbs,
+                cals: itemCals,
+                visceralFatTag: foodData.visceralFat,
+                timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                done: false 
+            };
+            
+            dailyLog[selectedMealKey].push(logItem);
+            
+            renderFoodList();
+            updateTotals(); 
+            saveDailyLog(); 
+
+            document.getElementById('foodSearch').value = '';
+            document.getElementById('foodQuantity').value = '';
+            document.getElementById('foodQuantity').placeholder = 'Qtd.';
+            selectedFoodKey = null;
+        }
+
+        function renderFoodList() {
+            const foodListContainer = document.getElementById('foodList');
+            foodListContainer.innerHTML = '';
+            let totalItems = 0;
+
+            // Define o Goal Tag no título da lista de refeições
+            const goalTagEl = document.getElementById('goalTag');
+            if (calorieGoal > 0) {
+                goalTagEl.textContent = goalDisplayNames[currentGoalType];
+                showElement(goalTagEl);
+            } else {
+                hideElement(goalTagEl);
+            }
+
+            MEAL_KEYS.forEach(mealKey => {
+                const items = dailyLog[mealKey];
+
+                if (Array.isArray(items) && items.length > 0) {
+                    totalItems += items.length;
+                    
+                    const mealTitle = document.createElement('h4');
+                    mealTitle.className = "text-md font-semibold text-gray-600 pt-2";
+                    mealTitle.textContent = mealDisplayNames[mealKey];
+                    foodListContainer.appendChild(mealTitle);
+                    
+                    items.forEach(item => {
+                        const tagHTML = item.visceralFatTag 
+                            ? '<span class="ml-2 text-xs font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">⚠️</span>' 
+                            : '';
+                        const isDone = item.done || false;
+                        const timestamp = item.timestamp ? `às ${item.timestamp}` : ''; 
+                        const itemProtein = item.protein || 0; 
+                        const itemCarbs = item.carbs || 0;
+                        const itemCals = item.cals || 0;
+
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = "flex items-center bg-white p-3 rounded-lg shadow-sm";
+                        itemDiv.innerHTML = `
+                            <div class="flex-shrink-0">
+                                <input type="checkbox" 
+                                       class="done-checkbox h-5 w-5 text-green-600 rounded border-gray-300 focus:ring-green-500" 
+                                       data-id="${item.id}" 
+                                       data-meal-key="${mealKey}"
+                                       ${isDone ? 'checked' : ''}
+                                >
+                            </div>
+                            <div class="flex-grow mx-3 min-w-0">
+                                <div class="flex justify-between items-baseline ${isDone ? 'line-through text-gray-400' : ''}">
+                                    <span class="font-medium ${isDone ? 'text-gray-500' : 'text-gray-800'} truncate">${item.displayName}</span>
+                                    <span class="text-xs ${isDone ? 'text-gray-400' : 'text-gray-500'} flex-shrink-0 ml-2">${timestamp}</span>
+                                </div>
+                                ${tagHTML} 
+                                <p class="text-sm ${isDone ? 'line-through text-gray-400' : 'text-gray-500'} mt-1">
+                                    <span class="${isDone ? '' : 'text-emerald-600'}">${itemProtein.toFixed(1)} g prot</span> | 
+                                    <span class="${isDone ? '' : 'text-blue-600'}">${itemCarbs.toFixed(1)} g carbs</span> | 
+                                    <span class="${isDone ? '' : 'text-orange-600'}">${itemCals.toFixed(0)} kcal</span>
+                                </p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <button 
+                                    class="remove-btn text-red-500 hover:text-red-700 font-bold text-2xl" 
+                                    data-id="${item.id}"
+                                    data-meal-key="${mealKey}" 
+                                    title="Remover"
+                                >
+                                    &times;
+                                </button>
+                            </div>
+                        `;
+                        foodListContainer.appendChild(itemDiv);
+                    });
+                }
+            });
+
+            if (totalItems === 0) {
+                foodListContainer.appendChild(document.getElementById('emptyListText'));
+                document.getElementById('emptyListText').classList.remove('hidden');
+            } else {
+                document.getElementById('emptyListText').classList.add('hidden');
+            }
+        }
+
+        function handleRemoveFood(event) {
+            const removeBtn = event.target.closest('.remove-btn');
+            if (!removeBtn) return;
+            const idToRemove = parseInt(removeBtn.dataset.id);
+            const mealKey = removeBtn.dataset.mealKey;
+            dailyLog[mealKey] = dailyLog[mealKey].filter(item => item.id !== idToRemove);
+            renderFoodList();
+            updateTotals();
+            saveDailyLog(); 
+        }
+        
+        function handleToggleDone(event) {
+            const checkbox = event.target.closest('.done-checkbox');
+            if (!checkbox) return;
+            const idToToggle = parseInt(checkbox.dataset.id);
+            const mealKey = checkbox.dataset.mealKey;
+            const item = dailyLog[mealKey].find(i => i.id === idToToggle);
+            if (item) {
+                item.done = checkbox.checked;
+                saveDailyLog(); 
+                renderFoodList();
+            }
+        }
+
+        function updateTotals(isLoading = false) {
+            let totalCarbs = 0;
+            let totalCals = 0;
+            let totalProteins = 0; 
+
+            MEAL_KEYS.forEach(mealKey => {
+                dailyLog[mealKey].forEach(item => {
+                    totalProteins += item.protein || 0; 
+                    totalCarbs += item.carbs || 0;
+                    totalCals += item.cals || 0;
+                });
+            });
+
+            document.getElementById('totalProteins').textContent = `${totalProteins.toFixed(1)} g`; 
+            document.getElementById('totalCarbs').textContent = `${totalCarbs.toFixed(1)} g`;
+            document.getElementById('totalCalsGoalText').textContent = `${totalCals.toFixed(0)} / ${calorieGoal > 0 ? calorieGoal.toFixed(0) : '...'} kcal`;
+            
+            let percentage = (calorieGoal > 0) ? (totalCals / calorieGoal) * 100 : 0;
+            const calorieProgress = document.getElementById('calorieProgress');
+            calorieProgress.style.width = `${Math.min(percentage, 100)}%`;
+            
+            if (percentage > 100) {
+                calorieProgress.classList.remove('bg-orange-500');
+                calorieProgress.classList.add('bg-green-500');
+            } else {
+                calorieProgress.classList.remove('bg-green-500');
+                calorieProgress.classList.add('bg-orange-500');
+            }
+
+            // Lógica do Modal
+            const isOverLimit = (calorieGoal > 0) && (totalCals > calorieGoal);
+            
+            if (isOverLimit) {
+                if (!goalExceededNotified && !isLoading) {
+                    document.getElementById('modalGoalText').textContent = `Meta: ${calorieGoal.toFixed(0)} kcal | Atual: ${totalCals.toFixed(0)} kcal`;
+                    showModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay'));
+                }
+                goalExceededNotified = true;
+            } else {
+                goalExceededNotified = false;
+            }
+        }
+
+        // --- Funções de Compartilhamento ---
+        function handleShareWhatsApp() {
+            const userName = document.getElementById('userNameDisplay').textContent;
+            let waText = `*Resumo de Refeições do ${userName} (${todayString.split('-').reverse().join('/')})*\n`;
+            
+            let totalItems = 0;
+            MEAL_KEYS.forEach(mealKey => {
+                const items = dailyLog[mealKey];
+                if (Array.isArray(items) && items.length > 0) {
+                    totalItems += items.length;
+                    waText += `\n*${mealDisplayNames[mealKey]}*\n`;
+                    items.forEach(item => {
+                        const doneStatus = item.done ? '[OK] ' : '';
+                        waText += `- ${doneStatus}${item.displayName} (${(item.protein || 0).toFixed(1)}g prot, ${(item.cals || 0).toFixed(0)} kcal)\n`;
+                    });
+                }
+            });
+
+            if (totalItems === 0) {
+                console.warn("Sem itens para compartilhar.");
+                return;
+            }
+
+            waText += "\n*Resumo Total:*\n";
+            waText += `*Meta:* ${document.getElementById('goalText').textContent.replace('Sua meta (', '').replace('):', '')}\n`;
+            waText += `*Calorias Consumidas:* ${document.getElementById('totalCalsGoalText').textContent.split('/')[0].trim()}\n`;
+            waText += `*Proteínas:* ${document.getElementById('totalProteins').textContent}\n`;
+            waText += `*Carboidratos:* ${document.getElementById('totalCarbs').textContent}\n`;
+
+            const encodedText = encodeURIComponent(waText);
+            const waURL = `https://wa.me/?text=${encodedText}`;
+            window.open(waURL, '_blank');
+        }
+
+        function handleShareApp() {
+            const appUrl = window.location.href; 
+            const shareData = {
+                title: 'Fitness-Pro 2.0',
+                text: 'Meu assistente de treino e dieta com sincronização na nuvem!',
+                url: appUrl,
+            };
+
+            // Verifica suporte para compartilhamento nativo
+            if (navigator.share) {
+                navigator.share(shareData)
+                    .catch((error) => console.error('Erro ao compartilhar:', error));
+            } else {
+                // Fallback para navegadores que não suportam navigator.share
+                const errorEl = document.getElementById('registrationError');
+                const originalText = errorEl.textContent;
+                errorEl.textContent = 'Copie o link: ' + appUrl;
+                showElement(errorEl);
+                setTimeout(() => {
+                    errorEl.textContent = originalText;
+                    hideElement(errorEl);
+                }, 5000);
+            }
+        }
+
+        // --- Funções de Busca ---
+        function handleSearchInput() {
+            const foodSearchInput = document.getElementById('foodSearch');
+            const searchDropdown = document.getElementById('searchDropdown');
+            const searchTerm = foodSearchInput.value.toLowerCase().trim();
+            searchDropdown.innerHTML = '';
+            
+            if (searchTerm.length < 2) {
+                hideElement(searchDropdown);
+                return;
+            }
+            
+            const filteredFoods = Object.entries(foodDatabase).filter(([key, food]) => 
+                food.name.toLowerCase().includes(searchTerm)
+            );
+
+            if (filteredFoods.length === 0) {
+                hideElement(searchDropdown);
+                return;
+            }
+
+            filteredFoods.forEach(([key, food]) => {
+                const tagHTML = food.visceralFat 
+                    ? '<span class="ml-2 text-xs font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">⚠️</span>' 
+                    : '';
+                const itemHTML = `
+                    <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100" data-key="${key}">
+                        <span class="font-medium text-gray-800">${food.name}</span>
+                        <span class="text-sm text-gray-500">(${food.unit})</span>
+                        ${tagHTML}
+                    </div>
+                `;
+                searchDropdown.innerHTML += itemHTML;
+            });
+            showElement(searchDropdown);
+        }
+
+        function handleSelectSearchResult(event) {
+            const selectedItem = event.target.closest('[data-key]');
+            if (!selectedItem) return;
+            const key = selectedItem.dataset.key;
+            const food = foodDatabase[key];
+            selectedFoodKey = key;
+            document.getElementById('foodSearch').value = `${food.name} (${food.unit})`;
+            
+            const foodQuantityInput = document.getElementById('foodQuantity');
+            if (food.unit.includes('100g') || food.unit.includes('100ml')) {
+                foodQuantityInput.value = '100';
+                foodQuantityInput.placeholder = 'Gramas/ML';
+            } else if (food.unit.includes('colher')) {
+                 foodQuantityInput.value = '1';
+                 foodQuantityInput.placeholder = 'Colheres';
+            } else {
+                foodQuantityInput.value = '1';
+                 foodQuantityInput.placeholder = 'Unidades';
+            }
+            hideElement(document.getElementById('searchDropdown'));
+            foodQuantityInput.focus();
+            foodQuantityInput.select();
+        }
+
+        // --- Inicia a Aplicação ---
+        function initializeApp() {
+            // 1. Inicializa Firebase (Método robusto)
+            try {
+                firebaseApp = firebase.initializeApp(firebaseConfig);
+                firebaseAuth = firebase.auth();
+                firebaseDb = firebase.firestore();
+            } catch (error) {
+                 console.error("Erro ao inicializar Firebase (config):", error);
+                 document.getElementById('loadingScreen').innerHTML = `<p class="text-red-600 text-center text-xl">ERRO FATAL: Falha ao inicializar o Firebase. Verifique a chave API.</p>`;
+                 return;
+            }
+
+            // 2. Listener de Autenticação (Login Anônimo)
+            firebaseAuth.onAuthStateChanged(user => {
+                if (user) {
+                    userId = user.uid;
+                    hideElement(document.getElementById('loadingScreen'));
+                    showElement(document.getElementById('mainApp'));
+                    
+                    // 3. Carrega Perfil e Log de Refeições
+                    loadProfileAndMetas();
+                    loadDailyLog();
+                    attachEventListeners();
+                    
+                } else {
+                    // Tenta fazer login anonimamente se não estiver logado
+                    firebaseAuth.signInAnonymously()
+                        .catch(error => {
+                            console.error("Erro ao fazer login anônimo:", error);
+                            document.getElementById('loadingScreen').innerHTML = `<p class="text-red-600 text-center text-xl">ERRO FATAL: Não foi possível conectar ao servidor (Autenticação). Verifique o Firebase Console.</p>`;
+                        });
+                }
+            });
+        }
+        
+        // --- Anexar Event Listeners ---
+        function attachEventListeners() {
+            // Perfil
+            document.getElementById('calculateButton').addEventListener('click', saveMetas);
+            document.getElementById('goalsDetails').addEventListener('toggle', (e) => {
+                const icon = document.getElementById('arrowIcon');
+                if (e.target.open) {
+                    icon.classList.add('rotated');
+                } else {
+                    icon.classList.remove('rotated');
+                }
+            });
+
+            // Edição de Perfil
+            document.getElementById('editProfileButton').addEventListener('click', () => {
+                isEditingProfile = true;
+                document.getElementById('modalTitle').textContent = 'Editar Perfil';
+                document.getElementById('saveProfileButton').textContent = 'Salvar Alterações';
+                loadProfilePicLocally(); // Recarrega localmente
+                loadProfileAndMetas(); // Recarrega os dados do Firestore
+                showModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
+            });
+            document.getElementById('saveProfileButton').addEventListener('click', saveProfileData);
+            
+            // Foto de Perfil
+            document.getElementById('profilePicInput').addEventListener('change', async (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) { // Limite de 2MB
+                        showRegistrationError("A imagem é muito grande (máx. 2MB).");
+                        return;
+                    }
+                    try {
+                        profilePicBase64 = await fileToBase64(file);
+                        document.getElementById('modalProfileImage').src = profilePicBase64;
+                        clearRegistrationError();
+                    } catch (e) {
+                        showRegistrationError("Erro ao carregar a imagem.");
+                    }
+                }
+            });
+
+            // Adicionar Alimento
+            document.getElementById('foodSearch').addEventListener('input', handleSearchInput);
+            document.getElementById('searchDropdown').addEventListener('mousedown', handleSelectSearchResult);
+            document.getElementById('addFoodButton').addEventListener('click', handleAddFood);
+            document.getElementById('mealTimeSelect').addEventListener('change', updateMealSuggestion);
+            document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
+            document.getElementById('foodList').addEventListener('click', handleRemoveFood);
+            document.getElementById('foodList').addEventListener('change', handleToggleDone);
+            document.getElementById('shareButton').addEventListener('click', handleShareWhatsApp);
+
+            // Modal de Aviso de Limite
+            document.getElementById('closeWarningModalButton').addEventListener('click', () => hideModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay')));
+            document.getElementById('warningModalOverlay').addEventListener('click', () => hideModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay')));
+
+            // Botão Compartilhar App
+             document.getElementById('shareAppButton').addEventListener('click', handleShareApp);
+        }
+
+        // --- Inicia a Aplicação ---
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+    </script>
+
 </body>
 </html>
