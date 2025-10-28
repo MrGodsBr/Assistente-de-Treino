@@ -39,10 +39,9 @@
     <header class="flex justify-between items-center border-b pb-4">
       <h1 class="text-3xl font-bold text-green-600">Fitness-Pro 2.0</h1>
       <button id="shareAppButton" class="text-blue-600 p-2 rounded-full hover:bg-gray-100 transition-colors" title="Compartilhar o App">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 13v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-6"></path>
-          <path d="M15 9l-3-3-3 3"></path>
-          <path d="M12 3v12"></path>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.42" y1="6.51" x2="8.59" y2="10.49"></line>
         </svg>
       </button>
     </header>
@@ -108,14 +107,9 @@
       </div>
       <p id="goalText" class="text-center text-lg font-semibold text-green-700 mt-4 hidden"></p>
     </details>
-    
-    <div class="border-t border-gray-200 pt-4">
-        <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2">Histórico:</label>
-        <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-        <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
-    </div>
+
     <div id="addFoodSection">
-      <h2 class="text-xl font-semibold text-gray-700 mb-3">Adicionar Alimento (Apenas Dia Atual)</h2>
+      <h2 class="text-xl font-semibold text-gray-700 mb-3">Adicionar Alimento</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
         <div class="relative sm:col-span-3">
           <label for="foodSearch" class="block text-sm font-medium text-gray-700 mb-1">1. Pesquisar Alimento</label>
@@ -162,6 +156,11 @@
       </div>
     </div>
 
+    <div class="border-t border-gray-200 pt-4">
+        <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2">Histórico:</label>
+        <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
+    </div>
     <div class="border-b border-gray-200 py-4">
       <h3 class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
         <span>Refeições do Dia:</span>
@@ -269,17 +268,17 @@
     let calorieGoal = 0;
     let selectedFoodKey = null;
     let dailyLog = {}; 
-    const TODAY = new Date(); // Data de hoje (imutável)
+    const TODAY = new Date(); 
     TODAY.setHours(0, 0, 0, 0); 
-    const todayDateString = TODAY.toISOString().split('T')[0]; // String da data de hoje (imutável)
+    const todayDateString = TODAY.toISOString().split('T')[0]; 
     
-    let currentDateString = todayDateString; // Data atualmente visualizada
+    let currentDateString = todayDateString; 
     
     let goalExceededNotified = false;
     let profilePicBase64 = null;
     let isEditingProfile = false;
     let currentGoalType = 'ganhar';
-    let unsubscribeListener = null; // Para gerenciar o listener do Firestore
+    let unsubscribeListener = null; 
 
     const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
     const mealDisplayNames = {
@@ -541,6 +540,7 @@
         const shareButton = document.getElementById('shareButton');
         const dateStatus = document.getElementById('dateStatus');
 
+        // Habilita/Desabilita a seção de adicionar/compartilhar
         if (isToday) {
             addFoodSection.classList.remove('opacity-50');
             addFoodSection.querySelectorAll('input, select, button').forEach(el => el.disabled = false);
@@ -550,7 +550,7 @@
             addFoodSection.classList.add('opacity-50');
             addFoodSection.querySelectorAll('input, select, button').forEach(el => el.disabled = true);
             shareButton.disabled = true;
-            dateStatus.textContent = 'Visualizando Histórico (Somente Leitura)';
+            dateStatus.textContent = `Visualizando Histórico (Somente Leitura) em ${dateString}`;
         }
 
         // Inicia o novo listener para a data selecionada
@@ -558,13 +558,10 @@
     }
     
     function clearFoodListUI() {
-        // Limpa as seções de refeições
         MEAL_KEYS.forEach(k => {
             const container = document.getElementById(`${k}_container`);
             if (container) container.innerHTML = '';
         });
-        // Garante que o texto de lista vazia é exibido se necessário
-        manageEmptyListText();
     }
 
     // Inicia o listener para a data fornecida
@@ -583,7 +580,6 @@
         (snap)=>{
           let shouldUpdateTotals = false;
           
-          // Limpa o dailyLog e a UI antes de processar TUDO (necessário se o listener for reaberto)
           if (snap.docChanges().length > 0 && snap.metadata.fromCache && Object.keys(dailyLog).length === 0) {
               clearFoodListUI();
           }
@@ -622,7 +618,6 @@
     
     // Novo: Adicionar o item (um doc por alimento)
     async function addFoodToLog(){
-      // Verifica se a data atual é HOJE antes de adicionar
       if(currentDateString !== todayDateString) {
         alert("Você só pode adicionar alimentos no dia de hoje.");
         return;
@@ -660,7 +655,6 @@
 
     // Novo: Remover item 
     async function removeFoodFromLog(itemId){
-       // Verifica se a data atual é HOJE antes de remover
       if(currentDateString !== todayDateString) {
         alert("Você só pode remover alimentos no dia de hoje.");
         return;
@@ -966,10 +960,3 @@
       // Fechar dropdown ao clicar fora
       document.addEventListener('click', (e)=>{
         if(!e.target.closest('#foodSearch') && !e.target.closest('#searchDropdown')){
-          hideElement(document.getElementById('searchDropdown'));
-        }
-      });
-    });
-  </script>
-</body>
-</html>
