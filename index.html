@@ -189,7 +189,7 @@
       </h3>
       <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50 min-h-48">
         <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
-        <div id="water_container" class="mb-2"> 
+        <div id="water_container" class="mb-2 meal-section"> 
             <h4 class="font-semibold text-gray-700 mb-2 text-lg">💧 Registros de Água</h4>
             <div class="space-y-2" id="list-water"></div>
         </div>
@@ -203,7 +203,7 @@
 
     <div class="space-y-4">
       <h2 class="text-xl font-semibold text-gray-800 text-center">Resumo do Dia</h2>
-
+      
       <div>
         <div class="flex justify-between items-center mb-1">
           <span class="text-base font-medium text-blue-600">Água</span>
@@ -286,8 +286,7 @@
   </div>
 
   <script>
-    // Firebase
-    // ** ATENÇÃO: SUBSTITUA COM SUA CONFIGURAÇÃO ATUALIZADA **
+    // Firebase Config (MANTIDA)
     const firebaseConfig = {
       apiKey: "AIzaSyC9WSxM9GA64fq9lkLhsTyvMbD1AlO1MM4",
       authDomain: "assistente-de-treino-668ce.firebaseapp.com",
@@ -300,7 +299,7 @@
 
     let firebaseApp, firebaseAuth, firebaseDb, userId = null;
 
-    // * ESTADO DE DATA E LISTENER *
+    // * ESTADO DE DATA E LISTENER * (MANTIDO)
     let calorieGoal = 0;
     let waterGoal = 0; 
     let selectedFoodKey = null;
@@ -320,7 +319,7 @@
 
     const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
     const mealDisplayNames = {
-      cafe_da_manha: "☕ Café da Manã",
+      cafe_da_manha: "☕ Café da Manhã",
       almoco: "🍽️ Almoço",
       lanche: "🍎 Lanche",
       jantar: "🍲 Jantar",
@@ -354,9 +353,8 @@
       }
     };
 
-    // Base de alimentos (FINALMENTE ATUALIZADA E EXPANDIDA)
+    // Base de alimentos (MANTIDA)
     const foodDatabase = {
-      // Frutas
       'banana': { name: 'Banana', protein: 1.1, carbs: 27, cals: 105, unit: 'unidade', visceralFat: false },
       'maca': { name: 'Maçã', protein: 0.3, carbs: 25, cals: 95, unit: 'unidade', visceralFat: false },
       'abacate': { name: 'Abacate', protein: 2, carbs: 9, cals: 160, unit: '100g', visceralFat: false },
@@ -370,16 +368,12 @@
       'kiwi': { name: 'Kiwi', protein: 1.1, carbs: 15, cals: 61, unit: 'unidade', visceralFat: false },
       'abacaxi': { name: 'Abacaxi', protein: 0.5, carbs: 13, cals: 50, unit: '100g', visceralFat: false },
       'limao': { name: 'Limão (suco)', protein: 0.4, carbs: 9.3, cals: 29, unit: 'unidade', visceralFat: false },
-      
-      // Vegetais e Legumes
       'brocolis': { name: 'Brócolis (cozido)', protein: 2.4, carbs: 7, cals: 35, unit: '100g', visceralFat: false },
       'alface': { name: 'Alface Crespa', protein: 1.4, carbs: 2.9, cals: 15, unit: '100g', visceralFat: false },
       'tomate': { name: 'Tomate', protein: 0.9, carbs: 3.9, cals: 18, unit: '100g', visceralFat: false },
       'cenoura': { name: 'Cenoura (crua)', protein: 0.9, carbs: 10, cals: 41, unit: '100g', visceralFat: false },
       'couve_flor': { name: 'Couve-Flor (cozida)', protein: 1.9, carbs: 5, cals: 25, unit: '100g', visceralFat: false },
       'abobrinha': { name: 'Abobrinha (cozida)', protein: 1.2, carbs: 3, cals: 17, unit: '100g', visceralFat: false },
-      
-      // Proteínas (Carnes, Ovos, Suplementos)
       'peito_frango': { name: 'Peito de Frango (grelhado)', protein: 31, carbs: 0, cals: 165, unit: '100g', visceralFat: false },
       'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, cals: 77, unit: 'unidade', visceralFat: false },
       'ovo_frito': { name: 'Ovo Frito (em óleo)', protein: 6.2, carbs: 0.6, cals: 95, unit: 'unidade', visceralFat: false },
@@ -392,8 +386,6 @@
       'salmao': { name: 'Salmão (grelhado)', protein: 20, carbs: 0, cals: 208, unit: '100g', visceralFat: false },
       'atum_lata': { name: 'Atum em Lata (em óleo)', protein: 29, carbs: 0, cals: 186, unit: '100g', visceralFat: false },
       'lentilha': { name: 'Lentilha (cozida)', protein: 9, carbs: 20, cals: 116, unit: '100g', visceralFat: false },
-      
-      // Laticínios
       'leite_integral': { name: 'Leite Integral', protein: 3.2, carbs: 5, cals: 61, unit: '100ml', visceralFat: true },
       'leite_desnatado': { name: 'Leite Desnatado', protein: 3.4, carbs: 5, cals: 35, unit: '100ml', visceralFat: false },
       'queijo_mussarela': { name: 'Queijo Mussarela', protein: 22, carbs: 3.1, cals: 300, unit: '100g (fatia 30g)', visceralFat: true },
@@ -402,8 +394,6 @@
       'iogurte_grego': { name: 'Iogurte Grego (natural)', protein: 10, carbs: 3.6, cals: 59, unit: '100g', visceralFat: false },
       'iogurte_natural': { name: 'Iogurte Natural Desnatado', protein: 4.1, carbs: 7, cals: 57, unit: '100g', visceralFat: false },
       'iogurte_sabor': { name: 'Iogurte Desn. (Sabor)', protein: 3.5, carbs: 15, cals: 85, unit: '100g', visceralFat: true }, 
-
-      // Carboidratos (Cereais, Raízes, Grãos)
       'arroz_branco': { name: 'Arroz Branco (cozido)', protein: 2.7, carbs: 28, cals: 130, unit: '100g', visceralFat: false },
       'arroz_integral': { name: 'Arroz Integral (cozido)', protein: 2.6, carbs: 23, cals: 111, unit: '100g', visceralFat: false },
       'pao_frances': { name: 'Pão Francês', protein: 7.5, carbs: 55, cals: 288, unit: '100g (unid 50g)', visceralFat: false },
@@ -422,29 +412,21 @@
       'cuscuz': { name: 'Cuscuz (hidratado)', protein: 3.8, carbs: 23, cals: 112, unit: '100g', visceralFat: false },
       'tapioca': { name: 'Tapioca (goma)', protein: 0, carbs: 89, cals: 355, unit: '100g', visceralFat: false },
       'batata_frita': { name: 'Batata Frita', protein: 3.4, carbs: 41, cals: 319, unit: '100g', visceralFat: true },
-      
-      // Gorduras/Pastas
       'pasta_amendoim': { name: 'Pasta de Amendoim (integral)', protein: 25, carbs: 20, cals: 588, unit: '100g (colher 15g)', visceralFat: false },
       'manteiga_amendoim_doce': { name: 'Manteiga de Amendoim (doce)', protein: 21, carbs: 30, cals: 600, unit: '100g (colher 15g)', visceralFat: true }, 
       'azeite': { name: 'Azeite de Oliva', protein: 0, carbs: 0, cals: 119, unit: 'colher sopa', visceralFat: false },
       'castanha_caju': { name: 'Castanha de Caju', protein: 18, carbs: 30, cals: 553, unit: '100g', visceralFat: false },
       'amendoim': { name: 'Amendoim', protein: 26, carbs: 16, cals: 567, unit: '100g', visceralFat: false },
       'manteiga': { name: 'Manteiga com sal', protein: 0.9, carbs: 0.1, cals: 717, unit: '100g (colher 5g)', visceralFat: true },
-
-      // Bebidas e Doces
       'refrigerante': { name: 'Refrigerante (Cola)', protein: 0, carbs: 26, cals: 105, unit: 'lata 350ml', visceralFat: true },
       'chocolate_ao_leite': { name: 'Chocolate ao Leite', protein: 8, carbs: 59, cals: 535, unit: '100g (barra 25g)', visceralFat: true },
       'biscoito_recheado': { name: 'Biscoito Recheado (Chocolate)', protein: 5, carbs: 70, cals: 450, unit: '100g (unid 10g)', visceralFat: true },
-      'pizza_mussarela': { name: 'Pizza Mussarela', protein: 11, carbs: 33, cals: 271, unit: '100g (1 fatia)', visceralFat: false }, // Pizza movida para FALSE para o app funcionar melhor
+      'pizza_mussarela': { name: 'Pizza Mussarela', protein: 11, carbs: 33, cals: 271, unit: '100g (1 fatia)', visceralFat: true },
       'mel': { name: 'Mel', protein: 0.3, carbs: 82, cals: 304, unit: '100g', visceralFat: true },
-      
-      // ITENS DE CAFÉ
       'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false },
       'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, cals: 24, unit: 'xícara', visceralFat: false }, 
       'cafe_leite_integral_acucar': { name: 'Café c/ Leite Integral e Açúcar', protein: 1.6, carbs: 5, cals: 81, unit: 'xícara 200ml', visceralFat: true },
       'cafe_leite_desnatado_acucar': { name: 'Café c/ Leite Desnatado e Açúcar', protein: 1.7, carbs: 5, cals: 65, unit: 'xícara 200ml', visceralFat: false },
-
-      // OUTROS
       'pudim': { name: 'Pudim de Leite', protein: 5, carbs: 30, cals: 200, unit: '100g (fatia)', visceralFat: true },
       'paçoca': { name: 'Paçoca (rolha)', protein: 5, carbs: 12, cals: 100, unit: 'unidade 20g', visceralFat: false },
       'creatina': { name: 'Creatina (pura)', protein: 0, carbs: 0, cals: 0, unit: 'scoop 3g', visceralFat: false },
@@ -457,6 +439,10 @@
     function getItemsRef(uid, date) {
       return getDayRef(uid, date).collection('items');
     }
+    // A coleção water_log não é mais necessária, usamos 'items' para tudo
+    // function getWaterLogRef(uid, date) {
+    //     return getDayRef(uid, date).collection('water_log');
+    // }
 
     // UI helpers
     function showElement(el){ el.classList.remove('hidden'); }
@@ -582,7 +568,7 @@
         const goalType=document.getElementById('goalType').value||'ganhar';
         const goalName=goalDisplayNames[goalType];
         goalText.textContent=`Sua meta (${goalName}): ${calorieGoal.toFixed(0)} kcal/dia`;
-        goalText.classList.remove('hidden','text-red-600','text-gray-600');
+        goalText.classList.remove('hidden','text-red-600');
         goalText.classList.add('text-green-700');
         document.getElementById('goalTag').textContent=goalName;
         showElement(document.getElementById('goalTag'));
@@ -616,9 +602,17 @@
         dailyLog = {}; 
         waterLog = 0; 
 
-        clearFoodListUI();
+        // Adicionada limpeza completa do DOM antes de iniciar o listener
+        ALL_LOG_KEYS.forEach(k => { 
+            const listContainer = document.getElementById(`list-${k}`);
+            if (listContainer) listContainer.innerHTML = '';
+            const section = document.getElementById(`section-${k}`);
+            if (section) section.remove();
+        });
+        manageEmptyListText();
         updateTotals(false);
         updateWaterTracker(false); 
+
 
         const isToday = currentDateString === todayDateString;
         const addFoodSection = document.getElementById('addFoodSection');
@@ -646,13 +640,15 @@
         startDayListener(dateString);
     }
     
+    // Função de limpeza simplificada
     function clearFoodListUI() {
-        ALL_LOG_KEYS.forEach(k => { 
-            const container = document.getElementById(`${k}_container`);
-            // Limpa o conteúdo dentro da lista (que tem o ID list-k)
-            if (container) {
-                 const list = container.querySelector(`#list-${k}`);
-                 if (list) list.innerHTML = '';
+        ALL_LOG_KEYS.forEach(k => {
+            const listContainer = document.getElementById(`list-${k}`);
+            if (listContainer) listContainer.innerHTML = '';
+            // Remove as seções de refeição (mantém a de água, que está no HTML fixo)
+            if (k !== 'water') {
+                const section = document.getElementById(`section-${k}`);
+                if (section) section.remove();
             }
         });
         manageEmptyListText();
@@ -667,58 +663,61 @@
         dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
       }
 
+      // Adiciona um lock para evitar re-renderização completa desnecessária
+      let initialLoad = true;
+
+      // OTIMIZAÇÃO CRÍTICA: Listener em tempo real com docChanges
       unsubscribeListener = itemsRef.orderBy('clientTs','asc').onSnapshot(
         { includeMetadataChanges: true },
         (snap)=>{
           let shouldUpdateTotals = false;
           
-          if (snap.docChanges().length > 0 && snap.metadata.fromCache && Object.keys(dailyLog).length === 0) {
-              clearFoodListUI();
+          if (snap.docChanges().length > 0 && snap.metadata.fromCache && initialLoad) {
+              clearFoodListUI(); // Garante limpeza se for o primeiro load do cache
           }
-
-          waterLog = 0; 
+          
+          // Se for o primeiro load e não houver cache, limpar antes de renderizar
+          if (initialLoad) {
+            dailyLog = {};
+            // Limpa tudo para re-popular, garantindo a ordem
+            ALL_LOG_KEYS.forEach(k => { 
+                const listContainer = document.getElementById(`list-${k}`);
+                if (listContainer) listContainer.innerHTML = '';
+            });
+          }
 
           snap.docChanges().forEach(change => {
             const item = { ...change.doc.data(), id: change.doc.id };
+            shouldUpdateTotals = true;
             
-            if (item.type === 'water') {
-                if (change.type === "added" || change.type === "modified") {
-                    dailyLog[item.id] = item;
-                    appendWaterItem(item); 
-                } else if (change.type === "removed") {
-                    delete dailyLog[item.id];
-                    removeFoodItemElement(item.id);
+            if (change.type === "added" || change.type === "modified") {
+                dailyLog[item.id] = item;
+                // Usa a função correta de renderização
+                if (item.type === 'water') {
+                    updateFoodItemElement(item, true); // true para forçar re-render na água
+                } else {
+                    updateFoodItemElement(item, false);
                 }
-                shouldUpdateTotals = true;
-                
-            } else {
-                if (change.type === "added") {
-                  dailyLog[item.id] = item;
-                  appendFoodItem(item); 
-                }
-                if (change.type === "modified") {
-                  dailyLog[item.id] = item;
-                  updateFoodItemElement(item); 
-                }
-                if (change.type === "removed") {
-                  delete dailyLog[item.id];
-                  removeFoodItemElement(item.id); 
-                }
-                shouldUpdateTotals = true;
+            }
+            
+            if (change.type === "removed") {
+                delete dailyLog[item.id];
+                removeFoodItemElement(item.id); 
             }
           });
           
-          // Recálculo do waterLog a partir dos itens filtrados
+          // Recálculo do total de água
           waterLog = Object.values(dailyLog)
                        .filter(i => i.type === 'water')
                        .reduce((total, item) => total + item.quantity, 0);
 
           if(shouldUpdateTotals) {
             updateTotals(true);
-            updateWaterTracker(true); 
+            updateWaterTracker(true);
           }
           
           manageEmptyListText();
+          initialLoad = false;
         },
         (error) => {
             console.error("Erro no listener do Firestore:", error);
@@ -726,18 +725,22 @@
       );
     }
     
-    // * Função para Adicionar Água (SALVA COMO ITEM NO itemsRef) *
+    // * CORREÇÃO: Função para Adicionar Água (SALVA COMO ITEM NO itemsRef) *
     async function addWater() {
         if (currentDateString !== todayDateString) {
             alert("Você só pode registrar o consumo de água no dia de hoje.");
             return;
         }
 
+        const addWaterButton = document.getElementById('addWaterButton');
+        addWaterButton.disabled = true; // Desabilita para evitar clique duplo
+        
         const input = document.getElementById('waterQuantityInput');
         const quantity = parseInt(input.value);
 
         if (isNaN(quantity) || quantity <= 0) {
             alert("Por favor, insira uma quantidade de água válida em mililitros.");
+            addWaterButton.disabled = false;
             return;
         }
         
@@ -753,10 +756,16 @@
                 clientTs: Date.now() 
             };
 
+            // Adicionar um ID único na lógica do cliente antes de enviar 
+            // não é necessário se usamos o .add() do Firestore, que garante unicidade.
             await itemsRef.add(payload);
+
+            input.value = '250'; // Reseta para o valor padrão
         } catch (e) {
-            alert("Erro ao registrar água. Verifique as regras do Firebase.");
+            alert("Erro ao registrar água. Tente novamente. Verifique as regras do Firebase.");
             console.error("Erro ao adicionar água:", e);
+        } finally {
+            addWaterButton.disabled = false; // Re-habilita
         }
     }
 
@@ -783,14 +792,17 @@
         return;
       }
       
-      if(!selectedFoodKey){ alert("Por favor, selecione um alimento da lista."); return; }
+      const addFoodButton = document.getElementById('addFoodButton');
+      addFoodButton.disabled = true; // Desabilita para evitar clique duplo
+      
+      if(!selectedFoodKey){ alert("Por favor, selecione um alimento da lista."); addFoodButton.disabled = false; return; }
       const quantity=parseFloat(document.getElementById('foodQuantity').value);
       const meal=document.getElementById('mealTimeSelect').value;
-      if(isNaN(quantity)||quantity<=0){ alert("Por favor, insira uma quantidade válida."); return; }
+      if(isNaN(quantity)||quantity<=0){ alert("Por favor, insira uma quantidade válida."); addFoodButton.disabled = false; return; }
 
       const f=foodDatabase[selectedFoodKey];
       const payload = {
-        type: 'food', // Marcador para distinguir no log
+        type: 'food', 
         key: selectedFoodKey,
         name: f.name,
         quantity,
@@ -805,13 +817,21 @@
       };
 
       const itemsRef = getItemsRef(userId, currentDateString);
-      await itemsRef.add(payload);
+      
+      try {
+        await itemsRef.add(payload);
+      } catch (e) {
+        alert("Erro ao adicionar alimento. Verifique sua conexão e as regras do Firebase.");
+        console.error("Erro ao adicionar alimento:", e);
+      }
+      
 
       // Limpeza
       document.getElementById('foodSearch').value='';
       document.getElementById('foodQuantity').value='';
       selectedFoodKey=null;
       hideElement(document.getElementById('searchDropdown'));
+      addFoodButton.disabled = false;
     }
 
     // Novo: Remover item 
@@ -821,12 +841,18 @@
         return;
       }
 
+      // Adicionado um pequeno lock na UI para feedback
+      const itemElement = document.getElementById(`food-item-${itemId}`);
+      if (itemElement) itemElement.style.opacity = '0.5';
+
       const itemsRef = getItemsRef(userId, currentDateString);
       try { 
         await itemsRef.doc(itemId).delete(); 
+        // O listener fará a remoção do DOM
       } catch (err) { 
         console.error('Falha ao excluir item:', err); 
-        alert("Erro ao excluir o alimento. Verifique sua conexão.");
+        alert("Erro ao excluir o registro. Verifique sua conexão e permissões (Regras do Firebase).");
+        if (itemElement) itemElement.style.opacity = '1';
       }
     }
 
@@ -834,6 +860,7 @@
      */
     
     function getItemsByMeal() {
+      // Filtra apenas itens de comida (não água) e ordena
       const items = Object.values(dailyLog)
         .filter(i => i.type === 'food')
         .sort((a, b) => a.clientTs - b.clientTs); 
@@ -844,11 +871,9 @@
       }, { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] });
     }
     
-    // NOVO: Função para adicionar o item de ÁGUA na lista
-    function appendWaterItem(item){
-        const listContainer = document.getElementById('list-water');
-        if (!listContainer) return;
-
+    // NOVO: Função para criar o elemento de ÁGUA
+    function createWaterItemElement(item){
+        const warn = '';
         const div = document.createElement('div');
         div.id = `food-item-${item.id}`;
         div.className = "flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-gray-200";
@@ -871,11 +896,10 @@
             </div>
             ${deleteButtonHtml}
         `;
-        
-        listContainer.appendChild(div);
+        return div;
     }
-    
-    // Função para adicionar item de Refeição
+
+    // Função para criar o elemento de Refeição
     function createFoodItemElement(item){
       const warn=item.visceralFat?' ⚠️':'';
       const div = document.createElement('div');
@@ -909,22 +933,40 @@
       return div;
     }
     
-    function appendFoodItem(item){
-        const mealContainer = document.getElementById(`${item.meal}_container`);
-        if (!mealContainer) return;
-
-        let mealSection = document.getElementById(`section-${item.meal}`);
-        if (!mealSection) {
-            mealSection = document.createElement('div');
-            mealSection.id = `section-${item.meal}`;
-            mealSection.className = 'meal-section mb-2';
-            mealSection.innerHTML = `<h4 class="font-semibold text-gray-700 mb-2 text-lg">${mealDisplayNames[item.meal]}</h4><div class="space-y-2" id="list-${item.meal}"></div>`;
-            mealContainer.appendChild(mealSection);
+    // Função unificada para adicionar/atualizar o item na lista
+    function updateFoodItemElement(item, isWater = false){
+        const existingElement = document.getElementById(`food-item-${item.id}`);
+        
+        // Se já existe, remove para ser re-adicionado na ordem correta
+        if (existingElement) {
+            existingElement.remove();
         }
 
-        const listContainer = document.getElementById(`list-${item.meal}`);
-        if(listContainer) {
-            const newItemElement = createFoodItemElement(item);
+        let newItemElement;
+        let listContainer;
+
+        if (item.type === 'water' || isWater) {
+            newItemElement = createWaterItemElement(item);
+            listContainer = document.getElementById('list-water');
+        } else {
+            newItemElement = createFoodItemElement(item);
+            
+            // Lógica para criar a seção de refeição se ainda não existir
+            const mealContainer = document.getElementById(`${item.meal}_container`);
+            let mealSection = document.getElementById(`section-${item.meal}`);
+
+            if (!mealSection) {
+                mealSection = document.createElement('div');
+                mealSection.id = `section-${item.meal}`;
+                mealSection.className = 'meal-section mb-2';
+                mealSection.innerHTML = `<h4 class="font-semibold text-gray-700 mb-2 text-lg">${mealDisplayNames[item.meal]}</h4><div class="space-y-2" id="list-${item.meal}"></div>`;
+                if (mealContainer) mealContainer.appendChild(mealSection);
+            }
+            listContainer = document.getElementById(`list-${item.meal}`);
+        }
+        
+        // Adiciona o novo elemento na lista (o listener garante a ordem)
+        if (listContainer) {
             listContainer.appendChild(newItemElement);
         }
     }
@@ -935,39 +977,43 @@
             const listContainer = element.parentNode;
             element.remove();
 
-            if (listContainer && listContainer.children.length === 0) {
-                const mealSection = listContainer.parentNode;
-                if (mealSection.id !== 'water_container') {
-                    mealSection.remove();
+            if (listContainer) {
+                // Se a lista de refeição ficou vazia, remove o título da seção (exceto para água)
+                if (listContainer.children.length === 0 && listContainer.id !== 'list-water') {
+                    const mealSection = listContainer.closest('.meal-section');
+                    if (mealSection) mealSection.remove();
                 }
             }
-        }
-    }
-
-    function updateFoodItemElement(item) {
-        removeFoodItemElement(item.id);
-        if (item.type === 'water') {
-            appendWaterItem(item);
-        } else {
-            appendFoodItem(item);
         }
     }
     
     function manageEmptyListText(){
         const empty = document.getElementById('emptyListText');
         
-        const hasFoodItems = Object.values(dailyLog).some(i => i.type === 'food');
-        const hasWaterItems = Object.values(dailyLog).some(i => i.type === 'water');
+        // Verifica se há itens de comida OU itens de água no log
+        const hasFoodItems = Object.values(dailyLog).length > 0;
         
-        if (hasFoodItems || hasWaterItems) {
+        if (hasFoodItems) {
             hideElement(empty);
         } else {
             showElement(empty);
+        }
+        
+        // Garante que o container de água só apareça se houver registros de água
+        const waterContainer = document.getElementById('water_container');
+        const hasWaterItems = Object.values(dailyLog).some(i => i.type === 'water');
+        if (waterContainer) {
+            if (hasWaterItems) {
+                showElement(waterContainer);
+            } else {
+                hideElement(waterContainer);
+            }
         }
     }
 
     function updateTotals(checkGoal=true){
       let totalCals=0, totalProtein=0, totalCarbs=0;
+      // Calcula macros APENAS de itens de comida
       Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ totalCals+=i.cals; totalProtein+=i.protein; totalCarbs+=i.carbs; });
       
       document.getElementById('totalProteins').textContent = totalProtein.toFixed(1)+' g';
@@ -1070,6 +1116,7 @@
         }
       });
       
+      // NOVO: Adiciona a lista de Água no resumo
       const waterItems = Object.values(dailyLog).filter(i => i.type === 'water');
       if (waterItems.length > 0) {
         msg += `💧 Registros de Água\n`;
@@ -1118,23 +1165,20 @@
         document.getElementById('loadingScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
       }catch(e){
-        // Exibe o erro de conexão
         const l=document.getElementById('loadingScreen');
         l.innerHTML = `
           <p class="text-red-600 font-semibold">Erro ao conectar com o servidor</p>
           <p class="text-gray-600 mt-2">Verifique sua conexão e recarregue a página</p>
           <button onclick="location.reload()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg">Tentar Novamente</button>
         `;
-        console.error("Erro na inicialização do Firebase:", e);
       }
     }
 
     // Expor funções globais para onclick
     window.selectFood = selectFood;
+    window.addWater = addWater; // Exporta para o botão
     window.addFoodToLog = addFoodToLog;
     window.removeFoodFromLog = removeFoodFromLog; 
-    window.updateFoodItemElement = updateFoodItemElement; 
-    window.removeFoodItemElement = removeFoodItemElement;
 
 
     // Listeners
@@ -1147,6 +1191,7 @@
       });
       
       // NOVO LISTENER: Botão Adicionar Água
+      // O botão já tem addEventListener, remove o 'onclick' do HTML anterior
       document.getElementById('addWaterButton').addEventListener('click', addWater);
 
       // Perfil
