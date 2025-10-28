@@ -187,7 +187,7 @@
       <div>
         <div class="flex justify-between items-center mb-1">
           <span class="text-base font-medium text-orange-600">Calorias</span>
-          <span id="totalCalsGoalText" class="text-sm font-medium text-gray-600">0 / 0 kcal</span>
+          <span id="totalCalsGoalText" class="text-sm font-semibold text-orange-600">0 / 0 kcal</span>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
           <div id="calorieProgress" class="bg-orange-500 h-4 rounded-full" style="width: 0%"></div>
@@ -372,15 +372,12 @@
       'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false }
     };
 
-    // Helpers Firestore
-    function getProfileDocRef() {
-      return firebaseDb.collection('users').doc(userId).collection('data').doc('profile');
+    // Helpers Firestore (nova estrutura)
+    function getDayRef(uid, date) {
+      return firebaseDb.collection('users').doc(uid).collection('days').doc(date);
     }
-    function getMetasDocRef() {
-      return firebaseDb.collection('users').doc(userId).collection('data').doc('metas');
-    }
-    function getMealsDocRef() {
-      return firebaseDb.collection('users').doc(userId).collection('data').doc('meals_today');
+    function getItemsRef(uid, date) {
+      return getDayRef(uid, date).collection('items');
     }
 
     // UI helpers
@@ -394,7 +391,14 @@
     function saveProfilePicLocally(){ if(profilePicBase64){ localStorage.setItem(`profilePic_${userId}`, profilePicBase64); document.getElementById('profileImageDisplay').src=profilePicBase64; document.getElementById('modalProfileImage').src=profilePicBase64; } }
     function loadProfilePicLocally(){ const pic=localStorage.getItem(`profilePic_${userId}`); if(pic){ profilePicBase64=pic; document.getElementById('profileImageDisplay').src=pic; document.getElementById('modalProfileImage').src=pic; } }
 
-    // Perfil e Metas
+    // Perfil e Metas (mantidos)
+    function getProfileDocRef() {
+      return firebaseDb.collection('users').doc(userId).collection('data').doc('profile');
+    }
+    function getMetasDocRef() {
+      return firebaseDb.collection('users').doc(userId).collection('data').doc('metas');
+    }
+
     async function loadProfileAndMetas(){
       try{
         const pSnap = await getProfileDocRef().get();
@@ -508,59 +512,50 @@
       el.innerHTML=`💡 <span class="font-semibold">Sugestão p/ ${goalDisplayNames[goalType]}:</span> ${txt}`;
     }
 
-    // Persistência/latência: debounce e UI otimista
-    let saveTimer=null;
-    function scheduleSave(){
-      if(saveTimer) clearTimeout(saveTimer);
-      saveTimer = setTimeout(()=>{ getMealsDocRef().set({ date: todayString, meals: dailyLog }); }, 300);
-    }
+    // Referências do dia e listener
+    let itemsRef = null;
+    function startDayListener(){
+      const dayRef = getDayRef(userId, todayString);
+      itemsRef = getItemsRef(userId, todayString);
+      // Garante doc do dia
+      dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
 
-    async function loadDailyLog(){
-      try{
-        const snap = await getMealsDocRef().get();
-        if(snap.exists){
-          const data=snap.data();
-          if(data.date!==todayString){
-            dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
-            scheduleSave();
-          }else{
-            dailyLog = data.meals || { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
-          }
-        }else{
-          dailyLog = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
-          scheduleSave();
-        }
+      // Listener em tempo real
+      itemsRef.orderBy('ts','asc').onSnapshot((snap)=>{
+        const base = { cafe_da_manha: [], almoco: [], lanche: [], jantar: [] };
+        snap.forEach(doc=>{
+          const it = doc.data();
+          base[it.meal]?.push({ ...it, id: doc.id });
+        });
+        dailyLog = base;
         renderFoodList();
         updateTotals(false);
-      }catch(e){
-        // Silencia erros de rede; UI segue com cache/offline
-      }
+      });
     }
 
-    function addFoodToLog(){
+    // Adicionar item (um doc por alimento)
+    async function addFoodToLog(){
       if(!selectedFoodKey){ alert("Por favor, selecione um alimento da lista."); return; }
       const quantity=parseFloat(document.getElementById('foodQuantity').value);
-      const mealTime=document.getElementById('mealTimeSelect').value;
+      const meal=document.getElementById('mealTimeSelect').value;
       if(isNaN(quantity)||quantity<=0){ alert("Por favor, insira uma quantidade válida."); return; }
 
-      const food=foodDatabase[selectedFoodKey];
-      const foodEntry={
-        key:selectedFoodKey,
-        name:food.name,
-        quantity:quantity,
-        unit:food.unit,
-        protein: parseFloat((food.protein*quantity).toFixed(1)),
-        carbs: parseFloat((food.carbs*quantity).toFixed(1)),
-        cals: parseFloat((food.cals*quantity).toFixed(0)),
-        visceralFat: food.visceralFat,
-        id: Date.now()
+      const f=foodDatabase[selectedFoodKey];
+      const payload = {
+        key: selectedFoodKey,
+        name: f.name,
+        quantity,
+        unit: f.unit,
+        protein: parseFloat((f.protein*quantity).toFixed(1)),
+        carbs: parseFloat((f.carbs*quantity).toFixed(1)),
+        cals: parseFloat((f.cals*quantity).toFixed(0)),
+        visceralFat: f.visceralFat,
+        meal,
+        ts: firebase.firestore.FieldValue.serverTimestamp()
       };
 
-      // UI otimista
-      dailyLog[mealTime].push(foodEntry);
-      renderFoodList();
-      updateTotals(true);
-      scheduleSave();
+      // Persistência: doc por item (onSnapshot reflete imediatamente com cache offline)
+      await itemsRef.add(payload);
 
       // Limpeza
       document.getElementById('foodSearch').value='';
@@ -569,11 +564,10 @@
       hideElement(document.getElementById('searchDropdown'));
     }
 
-    function removeFoodFromLog(mealTime, foodId){
-      dailyLog[mealTime] = dailyLog[mealTime].filter(i=>i.id!==foodId);
-      renderFoodList();
-      updateTotals(false);
-      scheduleSave();
+    // Remover item (delete direto no doc)
+    async function removeFoodFromLog(meal, itemId){
+      // Exclusão direta; onSnapshot atualiza a UI
+      await itemsRef.doc(itemId).delete();
     }
 
     function renderFoodList(){
@@ -596,14 +590,17 @@
                   <div class="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-gray-200">
                     <div class="flex-grow">
                       <p class="font-medium text-gray-800">${item.name}${warn}</p>
-                      <p class="text-sm text-gray-600">${item.quantity} ${item.unit} • ${item.cals} kcal</p>
+                      <p class="text-sm">
+                        <span class="text-gray-600">${item.quantity} ${item.unit} • </span>
+                        <span class="text-orange-600 font-semibold">${item.cals} kcal</span>
+                      </p>
                       <p class="text-xs">
                         <span class="text-emerald-600 font-medium">P: ${item.protein}g</span>
                         <span class="text-gray-400 mx-1">|</span>
                         <span class="text-blue-600 font-medium">C: ${item.carbs}g</span>
                       </p>
                     </div>
-                    <button onclick="removeFoodFromLog('${mealKey}', ${item.id})" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
+                    <button onclick="removeFoodFromLog('${mealKey}', '${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
                       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
@@ -646,7 +643,7 @@
       showModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay'));
     }
 
-    // Busca
+    // Busca com ⚠️ e “kcal” laranja
     function searchFood(){
       const q=document.getElementById('foodSearch').value.toLowerCase().trim();
       const dd=document.getElementById('searchDropdown');
@@ -665,7 +662,7 @@
         return `
           <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" onclick="selectFood('${key}')">
             <p class="font-medium text-gray-800">${f.name}${warn}</p>
-            <p class="text-xs text-gray-600">${f.cals} kcal por ${f.unit}</p>
+            <p class="text-xs"><span class="text-orange-600 font-medium">${f.cals} kcal</span> <span class="text-gray-600">por ${f.unit}</span></p>
           </div>
         `;
       }).join('');
@@ -724,11 +721,10 @@
         firebaseAuth = firebase.auth();
         firebaseDb = firebase.firestore();
 
-        // Persistência offline com multi-aba
+        // Persistência offline com multi-aba (melhor UX)
         try{
           await firebaseDb.enablePersistence({ synchronizeTabs: true });
         }catch(err){
-          // Pode falhar em alguns ambientes (ex.: múltiplas abas sem sync); segue online
           console.warn('Persistência não habilitada:', err?.code||err);
         }
 
@@ -736,10 +732,11 @@
         userId = firebaseAuth.currentUser.uid;
 
         await loadProfileAndMetas();
-        await loadDailyLog();
+        startDayListener();
 
-        hideElement(document.getElementById('loadingScreen'));
-        showElement(document.getElementById('mainApp'));
+        // UI pronta
+        document.getElementById('loadingScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
       }catch(e){
         const l=document.getElementById('loadingScreen');
         l.innerHTML = `
