@@ -506,20 +506,38 @@
       }
     }
 
+    // * CORREÇÃO: Função de Salvar Perfil Otimizada e mais tolerante a erros *
     async function saveProfileData(){
       clearRegistrationError();
       const userName = document.getElementById('userNameInput').value.trim();
       const phone = document.getElementById('phoneInput').value.trim();
-      if(!userName){ showRegistrationError("Por favor, insira um nome de usuário."); return; }
+      
+      // Validação básica
+      if(!userName){ 
+        showRegistrationError("Por favor, insira um nome de usuário."); 
+        return; 
+      }
+      
       try{
-        await getProfileDocRef().set({ userName, phone, userId });
+        // Garante que o documento de perfil seja criado com os dados mínimos
+        await getProfileDocRef().set({ 
+            userName, 
+            phone: phone || null, // Se o telefone estiver vazio, salva como null ou campo inexistente
+            userId 
+        });
+        
         saveProfilePicLocally();
         document.getElementById('userNameDisplay').textContent = userName;
         hideModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
         isEditingProfile=false;
+        
+        // Se a meta não foi calculada, recarrega para mostrar o modal de metas.
         if(calorieGoal===0){ loadProfileAndMetas(); }
+      
       }catch(e){
-        showRegistrationError("Erro ao salvar perfil. Verifique sua conexão.");
+        // Exibe o novo erro da imagem, mais específico
+        showRegistrationError("Erro ao salvar perfil. Verifique sua conexão ou tente novamente.");
+        console.error("Erro ao salvar perfil:", e);
       }
     }
 
@@ -622,14 +640,12 @@
         
         showElement(progressSection); // Garante que a barra esteja visível
 
-        const startWeight = parseFloat(getMetasDocRef().weight) || 0; // Usar o peso inicial (opcionalmente salvo)
+        const startWeight = parseFloat(document.getElementById('weight').value) || 0; 
         const current = currentWeight;
         const target = targetWeight;
 
-        // Se o peso inicial for 0 (primeiro uso), usa o 'currentWeight'
         const initial = startWeight > 0 ? startWeight : current;
 
-        // Verifica se há meta para calcular o progresso
         if (target === initial) {
             progressEl.style.width = '0%';
             progressEl.classList.remove('bg-green-500', 'bg-red-500', 'bg-gray-400');
@@ -643,7 +659,7 @@
         let totalChange = Math.abs(target - initial);
         
         if (totalChange > 0) {
-            // Progresso é sempre a distância percorrida (diferença do inicial para o atual) sobre a distância total
+            
             if (target < initial) { // Objetivo: Perder Peso
                 progress = ((initial - current) / totalChange) * 100;
                 progressEl.classList.remove('bg-green-500', 'bg-gray-400');
