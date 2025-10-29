@@ -355,7 +355,7 @@
   <footer class="mt-8 text-sm text-gray-500">Desenvolvido por Thiago</footer>
 
   <script>
-    // Firebase Config (SUBSITUA ESTE BLOCO PELAS SUAS CHAVES DO FIREBASE)
+    // Seus dados de configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyC9WSxM9GA64fq9lkLhsTyvMbD1AlO1MM4",
       authDomain: "assistente-de-treino-668ce.firebaseapp.com",
@@ -679,7 +679,7 @@
                 localStorage.setItem(`profilePic_${newUserId}`, profilePicBase64);
             }
             
-            // CORREÇÃO ESSENCIAL: Define que o usuário já logou
+            // Define que o usuário já logou
             localStorage.setItem('hasEverLoggedIn', 'true'); 
             
             alert("Conta e perfil criados com sucesso! Você será redirecionado.");
@@ -712,7 +712,6 @@
         }
 
         try {
-            // CORREÇÃO: Função de Login
             await firebaseAuth.signInWithEmailAndPassword(email, password);
             localStorage.setItem('hasEverLoggedIn', 'true'); 
             hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
