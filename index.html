@@ -34,33 +34,91 @@
     <p class="text-xl font-semibold text-green-700 mt-4">Conectando ao app...</p>
   </div>
   
-  <div id="profileModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
-  <div id="profileModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
-    <h3 id="modalTitle" class="text-2xl font-bold text-gray-800 text-center mb-4">Crie seu Perfil</h3>
-    <p id="registrationError" class="text-red-600 text-center font-medium text-sm mb-3 hidden"></p>
+  <div id="fullRegistrationModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
+  <div id="fullRegistrationModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
+    <h3 class="text-2xl font-bold text-gray-800 text-center mb-4" id="regModalTitle">Crie sua Conta</h3>
+    <p id="regError" class="text-red-600 text-center font-medium text-sm mb-3 hidden"></p>
 
     <div class="space-y-4">
       <div class="flex flex-col items-center">
-        <img id="modalProfileImage" src="https://placehold.co/96x96/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-24 h-24 rounded-full object-cover shadow-lg mb-2 cursor-pointer" onclick="document.getElementById('profilePicInput').click()">
-        <button type="button" onclick="document.getElementById('profilePicInput').click()" class="text-sm text-blue-600 hover:underline">Selecionar Foto</button>
-        <input type="file" id="profilePicInput" class="hidden" accept="image/*">
+        <img id="regProfileImage" src="https://placehold.co/96x96/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-24 h-24 rounded-full object-cover shadow-lg mb-2 cursor-pointer" onclick="document.getElementById('regProfilePicInput').click()">
+        <button type="button" onclick="document.getElementById('regProfilePicInput').click()" class="text-sm text-blue-600 hover:underline">Selecionar Foto</button>
+        <input type="file" id="regProfilePicInput" class="hidden" accept="image/*">
       </div>
 
       <div>
-        <label for="userNameInput" class="block text-sm font-medium text-gray-700">Nome de Usuário *</label>
-        <input type="text" id="userNameInput" placeholder="Seu nome" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+        <label for="regUserNameInput" class="block text-sm font-medium text-gray-700">Nome de Usuário *</label>
+        <input type="text" id="regUserNameInput" placeholder="Seu nome" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+      </div>
+      
+      <div id="registrationFields">
+          <div>
+            <label for="regEmailInput" class="block text-sm font-medium text-gray-700">Email *</label>
+            <input type="email" id="regEmailInput" placeholder="seu.email@exemplo.com" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+          <div>
+            <label for="regPasswordInput" class="block text-sm font-medium text-gray-700">Senha * (Mín. 6 caracteres)</label>
+            <div class="relative mt-1">
+              <input type="password" id="regPasswordInput" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+              <button type="button" onclick="togglePasswordVisibility('regPasswordInput')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
+                <svg id="regPasswordInput_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065-7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
+                </svg>
+                <svg id="regPasswordInput_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
+                </svg>
+              </button>
+            </div>
+          </div>
       </div>
 
       <div>
-        <label for="phoneInput" class="block text-sm font-medium text-gray-700">Telefone (opcional)</label>
-        <input type="tel" id="phoneInput" placeholder="(99) 99999-9999" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+        <label for="regPhoneInput" class="block text-sm font-medium text-gray-700">Telefone (opcional)</label>
+        <input type="tel" id="regPhoneInput" placeholder="(99) 99999-9999" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
       </div>
 
-      <button id="saveProfileButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
-        Começar a Usar
+      <button id="registerAndProfileButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
+        Criar Conta e Perfil
+      </button>
+      <button id="showLoginButton" class="w-full text-sm text-gray-600 font-medium py-2 mt-4 hover:text-gray-900">
+        Já tenho conta. Fazer Login
       </button>
     </div>
   </div>
+
+  <div id="loginModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
+  <div id="loginModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
+    <h3 class="text-2xl font-bold text-gray-800 text-center mb-4">Fazer Login</h3>
+    <p id="loginError" class="text-red-600 text-center font-medium text-sm mb-3 hidden"></p>
+
+    <div class="space-y-4">
+      <div>
+        <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
+        <input type="email" id="loginEmail" placeholder="seu.email@exemplo.com" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+      </div>
+      <div>
+        <label for="loginPassword" class="block text-sm font-medium text-gray-700">Senha</label>
+        <div class="relative mt-1">
+          <input type="password" id="loginPassword" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          <button type="button" onclick="togglePasswordVisibility('loginPassword')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
+            <svg id="loginPassword_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065-7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
+            </svg>
+            <svg id="loginPassword_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button id="loginSubmitButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
+        Entrar
+      </button>
+      <button id="showRegistrationButton" class="w-full text-sm text-gray-600 font-medium py-2 mt-4 hover:text-gray-900">
+        Não tenho conta. Criar Perfil
+      </button>
+    </div>
+  </div>
+
 
   <div id="warningModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
   <div id="warningModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
@@ -79,40 +137,6 @@
     </div>
   </div>
 
-  <div id="authModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
-  <div id="authModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
-    <h3 class="text-2xl font-bold text-gray-800 text-center mb-4" id="authTitle">Acesso</h3>
-    <p id="authError" class="text-red-600 text-center font-medium text-sm mb-3 hidden"></p>
-
-    <div class="space-y-4">
-      <div>
-        <label for="authEmail" class="block text-sm font-medium text-gray-700">Email</label>
-        <input type="email" id="authEmail" placeholder="seu.email@exemplo.com" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-      </div>
-      
-      <div>
-        <label for="authPassword" class="block text-sm font-medium text-gray-700">Senha</label>
-        <div class="relative mt-1">
-          <input type="password" id="authPassword" placeholder="Mínimo 6 caracteres" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-          <button type="button" onclick="togglePasswordVisibility('authPassword')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
-            <svg id="authPassword_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065-7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
-            </svg>
-             <svg id="authPassword_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <button id="loginButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
-        Fazer Login
-      </button>
-      
-      <button id="registerButton" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors mt-2">
-        Criar Conta
-      </button>
-    </div>
-  </div>
   <div id="mainApp" class="bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 hidden">
 
     <header class="flex justify-between items-center border-b pb-4">
@@ -129,12 +153,13 @@
       <img id="profileImageDisplay" src="https://placehold.co/64x64/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-16 h-16 rounded-full object-cover shadow-md">
       <div class="flex-grow">
         <span id="userNameDisplay" class="block text-xl font-semibold text-gray-800">Usuário</span>
-        <button id="accessButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors mt-1">
+        <button id="authControlButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors mt-1">
           Fazer Login / Criar Conta
         </button>
       </div>
       <button id="editProfileButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">Editar</button>
     </div>
+    
     <details id="goalsDetails" class="bg-gray-50 p-4 rounded-lg border border-gray-200">
       <summary class="text-xl font-semibold text-gray-700 cursor-pointer list-none">
         <div class="flex justify-between items-center text-green-600">
@@ -522,15 +547,19 @@
     function showElement(el){ el.classList.remove('hidden'); }
     function hideElement(el){ el.classList.add('hidden'); }
     function showModal(modal, overlay){ showElement(overlay); showElement(modal); requestAnimationFrame(()=>{ modal.classList.remove('scale-90','opacity-0'); modal.classList.add('scale-100','opacity-100');}); }
-    function hideModal(modal, overlay){ modal.classList.remove('scale-100','opacity-100'); modal.classList.add('scale-90','opacity-0'); setTimeout(()=>{ hideElement(modal); hideElement(overlay); clearRegistrationError(); }, 250); }
-    function showRegistrationError(message){ const el=document.getElementById('registrationError'); el.textContent=message; showElement(el); }
-    function clearRegistrationError(){ const el=document.getElementById('registrationError'); el.textContent=''; hideElement(el); }
-    function fileToBase64(file){ return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=e=>reject(e); r.readAsDataURL(file); }); }
-    function saveProfilePicLocally(){ if(profilePicBase64){ localStorage.setItem(`profilePic_${userId}`, profilePicBase64); document.getElementById('profileImageDisplay').src=profilePicBase64; document.getElementById('modalProfileImage').src=profilePicBase64; } }
-    function loadProfilePicLocally(){ const pic=localStorage.getItem(`profilePic_${userId}`); if(pic){ profilePicBase64=pic; document.getElementById('profileImageDisplay').src=pic; document.getElementById('modalProfileImage').src=pic; } }
+    function hideModal(modal, overlay){ modal.classList.remove('scale-100','opacity-100'); modal.classList.add('scale-90','opacity-0'); setTimeout(()=>{ hideElement(modal); hideElement(overlay); clearRegError(); }, 250); }
     
-    function showAuthError(message){ const el=document.getElementById('authError'); el.textContent=message; showElement(el); }
-    function clearAuthError(){ const el=document.getElementById('authError'); el.textContent=''; hideElement(el); }
+    // Novo: Funções de erro específicas para o modal de Registro/Edição
+    function showRegError(message){ const el=document.getElementById('regError'); el.textContent=message; showElement(el); }
+    function clearRegError(){ const el=document.getElementById('regError'); el.textContent=''; hideElement(el); }
+    
+    // Novo: Funções de erro específicas para o modal de Login
+    function showLoginError(message){ const el=document.getElementById('loginError'); el.textContent=message; showElement(el); }
+    function clearLoginError(){ const el=document.getElementById('loginError'); el.textContent=''; hideElement(el); }
+
+    function fileToBase64(file){ return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=e=>reject(e); r.readAsDataURL(file); }); }
+    function saveProfilePicLocally(){ if(profilePicBase64){ localStorage.setItem(`profilePic_${userId}`, profilePicBase64); document.getElementById('profileImageDisplay').src=profilePicBase64; document.getElementById('regProfileImage').src=profilePicBase64; } }
+    function loadProfilePicLocally(){ const pic=localStorage.getItem(`profilePic_${userId}`); if(pic){ profilePicBase64=pic; document.getElementById('profileImageDisplay').src=pic; document.getElementById('regProfileImage').src=pic; } }
     
     // NOVO: Função para alternar a visibilidade da senha
     function togglePasswordVisibility(fieldId) {
@@ -552,18 +581,174 @@
 
 
     // /* --- MÓDULO: AUTENTICAÇÃO E PERFIL --- */
+    
+    // Novo: Função para limpar e mostrar o modal de Registro Completo (Criação de Conta)
+    function showRegistrationModal(isEdit = false) {
+        isEditingProfile = isEdit;
+        const modal = document.getElementById('fullRegistrationModal');
+        const overlay = document.getElementById('fullRegistrationModalOverlay');
+        
+        clearRegError();
+        document.getElementById('regModalTitle').textContent = isEdit ? 'Editar Perfil' : 'Crie sua Conta';
+        
+        // Esconde campos de Email/Senha se for edição
+        const regFields = document.getElementById('registrationFields');
+        const saveButton = document.getElementById('registerAndProfileButton');
+        const showLogin = document.getElementById('showLoginButton');
+        
+        if (isEdit) {
+            hideElement(regFields);
+            hideElement(showLogin);
+            saveButton.textContent = 'Salvar Alterações';
+            // Preenche dados para edição
+            document.getElementById('regUserNameInput').value = document.getElementById('userNameDisplay').textContent;
+            document.getElementById('regPhoneInput').value = localStorage.getItem(`phone_${userId}`) || '';
+        } else {
+            showElement(regFields);
+            showElement(showLogin);
+            saveButton.textContent = 'Criar Conta e Perfil';
+            // Limpa dados para novo registro
+            document.getElementById('regUserNameInput').value = '';
+            document.getElementById('regPhoneInput').value = '';
+            document.getElementById('regEmailInput').value = '';
+            document.getElementById('regPasswordInput').value = '';
+        }
+        
+        showModal(modal, overlay);
+    }
+    
+    // Novo: Função para limpar e mostrar o modal de Login Simples
+    function showLoginModal() {
+        clearLoginError();
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        showModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
+    }
+    
+    // NOVO: Função central de Autenticação/Criação de Perfil
+    async function handleFullRegistration() {
+        clearRegError();
+        const userName = document.getElementById('regUserNameInput').value.trim();
+        const phone = document.getElementById('regPhoneInput').value.trim();
+        
+        if(!userName){ showRegError("Por favor, insira um nome de usuário."); return; }
+
+        if (isEditingProfile) {
+            // Se estiver editando, apenas salva os dados de perfil
+            try {
+                await getProfileDocRef().set({ 
+                    userName, 
+                    phone: phone || null, 
+                    userId 
+                }, { merge: true });
+                saveProfilePicLocally();
+                localStorage.setItem(`phone_${userId}`, phone || ''); // Salva telefone localmente para edição
+                document.getElementById('userNameDisplay').textContent = userName;
+                hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
+            } catch (e) {
+                showRegError("Erro ao salvar perfil. Verifique as regras do Firebase.");
+                console.error("Erro ao salvar perfil:", e);
+            }
+            return;
+        }
+
+        // Se estiver registrando (Criação de Conta)
+        const email = document.getElementById('regEmailInput').value;
+        const password = document.getElementById('regPasswordInput').value;
+        
+        if (!email || !password || password.length < 6) {
+            showRegError("Email válido e senha (mín. 6 caracteres) são obrigatórios.");
+            return;
+        }
+
+        try {
+            // 1. Cria a conta no Firebase
+            const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+            const newUserId = userCredential.user.uid;
+            
+            // 2. Salva os dados de perfil no Firestore usando o novo UID
+            await firebaseDb.collection('users').doc(newUserId).collection('data').doc('profile').set({
+                userName,
+                phone: phone || null,
+                userId: newUserId,
+                email: email
+            });
+            
+            // 3. Salva a foto localmente e recarrega
+            if (profilePicBase64) {
+                localStorage.setItem(`profilePic_${newUserId}`, profilePicBase64);
+            }
+            
+            alert("Conta e perfil criados com sucesso! Você será redirecionado.");
+            hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
+            location.reload(); // Recarrega para obter o novo userId e iniciar a aplicação
+
+        } catch (e) {
+            let errorMessage = "Erro ao criar conta. Tente um email/senha diferente.";
+            if (e.code === 'auth/email-already-in-use') {
+                errorMessage = "Este email já está em uso. Tente fazer Login.";
+            } else if (e.code === 'auth/invalid-email') {
+                errorMessage = "O formato do email é inválido.";
+            } else if (e.code === 'auth/weak-password') {
+                errorMessage = "Senha fraca. Use no mínimo 6 caracteres.";
+            }
+            showRegError(errorMessage);
+            console.error("Erro no registro:", e);
+        }
+    }
+    
+    // NOVO: Função de Login Simples
+    async function handleLogin() {
+        clearLoginError();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        if (!email || !password) {
+            showLoginError("Email e senha são obrigatórios.");
+            return;
+        }
+
+        try {
+            await firebaseAuth.signInWithEmailAndPassword(email, password);
+            hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
+            location.reload(); // Força o recarregamento dos dados do novo usuário
+
+        } catch (e) {
+            showLoginError("Login falhou. Verifique email e senha.");
+            console.error("Erro no login:", e);
+        }
+    }
+    
+    // NOVO: Função de Logout
+    async function handleLogout() {
+        await firebaseAuth.signOut();
+        // Limpar dados de sessão local, se necessário, mas o reload fará o trabalho
+        location.reload(); 
+    }
+    
     async function loadProfileAndMetas(){
       try{
         const pSnap = await getProfileDocRef().get();
         if(pSnap.exists){
           const d=pSnap.data();
           document.getElementById('userNameDisplay').textContent=d.userName||'Usuário';
-          document.getElementById('userNameInput').value=d.userName||'';
-          document.getElementById('phoneInput').value=d.phone||'';
+          // Salva o telefone localmente para o modal de edição
+          localStorage.setItem(`phone_${userId}`, d.phone || ''); 
           loadProfilePicLocally();
-        }else if(!isEditingProfile){
-          showModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
-          return;
+          
+        } else {
+            // Se o usuário está logado (porém não tem perfil), isso é um erro ou primeiro login
+            // Caso 1: Usuário é anônimo (mas agora não fazemos mais login anônimo)
+            // Caso 2: Novo usuário de email/senha sem perfil, ou usuário antigo anônimo com dados perdidos (o fluxo de registro/login deve cobrir isso)
+            if (firebaseAuth.currentUser && !firebaseAuth.currentUser.isAnonymous) {
+                 // Redireciona para criação de perfil
+                 showRegistrationModal(false); 
+            } else {
+                 // Caso o usuário anônimo antigo persista, força o logout para recomeçar
+                 await firebaseAuth.signOut();
+                 showRegistrationModal(false); 
+            }
+            return; 
         }
 
         const mSnap = await getMetasDocRef().get();
@@ -585,116 +770,15 @@
         updateGoalDisplay();
         updateMealSuggestion();
       }catch(e){
-        if(!isEditingProfile){ showModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay')); }
+        // Erro de Firestore ou autenticação inicial, mostra modal de registro para garantir
+        showRegistrationModal(false);
       }
-    }
-
-    async function saveProfileData(){
-      clearRegistrationError();
-      const userName = document.getElementById('userNameInput').value.trim();
-      const phone = document.getElementById('phoneInput').value.trim();
-      
-      if(!userName){ 
-        showRegistrationError("Por favor, insira um nome de usuário."); 
-        return; 
-      }
-      
-      if (!userId) {
-         showRegistrationError("Aguarde, o aplicativo está tentando reconectar...");
-         try {
-             await firebaseAuth.signInAnonymously();
-             userId = firebaseAuth.currentUser.uid;
-         } catch (e) {
-             showRegistrationError("Falha na autenticação inicial. Verifique sua conexão e habilite o Login Anônimo no Firebase.");
-             console.error("Falha na re-autenticação:", e);
-             return;
-         }
-      }
-      
-      try{
-        await getProfileDocRef().set({ 
-            userName, 
-            phone: phone || null, 
-            userId 
-        });
-        
-        saveProfilePicLocally();
-        document.getElementById('userNameDisplay').textContent = userName;
-        hideModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
-        isEditingProfile=false;
-        
-        if(calorieGoal===0){ loadProfileAndMetas(); }
-      
-      }catch(e){
-        showRegistrationError("Erro ao salvar perfil. Por favor, verifique a regra de segurança do Firebase e tente novamente.");
-        console.error("Erro ao salvar perfil:", e);
-      }
-    }
-
-    async function handleRegistration() {
-        clearAuthError();
-        const email = document.getElementById('authEmail').value;
-        const password = document.getElementById('authPassword').value;
-
-        if (!email || !password || password.length < 6) {
-            showAuthError("Email e senha válidos são obrigatórios (mínimo 6 caracteres).");
-            return;
-        }
-
-        try {
-            // Se o usuário atual for anônimo, deslogamos antes de criar a nova conta
-            if (firebaseAuth.currentUser && firebaseAuth.currentUser.isAnonymous) {
-                await firebaseAuth.signOut();
-            }
-            
-            await firebaseAuth.createUserWithEmailAndPassword(email, password);
-            
-            hideModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
-            alert("Conta criada com sucesso! Você está logado.");
-            location.reload(); // Recarrega para obter o novo userId e iniciar o fluxo de perfil
-
-        } catch (e) {
-            let errorMessage = "Erro ao criar conta. Tente um email/senha diferente.";
-            if (e.code === 'auth/email-already-in-use') {
-                errorMessage = "Este email já está em uso. Tente fazer Login.";
-            } else if (e.code === 'auth/invalid-email') {
-                errorMessage = "O formato do email é inválido.";
-            }
-            showAuthError(errorMessage);
-            console.error("Erro no registro:", e);
-        }
     }
     
-    async function handleLogin() {
-        clearAuthError();
-        const email = document.getElementById('authEmail').value;
-        const password = document.getElementById('authPassword').value;
-
-        if (!email || !password) {
-            showAuthError("Email e senha são obrigatórios.");
-            return;
-        }
-
-        try {
-             // Se o usuário atual for anônimo, deslogamos antes de tentar o login com credenciais
-            if (firebaseAuth.currentUser && firebaseAuth.currentUser.isAnonymous) {
-                await firebaseAuth.signOut();
-            }
-
-            await firebaseAuth.signInWithEmailAndPassword(email, password);
-            
-            hideModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
-            location.reload(); // Força o recarregamento dos dados do novo usuário
-
-        } catch (e) {
-            showAuthError("Login falhou. Verifique email e senha.");
-            console.error("Erro no login:", e);
-        }
-    }
     // /* --- FIM MÓDULO: AUTENTICAÇÃO E PERFIL --- */
 
 
-    // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO --- */
+    // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO (MANTIDO) --- */
     async function saveMetas(){
       const weight=parseFloat(document.getElementById('weight').value);
       const targetWeightInput=document.getElementById('targetWeight'); 
@@ -836,7 +920,7 @@
     // /* --- FIM MÓDULO: LÓGICA DE METAS E CÁLCULO --- */
 
 
-    // /* --- MÓDULO: LÓGICA DE LOG DIÁRIO --- */
+    // /* --- MÓDULO: LÓGICA DE LOG DIÁRIO (MANTIDO) --- */
     function loadLogForDate(dateString) {
         if (unsubscribeListener) {
             unsubscribeListener(); 
@@ -1283,10 +1367,10 @@
       document.getElementById('foodSearch').value=foodDatabase[key].name;
       hideElement(document.getElementById('searchDropdown'));
     }
-    // /* --- FIM MÓDULO: LÓGICA DE LOG DIÁRIO --- */
+    // /* --- FIM MÓDULO: LÓGICA DE LOG DIÁRIO (MANTIDO) --- */
 
 
-    // /* --- MÓDULO: COMPARTILHAMENTO --- */
+    // /* --- MÓDULO: COMPARTILHAMENTO (MANTIDO) --- */
     function shareToWhatsApp(){
       if (currentDateString !== todayDateString) {
           alert("Apenas é possível compartilhar o resumo do dia atual. Selecione a data de hoje.");
@@ -1346,38 +1430,79 @@
       const url=`https://wa.me/?text=${encodeURIComponent(message)}`;
       window.open(url,'_blank');
     }
-    // /* --- FIM MÓDULO: COMPARTILHAMENTO --- */
+    // /* --- FIM MÓDULO: COMPARTILHAMENTO (MANTIDO) --- */
 
 
     // /* --- MÓDULO: INICIALIZAÇÃO E LISTENERS --- */
-    async function initializeApp(reauth = false){
+    
+    // Novo: Listener para o estado de autenticação do Firebase
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (user) {
+            // Usuário logado (Email/Senha ou Social)
+            userId = user.uid;
+            await loadProfileAndMetas();
+            
+            // Se o app já estiver iniciado, apenas atualiza
+            if (document.getElementById('mainApp').classList.contains('hidden')) {
+                const dateSelector = document.getElementById('dateSelector');
+                dateSelector.value = todayDateString;
+                dateSelector.max = todayDateString; 
+                loadLogForDate(todayDateString); 
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+            }
+            
+            // Atualiza botões de perfil para Logout/Editar
+            document.getElementById('authControlButton').textContent = 'Fazer Logout';
+            document.getElementById('authControlButton').onclick = handleLogout;
+            document.getElementById('editProfileButton').onclick = () => showRegistrationModal(true); 
+
+        } else {
+            // Usuário não logado (primeira visita ou deslogou)
+            userId = null;
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Força a exibição da tela de login/registro se não for a primeira vez
+            const hasEverLoggedIn = localStorage.getItem('hasEverLoggedIn');
+
+            // Usuários sem login serão direcionados para o modal de registro
+            if (hasEverLoggedIn) {
+                 showLoginModal();
+            } else {
+                 showRegistrationModal(false); // Mostra o registro completo se nunca logou
+            }
+            
+            // Atualiza botões de perfil para Login/Registro
+            document.getElementById('userNameDisplay').textContent = 'Visitante';
+            document.getElementById('profileImageDisplay').src = 'https://placehold.co/64x64/E0F2F1/065F46?text=FP';
+            document.getElementById('authControlButton').textContent = 'Fazer Login / Criar Conta';
+            document.getElementById('authControlButton').onclick = showLoginModal;
+            document.getElementById('editProfileButton').onclick = showLoginModal; // Clicar em editar leva para o login
+
+            // Desabilita funcionalidades de log/metas
+            document.getElementById('goalsDetails').classList.add('opacity-50');
+            document.getElementById('addFoodSection').classList.add('opacity-50');
+            document.getElementById('hydrationTracker').classList.add('opacity-50');
+        }
+    });
+
+    async function initializeApp(){
       try{
-        if (!firebaseApp || reauth) {
+        if (!firebaseApp) {
           firebaseApp = firebase.initializeApp(firebaseConfig);
           firebaseAuth = firebase.auth();
           firebaseDb = firebase.firestore();
         }
 
-        if (!reauth) {
-          try{
+        try{
             await firebaseDb.enablePersistence({ synchronizeTabs: true });
-          }catch(err){
+        }catch(err){
             console.warn('Persistência não habilitada:', err?.code||err);
-          }
         }
-
-        await firebaseAuth.signInAnonymously();
-        userId = firebaseAuth.currentUser.uid;
         
-        await loadProfileAndMetas();
-        
-        const dateSelector = document.getElementById('dateSelector');
-        dateSelector.value = todayDateString;
-        dateSelector.max = todayDateString; 
-        loadLogForDate(todayDateString); 
+        // O onAuthStateChanged agora cuida de todo o fluxo de inicialização.
 
-        document.getElementById('loadingScreen').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
       }catch(e){
         const l=document.getElementById('loadingScreen');
         l.innerHTML = `
@@ -1388,63 +1513,51 @@
       }
     }
 
-    window.selectFood = selectFood;
-    window.addWater = addWater; 
-    window.addFoodToLog = addFoodToLog;
-    window.removeFoodFromLog = removeFoodFromLog; 
-    window.togglePasswordVisibility = togglePasswordVisibility; // Expor função global
 
     document.addEventListener('DOMContentLoaded', ()=>{
       initializeApp();
       
+      // Listeners do App Principal
       document.getElementById('dateSelector').addEventListener('change', (e) => {
-          loadLogForDate(e.target.value);
+          if (userId) loadLogForDate(e.target.value);
       });
-      
-      document.getElementById('addWaterButton').addEventListener('click', addWater);
-
-      document.getElementById('editProfileButton').addEventListener('click', ()=>{
-        isEditingProfile=true;
-        document.getElementById('modalTitle').textContent='Editar Perfil';
-        showModal(document.getElementById('profileModal'), document.getElementById('profileModalOverlay'));
-      });
-      document.getElementById('saveProfileButton').addEventListener('click', saveProfileData);
-      document.getElementById('profilePicInput').addEventListener('change', async (e)=>{
-        const file=e.target.files[0];
-        if(file){ profilePicBase64=await fileToBase64(file); document.getElementById('modalProfileImage').src=profilePicBase64; }
-      });
-      
-      // Listeners para o Modal de Autenticação
-      document.getElementById('accessButton').addEventListener('click', () => {
-          showModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
-      });
-      // O botão 'closeAuthModal' foi removido do HTML, mas o listener permanece por segurança
-      // document.getElementById('closeAuthModal').addEventListener('click', () => {
-      //     hideModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
-      // });
-      document.getElementById('registerButton').addEventListener('click', handleRegistration);
-      document.getElementById('loginButton').addEventListener('click', handleLogin);
-      // FIM NOVO
-
-      document.getElementById('calculateButton').addEventListener('click', saveMetas);
+      document.getElementById('addWaterButton').addEventListener('click', userId ? addWater : showLoginModal);
+      document.getElementById('calculateButton').addEventListener('click', userId ? saveMetas : showLoginModal);
       document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
       document.getElementById('mealTimeSelect').addEventListener('change', updateMealSuggestion);
-      
       document.getElementById('foodSearch').addEventListener('input', searchFood);
-      document.getElementById('addFoodButton').addEventListener('click', addFoodToLog);
-
+      document.getElementById('addFoodButton').addEventListener('click', userId ? addFoodToLog : showLoginModal);
       document.getElementById('shareButton').addEventListener('click', shareToWhatsApp);
       document.getElementById('shareAppButton').addEventListener('click', shareApp);
-
       document.getElementById('closeWarningModalButton').addEventListener('click', ()=>{
         hideModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay'));
       });
-
       document.addEventListener('click', (e)=>{
         if(!e.target.closest('#foodSearch') && !e.target.closest('#searchDropdown')){
           hideElement(document.getElementById('searchDropdown'));
         }
       });
+      
+      // Listeners do Novo Modal de Registro/Login
+      document.getElementById('registerAndProfileButton').addEventListener('click', handleFullRegistration);
+      document.getElementById('regProfilePicInput').addEventListener('change', async (e)=>{
+        const file=e.target.files[0];
+        if(file){ profilePicBase64=await fileToBase64(file); document.getElementById('regProfileImage').src=profilePicBase64; }
+      });
+      
+      document.getElementById('showLoginButton').addEventListener('click', (e) => {
+          e.preventDefault();
+          hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
+          showLoginModal();
+      });
+
+      document.getElementById('loginSubmitButton').addEventListener('click', handleLogin);
+      document.getElementById('showRegistrationButton').addEventListener('click', (e) => {
+          e.preventDefault();
+          hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
+          showRegistrationModal(false);
+      });
+      
     });
     // /* --- FIM MÓDULO: INICIALIZAÇÃO E LISTENERS --- */
   </script>
