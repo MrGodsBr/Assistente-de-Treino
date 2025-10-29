@@ -21,7 +21,7 @@
     #calorieProgress, #waterProgress, #weightProgress { transition: width 0.3s ease-in-out; }
     .modal-transition { transition: opacity 0.3s, transform 0.3s; }
     .spinner { animation: spin 1s linear infinite; }
-    @keyframes spin { from { transform: rotate(0deg); } to transform: rotate(360deg); }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     /* Estilos para a nova estrutura de lista */
     .meal-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; }
     .meal-section:first-child { border-top: none; padding-top: 0; }
@@ -89,21 +89,27 @@
         <label for="authEmail" class="block text-sm font-medium text-gray-700">Email</label>
         <input type="email" id="authEmail" placeholder="seu.email@exemplo.com" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
       </div>
+      
       <div>
         <label for="authPassword" class="block text-sm font-medium text-gray-700">Senha</label>
-        <input type="password" id="authPassword" placeholder="Sua senha" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+        <div class="relative mt-1">
+          <input type="password" id="authPassword" placeholder="Mínimo 6 caracteres" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          <button type="button" onclick="togglePasswordVisibility('authPassword')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
+            <svg id="authPassword_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065-7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
+            </svg>
+             <svg id="authPassword_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
+            </svg>
+          </button>
+        </div>
       </div>
-      
       <button id="loginButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
         Fazer Login
       </button>
       
       <button id="registerButton" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors mt-2">
         Criar Conta
-      </button>
-      
-      <button id="closeAuthModal" class="w-full text-gray-600 font-medium py-2 mt-4 hover:text-gray-900">
-        Continuar Anônimo
       </button>
     </div>
   </div>
@@ -525,6 +531,23 @@
     
     function showAuthError(message){ const el=document.getElementById('authError'); el.textContent=message; showElement(el); }
     function clearAuthError(){ const el=document.getElementById('authError'); el.textContent=''; hideElement(el); }
+    
+    // NOVO: Função para alternar a visibilidade da senha
+    function togglePasswordVisibility(fieldId) {
+        const input = document.getElementById(fieldId);
+        const eye = document.getElementById(fieldId + '_eye');
+        const eyeOpen = document.getElementById(fieldId + '_eye_open');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            hideElement(eye);
+            showElement(eyeOpen);
+        } else {
+            input.type = 'password';
+            showElement(eye);
+            hideElement(eyeOpen);
+        }
+    }
     // /* --- FIM MÓDULO: HELPERS DE UI (MODAL, ELEMENTOS, ETC) --- */
 
 
@@ -619,10 +642,16 @@
         }
 
         try {
+            // Se o usuário atual for anônimo, deslogamos antes de criar a nova conta
+            if (firebaseAuth.currentUser && firebaseAuth.currentUser.isAnonymous) {
+                await firebaseAuth.signOut();
+            }
+            
             await firebaseAuth.createUserWithEmailAndPassword(email, password);
-            // Se o registro for bem-sucedido, o listener de auth irá recarregar a aplicação e pedir o Perfil
+            
             hideModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
-            alert("Conta criada com sucesso! Por favor, preencha seu perfil.");
+            alert("Conta criada com sucesso! Você está logado.");
+            location.reload(); // Recarrega para obter o novo userId e iniciar o fluxo de perfil
 
         } catch (e) {
             let errorMessage = "Erro ao criar conta. Tente um email/senha diferente.";
@@ -647,8 +676,13 @@
         }
 
         try {
+             // Se o usuário atual for anônimo, deslogamos antes de tentar o login com credenciais
+            if (firebaseAuth.currentUser && firebaseAuth.currentUser.isAnonymous) {
+                await firebaseAuth.signOut();
+            }
+
             await firebaseAuth.signInWithEmailAndPassword(email, password);
-            // Se o login for bem-sucedido, o listener de auth irá recarregar a aplicação com o novo userId
+            
             hideModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
             location.reload(); // Força o recarregamento dos dados do novo usuário
 
@@ -1358,7 +1392,7 @@
     window.addWater = addWater; 
     window.addFoodToLog = addFoodToLog;
     window.removeFoodFromLog = removeFoodFromLog; 
-
+    window.togglePasswordVisibility = togglePasswordVisibility; // Expor função global
 
     document.addEventListener('DOMContentLoaded', ()=>{
       initializeApp();
@@ -1380,13 +1414,14 @@
         if(file){ profilePicBase64=await fileToBase64(file); document.getElementById('modalProfileImage').src=profilePicBase64; }
       });
       
-      // NOVO: Listeners para o Modal de Autenticação
+      // Listeners para o Modal de Autenticação
       document.getElementById('accessButton').addEventListener('click', () => {
           showModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
       });
-      document.getElementById('closeAuthModal').addEventListener('click', () => {
-          hideModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
-      });
+      // O botão 'closeAuthModal' foi removido do HTML, mas o listener permanece por segurança
+      // document.getElementById('closeAuthModal').addEventListener('click', () => {
+      //     hideModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
+      // });
       document.getElementById('registerButton').addEventListener('click', handleRegistration);
       document.getElementById('loginButton').addEventListener('click', handleLogin);
       // FIM NOVO
