@@ -582,7 +582,7 @@
 
     // /* --- MÓDULO: AUTENTICAÇÃO E PERFIL --- */
     
-    // Novo: Função para limpar e mostrar o modal de Registro Completo (Criação de Conta)
+    // Novo: Função para limpar e mostrar o modal de Registro Completo (Criação de Conta/Edição)
     function showRegistrationModal(isEdit = false) {
         isEditingProfile = isEdit;
         const modal = document.getElementById('fullRegistrationModal');
@@ -679,12 +679,11 @@
                 localStorage.setItem(`profilePic_${newUserId}`, profilePicBase64);
             }
             
-            // Define que o usuário já logou
             localStorage.setItem('hasEverLoggedIn', 'true'); 
             
+            // O onAuthStateChanged tratará o novo login
+            // Alert opcional, mas útil para feedback.
             alert("Conta e perfil criados com sucesso! Você será redirecionado.");
-            // Não precisa de location.reload() aqui. O onAuthStateChanged do Firebase já fará o reload.
-            // Apenas esconde o modal.
             hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
 
         } catch (e) {
@@ -715,7 +714,8 @@
         try {
             await firebaseAuth.signInWithEmailAndPassword(email, password);
             localStorage.setItem('hasEverLoggedIn', 'true'); 
-            // Não precisa de location.reload() aqui. O onAuthStateChanged do Firebase já fará o reload.
+            
+            // O onAuthStateChanged tratará a mudança de estado
             hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
             
         } catch (e) {
@@ -730,50 +730,53 @@
         location.reload(); 
     }
     
+    // CORREÇÃO: Função de carregamento do perfil/metas
+    // Retorna true se tudo estiver ok, false se for novo usuário (precisa cadastrar) ou falha.
     async function loadProfileAndMetas(){
       try{
         const pSnap = await getProfileDocRef().get();
+        
+        // 1. SE O USUÁRIO ESTÁ LOGADO MAS NÃO TEM PERFIL (Novo Cadastro)
+        if(!pSnap.exists && userId){
+            showRegistrationModal(false); 
+            return false; // Perfil não completo
+        }
+        
+        // 2. SE O PERFIL EXISTE: Carrega os dados
         if(pSnap.exists){
           const d=pSnap.data();
           document.getElementById('userNameDisplay').textContent=d.userName||'Usuário';
           localStorage.setItem(`phone_${userId}`, d.phone || ''); 
           loadProfilePicLocally();
           
-        } else {
-             // **CORREÇÃO AQUI:** Só chama o modal de registro se estiver logado
-             // e não tiver dados de perfil, forçando o preenchimento.
-             if (userId) { 
-                 showRegistrationModal(false); 
-             }
-             return; 
+          const mSnap = await getMetasDocRef().get();
+          if(mSnap.exists){
+            const d=mSnap.data();
+            document.getElementById('weight').value=d.weight||'';
+            document.getElementById('targetWeight').value=d.targetWeight||''; 
+            document.getElementById('height').value=d.height||'';
+            document.getElementById('age').value=d.age||'';
+            document.getElementById('gender').value=d.gender||'male';
+            document.getElementById('activity').value=d.activity||'1.55';
+            document.getElementById('goalType').value=d.goalType||'ganhar';
+            calorieGoal = parseFloat(d.calorieGoal)||0;
+            waterGoal = parseFloat(d.waterGoal)||0; 
+            currentGoalType = d.goalType||'ganhar';
+            currentWeight = parseFloat(d.weight)||0; 
+            targetWeight = parseFloat(d.targetWeight)||0; 
+          }
+          updateGoalDisplay();
+          updateMealSuggestion();
+          return true; // Sucesso
         }
+        
+        return false; // Não deveria ser atingido se o userId for nulo, mas é um fallback.
 
-        const mSnap = await getMetasDocRef().get();
-        if(mSnap.exists){
-          const d=mSnap.data();
-          document.getElementById('weight').value=d.weight||'';
-          document.getElementById('targetWeight').value=d.targetWeight||''; 
-          document.getElementById('height').value=d.height||'';
-          document.getElementById('age').value=d.age||'';
-          document.getElementById('gender').value=d.gender||'male';
-          document.getElementById('activity').value=d.activity||'1.55';
-          document.getElementById('goalType').value=d.goalType||'ganhar';
-          calorieGoal = parseFloat(d.calorieGoal)||0;
-          waterGoal = parseFloat(d.waterGoal)||0; 
-          currentGoalType = d.goalType||'ganhar';
-          currentWeight = parseFloat(d.weight)||0; 
-          targetWeight = parseFloat(d.targetWeight)||0; 
-        }
-        updateGoalDisplay();
-        updateMealSuggestion();
       }catch(e){
-        // **CORREÇÃO AQUI:** Se o erro não for 'permission-denied' (que é esperado no cenário de novo usuário)
-        // ou se não houver userId, talvez não queira forçar o modal.
-        // A lógica de forçar o cadastro já está no bloco 'if(!pSnap.exists)'.
-        // Se houver um erro de conexão, o app continua travado na tela de login
-        // se o usuário não tiver completado o perfil.
         console.error("Erro ao carregar perfil/metas:", e); 
-        // Não forçar showRegistrationModal aqui, a lógica de login/registro deve ser suficiente
+        // Em caso de erro de conexão ou leitura (com userId), força o modal para que o usuário tente novamente.
+        if(userId) showRegistrationModal(false);
+        return false;
       }
     }
     
@@ -937,26 +940,14 @@
         dailyLog = {}; 
         waterLog = 0; 
 
-        ALL_LOG_KEYS.forEach(k => { 
-            const listContainer = document.getElementById(`list-${k}`);
-            if (listContainer) listContainer.innerHTML = '';
-            const section = document.getElementById(`section-${k}`);
-            // Removendo apenas as seções de refeição, a de água (water_container) é mantida
-            if (section && k !== 'water') section.remove(); 
-        });
-        
-        // CORREÇÃO DE LÓGICA:
-        // A remoção das seções de refeição deve ser feita de forma mais robusta. 
-        // Melhor limpar os containers pai e recriar, ou garantir que 'section' seja o div correto.
-        // A estrutura atual: #cafe_da_manha_container -> #section-cafe_da_manha (meal-section) -> #list-cafe_da_manha
-        // A remoção de #section-X deve ser o correto.
-        
-        // CORREÇÃO: Limpar o HTML interno dos containers de refeição para garantir limpeza
+        // Limpar a UI antes de carregar o novo log
         MEAL_KEYS.forEach(k => {
              const container = document.getElementById(`${k}_container`);
              if(container) container.innerHTML = '';
         });
-        
+        const waterList = document.getElementById('list-water');
+        if (waterList) waterList.innerHTML = '';
+
         manageEmptyListText();
         updateTotals(false);
         updateWaterTracker(false); 
@@ -1029,7 +1020,6 @@
             
             if (change.type === "added" || change.type === "modified") {
                 dailyLog[item.id] = item;
-                // A lógica de updateFoodItemElement agora cuida de água e comida
                 updateFoodItemElement(item); 
             }
             
@@ -1278,13 +1268,13 @@
             listContainer = document.getElementById(`list-${item.meal}`);
         }
         
-        // CORREÇÃO: Remove o elemento existente antes de adicionar o novo/modificado
+        // Remove o elemento existente antes de adicionar o novo/modificado
         if (existingElement) {
             existingElement.remove();
         }
 
         if (listContainer) {
-            // CORREÇÃO: Insere de forma ordenada, baseado na lista de IDs em dailyLog (que é ordenada pelo listener)
+            // Insere de forma ordenada, baseado na lista de IDs em dailyLog
             const itemIds = Object.keys(dailyLog).filter(id => {
                 const logItem = dailyLog[id];
                 return logItem.type === item.type && 
@@ -1503,14 +1493,24 @@
     
     let isAppInitialized = false;
 
-    // Novo: Listener para o estado de autenticação do Firebase
+    // CORREÇÃO: Listener para o estado de autenticação do Firebase
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             userId = user.uid;
-            await loadProfileAndMetas();
             
-            // CORREÇÃO: Inicializa a UI do app principal se não estiver inicializado
+            // Tenta carregar o perfil e metas. Se for um novo usuário, showRegistrationModal será chamado.
+            const profileLoaded = await loadProfileAndMetas();
+            
+            // 1. Se o perfil não foi carregado (porque não existe), o app principal fica escondido
+            if (!profileLoaded) {
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+                return; 
+            }
+            
+            // 2. Se o perfil foi carregado (sucesso)
             if (!isAppInitialized) {
+                // Inicializa o log do dia de hoje
                 const dateSelector = document.getElementById('dateSelector');
                 dateSelector.value = todayDateString;
                 dateSelector.max = todayDateString; 
@@ -1519,8 +1519,7 @@
                 document.getElementById('mainApp').classList.remove('hidden');
                 isAppInitialized = true;
             } else {
-                 // Caso o login tenha sido feito via modal e o listener disparou a mudança de estado
-                 // Se o modal de login/registro estiver visível, esconde
+                 // Esconde modais se o login foi concluído e o perfil existe.
                  hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
                  hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
             }
@@ -1580,12 +1579,15 @@
         }
 
         try{
+            // Tenta habilitar a persistência
             await firebaseDb.enablePersistence({ synchronizeTabs: true });
         }catch(err){
+            // Se a persistência falhar (ex: navegador privado), apenas alerta e segue.
             console.warn('Persistência não habilitada:', err?.code||err);
         }
         
       }catch(e){
+        // Exibe erro fatal de conexão no loading screen
         const l=document.getElementById('loadingScreen');
         l.innerHTML = `
           <p class="text-red-600 font-semibold">Erro ao conectar com o servidor</p>
@@ -1599,12 +1601,11 @@
     document.addEventListener('DOMContentLoaded', ()=>{
       initializeApp();
       
-      // Listeners do App Principal (Funções condicionais - se não estiver logado, pede login)
+      // Listeners do App Principal
       document.getElementById('dateSelector').addEventListener('change', (e) => {
           loadLogForDate(e.target.value);
       });
       
-      // Os botões que adicionam dados devem verificar o userId DENTRO da função
       document.getElementById('addWaterButton').addEventListener('click', addWater); 
       document.getElementById('calculateButton').addEventListener('click', saveMetas);
       document.getElementById('addFoodButton').addEventListener('click', addFoodToLog);
@@ -1624,9 +1625,7 @@
         }
       });
       
-      // Listeners do Novo Modal de Registro/Login (CHAMAM AS FUNÇÕES DIRETAMENTE)
-      
-      // Botão 'Criar Conta e Perfil'
+      // Listeners do Novo Modal de Registro/Login
       document.getElementById('registerAndProfileButton').addEventListener('click', handleFullRegistration); 
       
       document.getElementById('regProfilePicInput').addEventListener('change', async (e)=>{
@@ -1634,18 +1633,17 @@
         if(file){ profilePicBase64=await fileToBase64(file); document.getElementById('regProfileImage').src=profilePicBase64; }
       });
       
-      // Botão 'Já tenho conta. Fazer Login' -> Mudar de Modal de Registro para Modal de Login
+      // Botão 'Já tenho conta. Fazer Login'
       document.getElementById('showLoginButton').addEventListener('click', (e) => {
           e.preventDefault();
           hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
           showLoginModal();
       });
 
-      // BOTÃO DE SUBMISSÃO DE LOGIN (CORRIGIDO)
       // Botão 'Entrar'
       document.getElementById('loginSubmitButton').addEventListener('click', handleLogin); 
       
-      // Botão 'Não tenho conta. Criar Perfil' -> Mudar de Modal de Login para Modal de Registro
+      // Botão 'Não tenho conta. Criar Perfil'
       document.getElementById('showRegistrationButton').addEventListener('click', (e) => {
           e.preventDefault();
           hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
