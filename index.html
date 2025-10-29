@@ -683,8 +683,9 @@
             localStorage.setItem('hasEverLoggedIn', 'true'); 
             
             alert("Conta e perfil criados com sucesso! Você será redirecionado.");
+            // Não precisa de location.reload() aqui. O onAuthStateChanged do Firebase já fará o reload.
+            // Apenas esconde o modal.
             hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
-            location.reload(); // Recarrega para obter o novo userId e iniciar a aplicação
 
         } catch (e) {
             let errorMessage = "Erro ao criar conta. Tente um email/senha diferente.";
@@ -714,9 +715,9 @@
         try {
             await firebaseAuth.signInWithEmailAndPassword(email, password);
             localStorage.setItem('hasEverLoggedIn', 'true'); 
+            // Não precisa de location.reload() aqui. O onAuthStateChanged do Firebase já fará o reload.
             hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
-            location.reload(); 
-
+            
         } catch (e) {
             showLoginError("Login falhou. Verifique email e senha.");
             console.error("Erro no login:", e);
@@ -739,12 +740,12 @@
           loadProfilePicLocally();
           
         } else {
-            if (firebaseAuth.currentUser && !firebaseAuth.currentUser.isAnonymous) {
+             // **CORREÇÃO AQUI:** Só chama o modal de registro se estiver logado
+             // e não tiver dados de perfil, forçando o preenchimento.
+             if (userId) { 
                  showRegistrationModal(false); 
-            } else {
-                 showRegistrationModal(false); 
-            }
-            return; 
+             }
+             return; 
         }
 
         const mSnap = await getMetasDocRef().get();
@@ -766,7 +767,13 @@
         updateGoalDisplay();
         updateMealSuggestion();
       }catch(e){
-        showRegistrationModal(false);
+        // **CORREÇÃO AQUI:** Se o erro não for 'permission-denied' (que é esperado no cenário de novo usuário)
+        // ou se não houver userId, talvez não queira forçar o modal.
+        // A lógica de forçar o cadastro já está no bloco 'if(!pSnap.exists)'.
+        // Se houver um erro de conexão, o app continua travado na tela de login
+        // se o usuário não tiver completado o perfil.
+        console.error("Erro ao carregar perfil/metas:", e); 
+        // Não forçar showRegistrationModal aqui, a lógica de login/registro deve ser suficiente
       }
     }
     
@@ -934,8 +941,22 @@
             const listContainer = document.getElementById(`list-${k}`);
             if (listContainer) listContainer.innerHTML = '';
             const section = document.getElementById(`section-${k}`);
+            // Removendo apenas as seções de refeição, a de água (water_container) é mantida
             if (section && k !== 'water') section.remove(); 
         });
+        
+        // CORREÇÃO DE LÓGICA:
+        // A remoção das seções de refeição deve ser feita de forma mais robusta. 
+        // Melhor limpar os containers pai e recriar, ou garantir que 'section' seja o div correto.
+        // A estrutura atual: #cafe_da_manha_container -> #section-cafe_da_manha (meal-section) -> #list-cafe_da_manha
+        // A remoção de #section-X deve ser o correto.
+        
+        // CORREÇÃO: Limpar o HTML interno dos containers de refeição para garantir limpeza
+        MEAL_KEYS.forEach(k => {
+             const container = document.getElementById(`${k}_container`);
+             if(container) container.innerHTML = '';
+        });
+        
         manageEmptyListText();
         updateTotals(false);
         updateWaterTracker(false); 
@@ -968,14 +989,13 @@
     }
     
     function clearFoodListUI() {
-        ALL_LOG_KEYS.forEach(k => {
-            const listContainer = document.getElementById(`list-${k}`);
-            if (listContainer) listContainer.innerHTML = '';
-            if (k !== 'water') {
-                const section = document.getElementById(`section-${k}`);
-                if (section) section.remove();
-            }
+        MEAL_KEYS.forEach(k => {
+            const container = document.getElementById(`${k}_container`);
+            if (container) container.innerHTML = '';
         });
+        const waterList = document.getElementById('list-water');
+        if (waterList) waterList.innerHTML = '';
+        
         manageEmptyListText();
     }
 
@@ -1000,10 +1020,7 @@
           
           if (initialLoad) {
             dailyLog = {};
-            ALL_LOG_KEYS.forEach(k => { 
-                const listContainer = document.getElementById(`list-${k}`);
-                if (listContainer) listContainer.innerHTML = '';
-            });
+            clearFoodListUI();
           }
 
           snap.docChanges().forEach(change => {
@@ -1012,11 +1029,8 @@
             
             if (change.type === "added" || change.type === "modified") {
                 dailyLog[item.id] = item;
-                if (item.type === 'water') {
-                    updateFoodItemElement(item, true); 
-                } else {
-                    updateFoodItemElement(item, false);
-                }
+                // A lógica de updateFoodItemElement agora cuida de água e comida
+                updateFoodItemElement(item); 
             }
             
             if (change.type === "removed") {
@@ -1239,17 +1253,13 @@
       return div;
     }
     
-    function updateFoodItemElement(item, isWater = false){
+    function updateFoodItemElement(item){
         const existingElement = document.getElementById(`food-item-${item.id}`);
         
-        if (existingElement) {
-            existingElement.remove();
-        }
-
         let newItemElement;
         let listContainer;
 
-        if (item.type === 'water' || isWater) {
+        if (item.type === 'water') {
             newItemElement = createWaterItemElement(item);
             listContainer = document.getElementById('list-water');
         } else {
@@ -1268,8 +1278,47 @@
             listContainer = document.getElementById(`list-${item.meal}`);
         }
         
+        // CORREÇÃO: Remove o elemento existente antes de adicionar o novo/modificado
+        if (existingElement) {
+            existingElement.remove();
+        }
+
         if (listContainer) {
-            listContainer.appendChild(newItemElement);
+            // CORREÇÃO: Insere de forma ordenada, baseado na lista de IDs em dailyLog (que é ordenada pelo listener)
+            const itemIds = Object.keys(dailyLog).filter(id => {
+                const logItem = dailyLog[id];
+                return logItem.type === item.type && 
+                       (item.type === 'water' || logItem.meal === item.meal);
+            }).sort((a, b) => dailyLog[a].clientTs - dailyLog[b].clientTs);
+
+            const itemIndex = itemIds.indexOf(item.id);
+            
+            if (itemIndex > 0) {
+                const prevItemId = itemIds[itemIndex - 1];
+                const prevElement = document.getElementById(`food-item-${prevItemId}`);
+                if (prevElement) {
+                    prevElement.after(newItemElement);
+                } else {
+                    listContainer.appendChild(newItemElement);
+                }
+            } else if (itemIndex === 0) {
+                 const firstElement = listContainer.firstChild;
+                 if(firstElement) {
+                     listContainer.insertBefore(newItemElement, firstElement);
+                 } else {
+                     listContainer.appendChild(newItemElement);
+                 }
+            } else {
+                listContainer.appendChild(newItemElement);
+            }
+            
+            // Garante que o container de refeição tem a classe de section se for comida
+            if (item.type !== 'water') {
+                const mealSection = listContainer.closest('.meal-section');
+                if (mealSection && !mealSection.id.startsWith('section-')) {
+                   mealSection.id = `section-${item.meal}`; 
+                }
+            }
         }
     }
 
@@ -1280,6 +1329,7 @@
             element.remove();
 
             if (listContainer) {
+                // Se a lista estiver vazia (e não for a lista de água), remove a seção inteira da refeição
                 if (listContainer.children.length === 0 && listContainer.id !== 'list-water') {
                     const mealSection = listContainer.closest('.meal-section');
                     if (mealSection) mealSection.remove();
@@ -1459,6 +1509,7 @@
             userId = user.uid;
             await loadProfileAndMetas();
             
+            // CORREÇÃO: Inicializa a UI do app principal se não estiver inicializado
             if (!isAppInitialized) {
                 const dateSelector = document.getElementById('dateSelector');
                 dateSelector.value = todayDateString;
@@ -1467,6 +1518,11 @@
                 document.getElementById('loadingScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
                 isAppInitialized = true;
+            } else {
+                 // Caso o login tenha sido feito via modal e o listener disparou a mudança de estado
+                 // Se o modal de login/registro estiver visível, esconde
+                 hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
+                 hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
             }
             
             // Atualiza botões de perfil para Logout/Editar
@@ -1486,6 +1542,12 @@
             document.getElementById('mainApp').classList.remove('hidden');
             isAppInitialized = true; 
 
+            // Se o usuário fez logout, mata o listener de logs
+            if (unsubscribeListener) {
+                unsubscribeListener(); 
+                unsubscribeListener = null;
+            }
+            
             // Usuários sem login serão direcionados para o modal de registro/login
             const hasEverLoggedIn = localStorage.getItem('hasEverLoggedIn');
 
