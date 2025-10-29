@@ -21,7 +21,7 @@
     #calorieProgress, #waterProgress, #weightProgress { transition: width 0.3s ease-in-out; }
     .modal-transition { transition: opacity 0.3s, transform 0.3s; }
     .spinner { animation: spin 1s linear infinite; }
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes spin { from { transform: rotate(0deg); } to transform: rotate(360deg); }
     /* Estilos para a nova estrutura de lista */
     .meal-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; }
     .meal-section:first-child { border-top: none; padding-top: 0; }
@@ -62,7 +62,7 @@
     </div>
   </div>
 
-  <div id="warningModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-60 z-40 hidden"></div>
+  <div id="warningModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
   <div id="warningModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
     <div class="text-center">
       <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100">
@@ -75,6 +75,35 @@
       <p id="modalGoalText" class="text-sm text-gray-500 mt-1"></p>
       <button id="closeWarningModalButton" class="mt-6 w-full bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
         Entendi
+      </button>
+    </div>
+  </div>
+
+  <div id="authModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
+  <div id="authModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
+    <h3 class="text-2xl font-bold text-gray-800 text-center mb-4" id="authTitle">Acesso</h3>
+    <p id="authError" class="text-red-600 text-center font-medium text-sm mb-3 hidden"></p>
+
+    <div class="space-y-4">
+      <div>
+        <label for="authEmail" class="block text-sm font-medium text-gray-700">Email</label>
+        <input type="email" id="authEmail" placeholder="seu.email@exemplo.com" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+      </div>
+      <div>
+        <label for="authPassword" class="block text-sm font-medium text-gray-700">Senha</label>
+        <input type="password" id="authPassword" placeholder="Sua senha" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+      </div>
+      
+      <button id="loginButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
+        Fazer Login
+      </button>
+      
+      <button id="registerButton" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors mt-2">
+        Criar Conta
+      </button>
+      
+      <button id="closeAuthModal" class="w-full text-gray-600 font-medium py-2 mt-4 hover:text-gray-900">
+        Continuar Anônimo
       </button>
     </div>
   </div>
@@ -94,6 +123,9 @@
       <img id="profileImageDisplay" src="https://placehold.co/64x64/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-16 h-16 rounded-full object-cover shadow-md">
       <div class="flex-grow">
         <span id="userNameDisplay" class="block text-xl font-semibold text-gray-800">Usuário</span>
+        <button id="accessButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors mt-1">
+          Fazer Login / Criar Conta
+        </button>
       </div>
       <button id="editProfileButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">Editar</button>
     </div>
@@ -445,14 +477,15 @@
       // --- BEBIDAS QUENTES / CAFÉS ---
       'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false },
       'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, cals: 24, unit: 'xícara', visceralFat: false }, 
-      
-      /* --- NOVOS ALIMENTOS SOLICITADOS --- */
-      // Base: 200ml de leite + 2 colheres de chá de açúcar (aprox. 10g carb/40 kcal) + Café Solúvel (aprox 2 kcal)
       'cafe_desnatado_acucar': { name: 'Café c/ Leite Desnatado + Açúcar', protein: 6.8, carbs: 20, cals: 126, unit: '200ml', visceralFat: false },
-      'cafe_integral_acucar': { name: 'Café c/ Leite Integral + Açúcar', protein: 6.4, carbs: 20, cals: 154, unit: '200ml', visceralFat: true }, // Marcado como VF devido à gordura do leite integral
-
-      /* --- FIM NOVOS ALIMENTOS SOLICITADOS --- */
-
+      'cafe_integral_acucar': { name: 'Café c/ Leite Integral + Açúcar', protein: 6.4, carbs: 20, cals: 154, unit: '200ml', visceralFat: true }, 
+      
+      // --- DADOS ADICIONAIS ---
+      'salmao_cru': { name: 'Salmão (cru)', protein: 20.4, carbs: 0, cals: 208, unit: '100g', visceralFat: false },
+      'leite_aveia': { name: 'Bebida de Aveia', protein: 1.0, carbs: 10.3, cals: 54, unit: '100ml', visceralFat: false },
+      'ovos_cozidos_claras': { name: 'Claras de Ovo (cozidas)', protein: 10.9, carbs: 0.7, cals: 52, unit: '100g', visceralFat: false },
+      'paorede': { name: 'Pão de Queijo', protein: 7, carbs: 25, cals: 150, unit: 'unidade média', visceralFat: true },
+      
       // --- ITENS DE 'LIXO' / DOCES (JUNK / SWEETS) ---
       'batata_frita': { name: 'Batata Frita', protein: 3.4, carbs: 41, cals: 319, unit: '100g', visceralFat: true },
       'refrigerante': { name: 'Refrigerante (Cola)', protein: 0, carbs: 26, cals: 105, unit: 'lata 350ml', visceralFat: true },
@@ -462,10 +495,6 @@
       'mel': { name: 'Mel', protein: 0.3, carbs: 82, cals: 304, unit: '100g', visceralFat: true },
       'pudim': { name: 'Pudim de Leite', protein: 5, carbs: 30, cals: 200, unit: '100g (fatia)', visceralFat: true },
       'paçoca': { name: 'Paçoca (rolha)', protein: 5, carbs: 12, cals: 100, unit: 'unidade 20g', visceralFat: false },
-      'salmao_cru': { name: 'Salmão (cru)', protein: 20.4, carbs: 0, cals: 208, unit: '100g', visceralFat: false },
-      'leite_aveia': { name: 'Bebida de Aveia', protein: 1.0, carbs: 10.3, cals: 54, unit: '100ml', visceralFat: false },
-      'ovos_cozidos_claras': { name: 'Claras de Ovo (cozidas)', protein: 10.9, carbs: 0.7, cals: 52, unit: '100g', visceralFat: false },
-      'paorede': { name: 'Pão de Queijo', protein: 7, carbs: 25, cals: 150, unit: 'unidade média', visceralFat: true },
     };
     // /* --- FIM MÓDULO: BANCO DE DADOS DE ALIMENTOS (foodDatabase) --- */
 
@@ -493,10 +522,13 @@
     function fileToBase64(file){ return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=e=>reject(e); r.readAsDataURL(file); }); }
     function saveProfilePicLocally(){ if(profilePicBase64){ localStorage.setItem(`profilePic_${userId}`, profilePicBase64); document.getElementById('profileImageDisplay').src=profilePicBase64; document.getElementById('modalProfileImage').src=profilePicBase64; } }
     function loadProfilePicLocally(){ const pic=localStorage.getItem(`profilePic_${userId}`); if(pic){ profilePicBase64=pic; document.getElementById('profileImageDisplay').src=pic; document.getElementById('modalProfileImage').src=pic; } }
+    
+    function showAuthError(message){ const el=document.getElementById('authError'); el.textContent=message; showElement(el); }
+    function clearAuthError(){ const el=document.getElementById('authError'); el.textContent=''; hideElement(el); }
     // /* --- FIM MÓDULO: HELPERS DE UI (MODAL, ELEMENTOS, ETC) --- */
 
 
-    // /* --- MÓDULO: FLUXO DE AUTENTICAÇÃO E CARREGAMENTO --- */
+    // /* --- MÓDULO: AUTENTICAÇÃO E PERFIL --- */
     async function loadProfileAndMetas(){
       try{
         const pSnap = await getProfileDocRef().get();
@@ -575,45 +607,57 @@
         console.error("Erro ao salvar perfil:", e);
       }
     }
-    
-    async function initializeApp(reauth = false){
-      try{
-        if (!firebaseApp || reauth) {
-          firebaseApp = firebase.initializeApp(firebaseConfig);
-          firebaseAuth = firebase.auth();
-          firebaseDb = firebase.firestore();
+
+    async function handleRegistration() {
+        clearAuthError();
+        const email = document.getElementById('authEmail').value;
+        const password = document.getElementById('authPassword').value;
+
+        if (!email || !password || password.length < 6) {
+            showAuthError("Email e senha válidos são obrigatórios (mínimo 6 caracteres).");
+            return;
         }
 
-        if (!reauth) {
-          try{
-            await firebaseDb.enablePersistence({ synchronizeTabs: true });
-          }catch(err){
-            console.warn('Persistência não habilitada:', err?.code||err);
-          }
+        try {
+            await firebaseAuth.createUserWithEmailAndPassword(email, password);
+            // Se o registro for bem-sucedido, o listener de auth irá recarregar a aplicação e pedir o Perfil
+            hideModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
+            alert("Conta criada com sucesso! Por favor, preencha seu perfil.");
+
+        } catch (e) {
+            let errorMessage = "Erro ao criar conta. Tente um email/senha diferente.";
+            if (e.code === 'auth/email-already-in-use') {
+                errorMessage = "Este email já está em uso. Tente fazer Login.";
+            } else if (e.code === 'auth/invalid-email') {
+                errorMessage = "O formato do email é inválido.";
+            }
+            showAuthError(errorMessage);
+            console.error("Erro no registro:", e);
         }
-
-        await firebaseAuth.signInAnonymously();
-        userId = firebaseAuth.currentUser.uid;
-        
-        await loadProfileAndMetas();
-        
-        const dateSelector = document.getElementById('dateSelector');
-        dateSelector.value = todayDateString;
-        dateSelector.max = todayDateString; 
-        loadLogForDate(todayDateString); 
-
-        document.getElementById('loadingScreen').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-      }catch(e){
-        const l=document.getElementById('loadingScreen');
-        l.innerHTML = `
-          <p class="text-red-600 font-semibold">Erro ao conectar com o servidor</p>
-          <p class="text-gray-600 mt-2">Verifique sua conexão e recarregue a página</p>
-          <button onclick="location.reload()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg">Tentar Novamente</button>
-        `;
-      }
     }
-    // /* --- FIM MÓDULO: FLUXO DE AUTENTICAÇÃO E CARREGAMENTO --- */
+    
+    async function handleLogin() {
+        clearAuthError();
+        const email = document.getElementById('authEmail').value;
+        const password = document.getElementById('authPassword').value;
+
+        if (!email || !password) {
+            showAuthError("Email e senha são obrigatórios.");
+            return;
+        }
+
+        try {
+            await firebaseAuth.signInWithEmailAndPassword(email, password);
+            // Se o login for bem-sucedido, o listener de auth irá recarregar a aplicação com o novo userId
+            hideModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
+            location.reload(); // Força o recarregamento dos dados do novo usuário
+
+        } catch (e) {
+            showAuthError("Login falhou. Verifique email e senha.");
+            console.error("Erro no login:", e);
+        }
+    }
+    // /* --- FIM MÓDULO: AUTENTICAÇÃO E PERFIL --- */
 
 
     // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO --- */
@@ -1272,6 +1316,44 @@
 
 
     // /* --- MÓDULO: INICIALIZAÇÃO E LISTENERS --- */
+    async function initializeApp(reauth = false){
+      try{
+        if (!firebaseApp || reauth) {
+          firebaseApp = firebase.initializeApp(firebaseConfig);
+          firebaseAuth = firebase.auth();
+          firebaseDb = firebase.firestore();
+        }
+
+        if (!reauth) {
+          try{
+            await firebaseDb.enablePersistence({ synchronizeTabs: true });
+          }catch(err){
+            console.warn('Persistência não habilitada:', err?.code||err);
+          }
+        }
+
+        await firebaseAuth.signInAnonymously();
+        userId = firebaseAuth.currentUser.uid;
+        
+        await loadProfileAndMetas();
+        
+        const dateSelector = document.getElementById('dateSelector');
+        dateSelector.value = todayDateString;
+        dateSelector.max = todayDateString; 
+        loadLogForDate(todayDateString); 
+
+        document.getElementById('loadingScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+      }catch(e){
+        const l=document.getElementById('loadingScreen');
+        l.innerHTML = `
+          <p class="text-red-600 font-semibold">Erro ao conectar com o servidor</p>
+          <p class="text-gray-600 mt-2">Verifique sua conexão e recarregue a página</p>
+          <button onclick="location.reload()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg">Tentar Novamente</button>
+        `;
+      }
+    }
+
     window.selectFood = selectFood;
     window.addWater = addWater; 
     window.addFoodToLog = addFoodToLog;
@@ -1297,6 +1379,17 @@
         const file=e.target.files[0];
         if(file){ profilePicBase64=await fileToBase64(file); document.getElementById('modalProfileImage').src=profilePicBase64; }
       });
+      
+      // NOVO: Listeners para o Modal de Autenticação
+      document.getElementById('accessButton').addEventListener('click', () => {
+          showModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
+      });
+      document.getElementById('closeAuthModal').addEventListener('click', () => {
+          hideModal(document.getElementById('authModal'), document.getElementById('authModalOverlay'));
+      });
+      document.getElementById('registerButton').addEventListener('click', handleRegistration);
+      document.getElementById('loginButton').addEventListener('click', handleLogin);
+      // FIM NOVO
 
       document.getElementById('calculateButton').addEventListener('click', saveMetas);
       document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
