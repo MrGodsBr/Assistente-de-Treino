@@ -12,8 +12,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
@@ -23,7 +21,6 @@
     .modal-transition { transition: opacity 0.3s, transform 0.3s; }
     .spinner { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    /* Estilos para a nova estrutura de lista */
     .meal-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; }
     .meal-section:first-child { border-top: none; padding-top: 0; }
   </style>
@@ -356,22 +353,20 @@
   <footer class="mt-8 text-sm text-gray-500">Desenvolvido por Thiago</footer>
 
   <script>
-    // /* --- 🔒 AÇÃO NECESSÁRIA: CONFIGURAÇÃO DO FIREBASE --- */
-    // Por favor, substitua os valores abaixo pelos do seu projeto
-    // e RESTRINJA sua chave de API no painel do Google Cloud/Firebase
-    // para o domínio do seu site.
+    // /* --- ✅ CONFIGURAÇÃO DO FIREBASE INSERIDA --- */
+    // Lembre-se de RESTRINGIR sua chave de API no painel do Google Cloud.
     const firebaseConfig = {
-      apiKey: "/* SEU_API_KEY_AQUI */",
-      authDomain: "/* SEU_AUTHDOMAIN_AQUI */",
-      projectId: "/* SEU_PROJECTID_AQUI */",
-      storageBucket: "/* SEU_STORAGEBUCKET_AQUI */",
-      messagingSenderId: "/* SEU_MESSAGINGSENDERID_AQUI */",
-      appId: "/* SEU_APPID_AQUI */",
-      measurementId: "/* SEU_MEASUREMENTID_AQUI */"
+      apiKey: "AIzaSyC9WSxM9GA64fq9lkLhsTyvMbD1AlO1MM4",
+      authDomain: "assistente-de-treino-668ce.firebaseapp.com",
+      projectId: "assistente-de-treino-668ce",
+      storageBucket: "assistente-de-treino-668ce.firebasestorage.app",
+      messagingSenderId: "878456748339",
+      appId: "1:878456748339:web:5b310b5e91a7b23d0ba646",
+      measurementId: "G-FCQ5CQT1WY"
     };
 
     // /* --- 🔒 AÇÃO NECESSÁRIA: REGRAS DO FIRESTORE --- */
-    // Vá para o seu console do Firebase -> Firestore Database -> Rules
+    // Vá para o seu console do Firebase -> Cloud Firestore -> Rules
     // E cole o seguinte para garantir que usuários só editem seus próprios dados:
     /*
     rules_version = '2';
@@ -384,31 +379,15 @@
       }
     }
     */
-    // /* --- 🔒 AÇÃO NECESSÁRIA: REGRAS DO STORAGE --- */
-    // Vá para o seu console do Firebase -> Storage -> Rules
-    // E cole o seguinte para garantir que usuários só salvem suas próprias fotos:
-    /*
-    rules_version = '2';
-    service firebase.storage {
-      match /b/{bucket}/o {
-        // Usuário só pode salvar fotos na sua própria pasta (profile_pics/{userId})
-        match /profile_pics/{userId} {
-          allow read: if true; // Permite que qualquer um leia (necessário para exibir a foto)
-          allow write: if request.auth.uid == userId && request.resource.size < 5 * 1024 * 1024; // Só o dono, max 5MB
-        }
-      }
-    }
-    */
 
+    let firebaseApp, firebaseAuth, firebaseDb, userId = null;
 
-    let firebaseApp, firebaseAuth, firebaseDb, firebaseStorage, userId = null;
-
-    // /* --- MÓDULO: ESTADO E VARIÁVEIS GLOBAIS --- */
+    // /* --- MÓDUlo: ESTADO E VARIÁVEIS GLOBAIS --- */
     let calorieGoal = 0;
     let waterGoal = 0; 
     let currentWeight = 0; 
     let targetWeight = 0; 
-    let initialWeight = 0; // NOVO: Para progresso de peso
+    let initialWeight = 0; // Para progresso de peso
     let selectedFoodKey = null;
     let dailyLog = {}; 
     let waterLog = 0; 
@@ -424,7 +403,7 @@
     let currentDateString = todayDateString; 
     
     let goalExceededNotified = false;
-    // let profilePicBase64 = null; // REMOVIDO: Usaremos o Firebase Storage
+    let profilePicBase64 = null; 
     let isEditingProfile = false;
     let currentGoalType = 'ganhar';
     let unsubscribeListener = null; 
@@ -582,8 +561,6 @@
     function getProfileDocRef() { return firebaseDb.collection('users').doc(userId).collection('data').doc('profile'); }
     function getMetasDocRef() { return firebaseDb.collection('users').doc(userId).collection('data').doc('metas'); }
     
-    // NOVO: Helper para Storage
-    function getProfilePicRef(uid) { return firebaseStorage.ref().child(`profile_pics/${uid}`); }
     // /* --- FIM MÓDULO: HELPERS FIREBASE --- */
 
 
@@ -599,12 +576,21 @@
     function showLoginError(message){ const el=document.getElementById('loginError'); el.textContent=message; showElement(el); }
     function clearLoginError(){ const el=document.getElementById('loginError'); el.textContent=''; hideElement(el); }
 
-    // Usado apenas para preview da imagem no modal de registro
     function fileToBase64(file){ return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=e=>reject(e); r.readAsDataURL(file); }); }
+    function saveProfilePicLocally(){ if(profilePicBase64){ localStorage.setItem(`profilePic_${userId}`, profilePicBase64); document.getElementById('profileImageDisplay').src=profilePicBase64; document.getElementById('regProfileImage').src=profilePicBase64; } }
+    function loadProfilePicLocally(){ 
+      const pic=localStorage.getItem(`profilePic_${userId}`); 
+      const placeholder = 'https://placehold.co/64x64/E0F2F1/065F46?text=FP';
+      if(pic){ 
+        profilePicBase64=pic; 
+        document.getElementById('profileImageDisplay').src=pic; 
+        document.getElementById('regProfileImage').src=pic; 
+      } else {
+        document.getElementById('profileImageDisplay').src=placeholder; 
+        document.getElementById('regProfileImage').src=placeholder;
+      }
+    }
     
-    // REMOVIDO: saveProfilePicLocally()
-    // REMOVIDO: loadProfilePicLocally()
-
     function togglePasswordVisibility(fieldId) {
         const input = document.getElementById(fieldId);
         const eye = document.getElementById(fieldId + '_eye');
@@ -641,15 +627,12 @@
             hideElement(regFields);
             hideElement(showLogin);
             saveButton.textContent = 'Salvar Alterações';
-            // Preenche dados para edição
             document.getElementById('regUserNameInput').value = document.getElementById('userNameDisplay').textContent;
-            document.getElementById('regPhoneInput').value = localStorage.getItem(`phone_${userId}`) || ''; // Telefone ainda pode ser local
-            // A foto é preenchida pelo loadProfileAndMetas
+            document.getElementById('regPhoneInput').value = localStorage.getItem(`phone_${userId}`) || '';
         } else {
             showElement(regFields);
             showElement(showLogin);
             saveButton.textContent = 'Criar Conta e Perfil';
-            // Limpa dados para novo registro
             document.getElementById('regUserNameInput').value = '';
             document.getElementById('regPhoneInput').value = '';
             document.getElementById('regEmailInput').value = '';
@@ -667,55 +650,25 @@
         showModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
     }
     
-    // NOVO: Helper para upload da foto
-    async function uploadProfilePic(uid, file) {
-        if (!file) return null;
-        
-        try {
-            const fileRef = getProfilePicRef(uid);
-            const task = await fileRef.put(file);
-            const downloadURL = await task.ref.getDownloadURL();
-            return downloadURL;
-        } catch (e) {
-            console.error("Erro no upload da foto:", e);
-            showRegError("Erro ao salvar sua foto. Tente novamente.");
-            return null;
-        }
-    }
-    
-    // CORREÇÃO: Função de Autenticação/Criação de Perfil (com Storage)
     async function handleFullRegistration() {
         clearRegError();
         const userName = document.getElementById('regUserNameInput').value.trim();
         const phone = document.getElementById('regPhoneInput').value.trim();
-        const file = document.getElementById('regProfilePicInput').files[0];
         
         if(!userName){ showRegError("Por favor, insira um nome de usuário."); return; }
 
         if (isEditingProfile) {
-            // Se estiver editando, apenas salva os dados de perfil
             try {
-                const profileData = { 
+                await getProfileDocRef().set({ 
                     userName, 
                     phone: phone || null, 
                     userId 
-                };
+                }, { merge: true });
                 
-                // Se uma *nova* foto foi selecionada, faz o upload
-                if (file) {
-                    const photoURL = await uploadProfilePic(userId, file);
-                    if (photoURL) profileData.photoURL = photoURL;
-                }
-
-                await getProfileDocRef().set(profileData, { merge: true });
+                saveProfilePicLocally();
                 
                 localStorage.setItem(`phone_${userId}`, phone || ''); 
                 document.getElementById('userNameDisplay').textContent = userName;
-                // Atualiza a imagem principal se ela foi alterada
-                if (profileData.photoURL) {
-                    document.getElementById('profileImageDisplay').src = profileData.photoURL;
-                }
-                
                 hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
             } catch (e) {
                 showRegError("Erro ao salvar perfil. Verifique as regras do Firebase.");
@@ -724,7 +677,6 @@
             return;
         }
 
-        // Se estiver registrando (Criação de Conta)
         const email = document.getElementById('regEmailInput').value;
         const password = document.getElementById('regPasswordInput').value;
         
@@ -734,29 +686,22 @@
         }
 
         try {
-            // 1. Cria a conta no Firebase
             const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
             const newUserId = userCredential.user.uid;
             
-            const profileData = {
+            await firebaseDb.collection('users').doc(newUserId).collection('data').doc('profile').set({
                 userName,
                 phone: phone || null,
                 userId: newUserId,
                 email: email
-            };
+            });
             
-            // 2. Faz upload da foto (se houver)
-            if (file) {
-                const photoURL = await uploadProfilePic(newUserId, file);
-                if (photoURL) profileData.photoURL = photoURL;
+            if (profilePicBase64) {
+                localStorage.setItem(`profilePic_${newUserId}`, profilePicBase64);
             }
-            
-            // 3. Salva os dados de perfil no Firestore
-            await firebaseDb.collection('users').doc(newUserId).collection('data').doc('profile').set(profileData);
             
             localStorage.setItem('hasEverLoggedIn', 'true'); 
             
-            // O onAuthStateChanged tratará o novo login
             alert("Conta e perfil criados com sucesso! Você será redirecionado.");
             hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
 
@@ -799,7 +744,6 @@
         location.reload(); 
     }
     
-    // CORREÇÃO: Função de carregamento do perfil/metas (com Storage)
     async function loadProfileAndMetas(){
       try{
         const pSnap = await getProfileDocRef().get();
@@ -814,10 +758,7 @@
           document.getElementById('userNameDisplay').textContent=d.userName||'Usuário';
           localStorage.setItem(`phone_${userId}`, d.phone || ''); 
           
-          // NOVO: Carrega foto do Storage URL ou usa placeholder
-          const photoURL = d.photoURL || 'https://placehold.co/64x64/E0F2F1/065F46?text=FP';
-          document.getElementById('profileImageDisplay').src = photoURL;
-          document.getElementById('regProfileImage').src = photoURL;
+          loadProfilePicLocally();
           
           const mSnap = await getMetasDocRef().get();
           if(mSnap.exists){
@@ -835,8 +776,6 @@
             currentGoalType = d.goalType||'ganhar';
             currentWeight = parseFloat(d.weight)||0; 
             targetWeight = parseFloat(d.targetWeight)||0; 
-            
-            // CORREÇÃO: Carrega o peso inicial. Se não existir, usa o peso atual como base.
             initialWeight = parseFloat(d.initialWeight) || currentWeight;
           }
           updateGoalDisplay();
@@ -856,9 +795,8 @@
     // /* --- FIM MÓDULO: AUTENTICAÇÃO E PERFIL --- */
 
 
-    // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO --- */
+    // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO (Correção Mantida) --- */
     
-    // CORREÇÃO: saveMetas agora salva 'initialWeight'
     async function saveMetas(){
       if (!userId) { showLoginModal(); return; } 
         
@@ -901,7 +839,6 @@
       const metasRef = getMetasDocRef();
       let existingInitialWeight = null;
       
-      // Tenta ler a meta anterior para preservar o 'initialWeight'
       try {
         const doc = await metasRef.get();
         if (doc.exists && doc.data().initialWeight) {
@@ -914,7 +851,6 @@
       currentGoalType=goalType;
       currentWeight = weight; 
       targetWeight = targetWeightValue;
-      // Salva o peso inicial (ou o peso atual se for a primeira vez)
       initialWeight = existingInitialWeight || weight; 
 
       try{
@@ -928,7 +864,7 @@
             goalType, 
             calorieGoal: finalCalorieGoal.toFixed(0),
             waterGoal: finalWaterGoal.toFixed(0),
-            initialWeight: initialWeight // Salva o peso inicial
+            initialWeight: initialWeight 
         };
       
         await metasRef.set(dataToSave);
@@ -936,7 +872,7 @@
         updateGoalDisplay();
         updateTotals(false);
         updateWaterTracker(true); 
-        updateWeightProgress(); // Agora esta função tem os dados corretos
+        updateWeightProgress(); 
         updateMealSuggestion();
       }catch(e){
         goalText.textContent="Erro ao salvar meta. Verifique sua conexão.";
@@ -965,7 +901,6 @@
       updateWeightProgress(); 
     }
     
-    // CORREÇÃO: Lógica de progresso de peso
     function updateWeightProgress() {
         const goalText = document.getElementById('weightGoalText');
         const progressEl = document.getElementById('weightProgress');
@@ -978,7 +913,6 @@
         
         showElement(progressSection); 
 
-        // Usa as variáveis globais carregadas do Firestore
         const current = currentWeight;
         const target = targetWeight;
         const initial = initialWeight; 
@@ -997,14 +931,12 @@
         
         if (totalChange > 0) {
             if (target < initial) { 
-                // Objetivo: Perder peso
-                progressMade = initial - current; // Quanto já perdeu
+                progressMade = initial - current; 
                 progress = (progressMade / totalChange) * 100;
                 progressEl.classList.remove('bg-green-500', 'bg-gray-400', 'bg-indigo-500');
                 progressEl.classList.add('bg-red-500'); 
             } else { 
-                // Objetivo: Ganhar peso
-                progressMade = current - initial; // Quanto já ganhou
+                progressMade = current - initial; 
                 progress = (progressMade / totalChange) * 100;
                 progressEl.classList.remove('bg-red-500', 'bg-gray-400', 'bg-indigo-500');
                 progressEl.classList.add('bg-green-500'); 
@@ -1028,7 +960,7 @@
     // /* --- FIM MÓDULO: LÓGICA DE METAS E CÁLCULO --- */
 
 
-    // /* --- MÓDULO: LÓGICA DE LOG DIÁRIO (MANTIDO) --- */
+    // /* --- MÓDULO: LÓGICA DE LOG DIÁRIO (Sem Alterações) --- */
     function loadLogForDate(dateString) {
         if (!userId) return; 
         
@@ -1041,7 +973,6 @@
         dailyLog = {}; 
         waterLog = 0; 
 
-        // Limpar a UI antes de carregar o novo log
         MEAL_KEYS.forEach(k => {
              const container = document.getElementById(`${k}_container`);
              if(container) container.innerHTML = '';
@@ -1427,7 +1358,6 @@
     
     function manageEmptyListText(){
         const empty = document.getElementById('emptyListText');
-        
         const hasFoodItems = Object.values(dailyLog).length > 0;
         
         if (hasFoodItems) {
@@ -1643,7 +1573,6 @@
             }
             
             document.getElementById('userNameDisplay').textContent = 'Visitante';
-            // CORREÇÃO: Define a foto placeholder no logout
             const placeholderImg = 'https://placehold.co/64x64/E0F2F1/065F46?text=FP';
             document.getElementById('profileImageDisplay').src = placeholderImg;
             document.getElementById('regProfileImage').src = placeholderImg; 
@@ -1664,7 +1593,6 @@
           firebaseApp = firebase.initializeApp(firebaseConfig);
           firebaseAuth = firebase.auth();
           firebaseDb = firebase.firestore();
-          firebaseStorage = firebase.storage(); // NOVO: Inicializa o Storage
         }
 
         try{
@@ -1687,7 +1615,6 @@
     document.addEventListener('DOMContentLoaded', ()=>{
       initializeApp();
       
-      // Listeners do App Principal
       document.getElementById('dateSelector').addEventListener('change', (e) => {
           loadLogForDate(e.target.value);
       });
@@ -1696,7 +1623,6 @@
       document.getElementById('calculateButton').addEventListener('click', saveMetas);
       document.getElementById('addFoodButton').addEventListener('click', addFoodToLog);
       
-      // Listeners Sem Condição
       document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
       document.getElementById('mealTimeSelect').addEventListener('change', updateMealSuggestion);
       document.getElementById('foodSearch').addEventListener('input', searchFood);
@@ -1711,15 +1637,13 @@
         }
       });
       
-      // Listeners do Novo Modal de Registro/Login
       document.getElementById('registerAndProfileButton').addEventListener('click', handleFullRegistration); 
       
-      // CORREÇÃO: Listener da foto apenas para preview
       document.getElementById('regProfilePicInput').addEventListener('change', async (e)=>{
         const file=e.target.files[0];
         if(file){ 
-            const previewSrc = await fileToBase64(file); 
-            document.getElementById('regProfileImage').src = previewSrc; 
+            profilePicBase64 = await fileToBase64(file); 
+            document.getElementById('regProfileImage').src = profilePicBase64; 
         }
       });
       
