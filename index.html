@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-T"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Fitness-Pro 2.0</title>
-  <meta name="theme-color" content="#16a34a">
-  <meta name="description" content="Fitness-Pro 2.0 - Assistente de nutrição e fitness">
+  <meta name="theme-color" content="#16a34a"/>
+  <meta name="description" content="Fitness-Pro 2.0 - Assistente de nutrição e fitness"/>
 
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -43,23 +43,23 @@
       <div class="flex flex-col items-center">
         <img id="regProfileImage" src="https://placehold.co/96x96/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-24 h-24 rounded-full object-cover shadow-lg mb-2 cursor-pointer" onclick="document.getElementById('regProfilePicInput').click()">
         <button type="button" onclick="document.getElementById('regProfilePicInput').click()" class="text-sm text-blue-600 hover:underline">Selecionar Foto</button>
-        <input type="file" id="regProfilePicInput" class="hidden" accept="image/*">
+        <input type="file" id="regProfilePicInput" class="hidden" accept="image/*"/>
       </div>
 
       <div>
         <label for="regUserNameInput" class="block text-sm font-medium text-gray-700">Nome de Usuário *</label>
-        <input type="text" id="regUserNameInput" placeholder="Seu nome" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+        <input type="text" id="regUserNameInput" placeholder="Seu nome" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
       </div>
       
       <div id="registrationFields">
           <div>
             <label for="regEmailInput" class="block text-sm font-medium text-gray-700">Email *</label>
-            <input type="email" id="regEmailInput" placeholder="seu.email@exemplo.com" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            <input type="email" id="regEmailInput" placeholder="seu.email@exemplo.com" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
           </div>
           <div>
             <label for="regPasswordInput" class="block text-sm font-medium text-gray-700">Senha * (Mín. 6 caracteres)</label>
             <div class="relative mt-1">
-              <input type="password" id="regPasswordInput" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+              <input type="password" id="regPasswordInput" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
               <button type="button" onclick="togglePasswordVisibility('regPasswordInput')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
                 <svg id="regPasswordInput_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065-7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
@@ -74,7 +74,7 @@
 
       <div>
         <label for="regPhoneInput" class="block text-sm font-medium text-gray-700">Telefone (opcional)</label>
-        <input type="tel" id="regPhoneInput" placeholder="(99) 99999-9999" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+        <input type="tel" id="regPhoneInput" placeholder="(99) 99999-9999" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
       </div>
 
       <button id="registerAndProfileButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
@@ -94,12 +94,12 @@
     <div class="space-y-4">
       <div>
         <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
-        <input type="email" id="loginEmail" placeholder="seu.email@exemplo.com" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+        <input type="email" id="loginEmail" placeholder="seu.email@exemplo.com" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
       </div>
       <div>
         <label for="loginPassword" class="block text-sm font-medium text-gray-700">Senha</label>
         <div class="relative mt-1">
-          <input type="password" id="loginPassword" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          <input type="password" id="loginPassword" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
           <button type="button" onclick="togglePasswordVisibility('loginPassword')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
             <svg id="loginPassword_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065-7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
@@ -150,7 +150,7 @@
     </header>
 
     <div id="userProfileDisplay" class="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-      <img id="profileImageDisplay" src="https://placehold.co/64x64/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-16 h-16 rounded-full object-cover shadow-md">
+      <img id="profileImageDisplay" src="https://placehold.co/64x64/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-16 h-16 rounded-full object-cover shadow-md"/>
       <div class="flex-grow">
         <span id="userNameDisplay" class="block text-xl font-semibold text-gray-800">Usuário</span>
         <button id="authControlButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors mt-1">
@@ -172,19 +172,19 @@
       <div id="profileForm" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div>
           <label for="weight" class="block text-sm font-medium text-gray-700">Peso Atual (kg)</label>
-          <input type="number" id="weight" placeholder="70" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="number" id="weight" placeholder="70" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
         <div>
           <label for="targetWeight" class="block text-sm font-medium text-gray-700">Meta Peso (kg)</label>
-          <input type="number" id="targetWeight" placeholder="75" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="number" id="targetWeight" placeholder="75" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
         <div>
           <label for="height" class="block text-sm font-medium text-gray-700">Altura (cm)</label>
-          <input type="number" id="height" placeholder="175" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="number" id="height" placeholder="175" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
         <div>
           <label for="age" class="block text-sm font-medium text-gray-700">Idade</label>
-          <input type="number" id="age" placeholder="25" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="number" id="age" placeholder="25" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
         <div class="col-span-2 sm:col-span-3">
           <label for="gender" class="block text-sm font-medium text-gray-700">Gênero</label>
@@ -228,7 +228,7 @@
             placeholder="Digite o nome do alimento..."
             class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             autocomplete="off"
-          >
+          />
           <div id="searchDropdown" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-b-lg shadow-lg max-h-56 overflow-y-auto"></div>
         </div>
 
@@ -251,7 +251,7 @@
             min="0"
             step="0.1"
             class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
+          />
         </div>
 
         <div id="mealSuggestion" class="text-sm text-gray-600 mt-1 sm:col-span-3 px-1"></div>
@@ -266,7 +266,7 @@
     </div>
     <div class="border-t border-gray-200 pt-4">
         <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2">Histórico:</label>
-        <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"/>
         <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
     </div>
     <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
@@ -282,7 +282,7 @@
                     step="50"
                     value="250"
                     class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+                />
             </div>
             <button id="addWaterButton" class="h-10 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
                 Adicionar
@@ -368,7 +368,7 @@
 
     let firebaseApp, firebaseAuth, firebaseDb, userId = null;
 
-    // /* --- MÓDULO: ESTADO E VARIÁVEIS GLOBAIS --- */
+    // /* --- MÓULO: ESTADO E VARIÁVEIS GLOBAIS --- */
     let calorieGoal = 0;
     let waterGoal = 0; 
     let currentWeight = 0; 
@@ -423,10 +423,10 @@
         jantar: "Refeição leve. Ex: Batata Doce, Frango, Brócolis.",
       }
     };
-    // /* --- FIM MÓDULO: ESTADO E VARIÁVEIS GLOBAIS --- */
+    // /* --- FIM MÓULO: ESTADO E VARIÁVEIS GLOBAIS --- */
 
 
-    // /* --- MÓDULO: BANCO DE DADOS DE ALIMENTOS (foodDatabase) --- */
+    // /* --- MÓULO: BANCO DE DADOS DE ALIMENTOS (foodDatabase) --- */
     const foodDatabase = {
       // --- FRUTAS (FRUITS) ---
       'banana': { name: 'Banana', protein: 1.1, carbs: 27, cals: 105, unit: 'unidade', visceralFat: false },
@@ -515,7 +515,7 @@
       'salmao_cru': { name: 'Salmão (cru)', protein: 20.4, carbs: 0, cals: 208, unit: '100g', visceralFat: false },
       'leite_aveia': { name: 'Bebida de Aveia', protein: 1.0, carbs: 10.3, cals: 54, unit: '100ml', visceralFat: false },
       'ovos_cozidos_claras': { name: 'Claras de Ovo (cozidas)', protein: 10.9, carbs: 0.7, cals: 52, unit: '100g', visceralFat: false },
-      'paorede': { name: 'Pão de Queijo', protein: 7, carbs: 25, cals: 150, unit: 'unidade média', visceralFat: true },
+      'pao_de_queijo': { name: 'Pão de Queijo', protein: 7, carbs: 25, cals: 150, unit: 'unidade média', visceralFat: true },
       
       // --- ITENS DE 'LIXO' / DOCES (JUNK / SWEETS) ---
       'batata_frita': { name: 'Batata Frita', protein: 3.4, carbs: 41, cals: 319, unit: '100g', visceralFat: true },
@@ -525,12 +525,12 @@
       'pizza_mussarela': { name: 'Pizza Mussarela', protein: 11, carbs: 33, cals: 271, unit: '100g (1 fatia)', visceralFat: true },
       'mel': { name: 'Mel', protein: 0.3, carbs: 82, cals: 304, unit: '100g', visceralFat: true },
       'pudim': { name: 'Pudim de Leite', protein: 5, carbs: 30, cals: 200, unit: '100g (fatia)', visceralFat: true },
-      'paçoca': { name: 'Paçoca (rolha)', protein: 5, carbs: 12, cals: 100, unit: 'unidade 20g', visceralFat: false },
+      'pacoca': { name: 'Paçoca (rolha)', protein: 5, carbs: 12, cals: 100, unit: 'unidade 20g', visceralFat: false },
     };
-    // /* --- FIM MÓDULO: BANCO DE DADOS DE ALIMENTOS (foodDatabase) --- */
+    // /* --- FIM MÓULO: BANCO DE DADOS DE ALIMENTOS (foodDatabase) --- */
 
 
-    // /* --- MÓDULO: HELPERS FIREBASE --- */
+    // /* --- MÓULO: HELPERS FIREBASE --- */
     function getDayRef(uid, date) {
       return firebaseDb.collection('users').doc(uid).collection('days').doc(date);
     }
@@ -540,10 +540,10 @@
 
     function getProfileDocRef() { return firebaseDb.collection('users').doc(userId).collection('data').doc('profile'); }
     function getMetasDocRef() { return firebaseDb.collection('users').doc(userId).collection('data').doc('metas'); }
-    // /* --- FIM MÓDULO: HELPERS FIREBASE --- */
+    // /* --- FIM MÓULO: HELPERS FIREBASE --- */
 
 
-    // /* --- MÓDULO: HELPERS DE UI (MODAL, ELEMENTOS, ETC) --- */
+    // /* --- MÓULO: HELPERS DE UI (MODAL, ELEMENTOS, ETC) --- */
     function showElement(el){ el.classList.remove('hidden'); }
     function hideElement(el){ el.classList.add('hidden'); }
     function showModal(modal, overlay){ showElement(overlay); showElement(modal); requestAnimationFrame(()=>{ modal.classList.remove('scale-90','opacity-0'); modal.classList.add('scale-100','opacity-100');}); }
@@ -577,10 +577,10 @@
             hideElement(eyeOpen);
         }
     }
-    // /* --- FIM MÓDULO: HELPERS DE UI (MODAL, ELEMENTOS, ETC) --- */
+    // /* --- FIM MÓULO: HELPERS DE UI (MODAL, ELEMENTOS, ETC) --- */
 
 
-    // /* --- MÓDULO: AUTENTICAÇÃO E PERFIL --- */
+    // /* --- MÓULO: AUTENTICAÇÃO E PERFIL --- */
     
     // Novo: Função para limpar e mostrar o modal de Registro Completo (Criação de Conta/Edição)
     function showRegistrationModal(isEdit = false) {
@@ -780,10 +780,10 @@
       }
     }
     
-    // /* --- FIM MÓDULO: AUTENTICAÇÃO E PERFIL --- */
+    // /* --- FIM MÓULO: AUTENTICAÇÃO E PERFIL --- */
 
 
-    // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO (MANTIDO) --- */
+    // /* --- MÓULO: LÓGICA DE METAS E CÁLCULO (MANTIDO) --- */
     async function saveMetas(){
       if (!userId) { showLoginModal(); return; } 
         
@@ -924,10 +924,10 @@
       const txt=mealSuggestions[goalType][mealTime];
       el.innerHTML=`💡 <span class="font-semibold">Sugestão p/ ${goalDisplayNames[goalType]}:</span> ${txt}`;
     }
-    // /* --- FIM MÓDULO: LÓGICA DE METAS E CÁLCULO --- */
+    // /* --- FIM MÓULO: LÓGICA DE METAS E CÁLCULO --- */
 
 
-    // /* --- MÓDULO: LÓGICA DE LOG DIÁRIO (MANTIDO) --- */
+    // /* --- MÓULO: LÓGICA DE LOG DIÁRIO (MANTIDO) --- */
     function loadLogForDate(dateString) {
         if (!userId) return; 
         
@@ -1423,10 +1423,10 @@
                 return acc;
             }, {});
     }
-    // /* --- FIM MÓDULO: LÓGICA DE LOG DIÁRIO (MANTIDO) --- */
+    // /* --- FIM MÓULO: LÓGICA DE LOG DIÁRIO (MANTIDO) --- */
 
 
-    // /* --- MÓDULO: COMPARTILHAMENTO (MANTIDO) --- */
+    // /* --- MÓULO: COMPARTILHAMENTO (MANTIDO) --- */
     function shareToWhatsApp(){
       if (currentDateString !== todayDateString) {
           alert("Apenas é possível compartilhar o resumo do dia atual. Selecione a data de hoje.");
@@ -1486,10 +1486,10 @@
       const url=`https://wa.me/?text=${encodeURIComponent(message)}`;
       window.open(url,'_blank');
     }
-    // /* --- FIM MÓDULO: COMPARTILHAMENTO (MANTIDO) --- */
+    // /* --- FIM MÓULO: COMPARTILHAMENTO (MANTIDO) --- */
 
 
-    // /* --- MÓDULO: INICIALIZAÇÃO E LISTENERS --- */
+    // /* --- MÓULO: INICIALIZAÇÃO E LISTENERS --- */
     
     let isAppInitialized = false;
 
@@ -1651,7 +1651,7 @@
       });
       
     });
-    // /* --- FIM MÓDULO: INICIALIZAÇÃO E LISTENERS --- */
+    // /* --- FIM MÓULO: INICIALIZAÇÃO E LISTENERS --- */
   </script>
 </body>
 </html>
