@@ -155,7 +155,25 @@
       </button>
     </div>
   </div>
-
+    
+  <div id="aiModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
+  <div id="aiModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-md p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-start mb-4 border-b pb-3">
+      <h3 class="text-2xl font-bold text-green-700">🧠 Análise de IA (Gemini)</h3>
+      <button onclick="hideAIModal()" class="text-gray-400 hover:text-gray-600">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+    
+    <div id="aiAnalysisContent" class="space-y-4 text-gray-700">
+        <p class="text-center font-medium">Analisando dados...</p>
+        <div class="spinner mx-auto h-8 w-8 border-t-2 border-b-2 border-green-600"></div>
+    </div>
+    
+    <button onclick="hideAIModal()" class="mt-6 w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors">
+      Fechar Análise
+    </button>
+  </div>
   <div id="mainApp" class="bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 hidden">
 
     <header class="flex justify-between items-center border-b pb-4">
@@ -345,9 +363,22 @@
       <p class="text-xs text-gray-500 mt-2">⚠️ indica alimentos que podem aumentar a gordura visceral.</p>
     </div>
     <div class="space-y-4">
-      <h2 class="text-xl font-semibold text-gray-800 text-center titulo-secao-caixa-alta">Resumo do Dia</h2> 
-      
-      <div id="weightProgressSection">
+        
+        <div class="relative flex justify-center items-center">
+            <h2 class="text-xl font-semibold text-gray-800 text-center titulo-secao-caixa-alta">Resumo do Dia</h2> 
+            
+            <button 
+                id="openAIModalButton" 
+                onclick="analyzeDailySummary()" 
+                class="absolute right-0 top-1/2 transform -translate-y-1/2 p-2 rounded-full text-green-600 hover:bg-gray-100 transition-colors"
+                title="Análise de IA"
+            >
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.002 2.002 2.003-2.002m-4.005 18l2.002-2.002 2.003 2.002m-13.003-9h16M3 12h4m5 0h16M3 17h4M6 12a6 6 0 1112 0 6 6 0 01-12 0z"/>
+                </svg>
+            </button>
+        </div>
+        <div id="weightProgressSection">
         <div class="flex justify-between items-center mb-1">
           <span class="text-base font-medium text-emerald-600">Meta de Peso</span> 
           <span id="weightGoalText" class="text-sm font-semibold text-emerald-600">0 kg / 0 kg</span> 
@@ -485,7 +516,6 @@
     
     // --- PROTEÍNAS (PROTEINS) ---
     'peito_frango': { name: 'Peito de Frango (grelhado)', protein: 31, carbs: 0, cals: 165, unit: '100g', visceralFat: false },
-    // NOVO ALIMENTO ADICIONADO
     'coxa_frango': { name: 'Coxa de Frango (cozida/sem pele)', protein: 25, carbs: 0, cals: 185, unit: '100g', visceralFat: false }, 
     'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, cals: 77, unit: 'unidade', visceralFat: false },
     'ovo_frito': { name: 'Ovo Frito (em óleo)', protein: 6.2, carbs: 0.6, cals: 95, unit: 'unidade', visceralFat: false },
@@ -629,6 +659,99 @@
       eye.style.display='block';
       eyeOpen.style.display='none';
     }
+  }
+  
+  // NOVAS FUNÇÕES PARA O MODAL DA IA
+  function showAIModal(){
+    const modal = document.getElementById('aiModal');
+    const overlay = document.getElementById('aiModalOverlay');
+    showModal(modal, overlay);
+  }
+  function hideAIModal(){
+    hideModal(document.getElementById('aiModal'), document.getElementById('aiModalOverlay'));
+  }
+  
+  // FUNÇÃO DE SIMULAÇÃO DA ANÁLISE (Aqui seria a chamada real à Gemini API)
+  function analyzeDailySummary() {
+    if (!userId) { 
+        showLoginModal();
+        return; 
+    }
+    
+    showAIModal(); // Abre o modal
+    const contentEl = document.getElementById('aiAnalysisContent');
+    
+    // 1. Mostrar estado de carregamento
+    contentEl.innerHTML = `
+        <p class="text-center font-medium text-gray-700">Aguarde, o Gemini está analisando seus dados...</p>
+        <div class="spinner mx-auto h-8 w-8 border-t-4 border-b-4 border-green-600"></div>
+    `;
+
+    // Dados de exemplo para análise
+    const totalCals = Object.values(dailyLog).filter(i => i.type === 'food').reduce((sum, i) => sum + i.cals, 0);
+    const totalProtein = Object.values(dailyLog).filter(i => i.type === 'food').reduce((sum, i) => sum + i.protein, 0);
+    const totalCarbs = Object.values(dailyLog).filter(i => i.type === 'food').reduce((sum, i) => sum + i.carbs, 0);
+    const waterConsumed = waterLog;
+    const goalType = currentGoalType;
+    const calsRemaining = calorieGoal - totalCals;
+    const waterRemaining = waterGoal - waterConsumed;
+    const unhealthyItems = Object.values(dailyLog).filter(i => i.type === 'food' && i.visceralFat).map(i => i.name).join(', ');
+    
+    // Simulação da Análise da IA
+    setTimeout(() => {
+        let analysisText = "";
+        
+        // Exemplo 1: Feedback Calórico e de Peso
+        if (goalType === 'perder') {
+            if (calsRemaining > 200) {
+                analysisText += `<h4 class="font-bold text-lg text-red-600">🛑 Calorias Baixas Demais.</h4>`;
+                analysisText += `<p>Você consumiu apenas ${totalCals.toFixed(0)} kcal. Para uma perda de peso saudável e sustentável, tente atingir pelo menos ${calsRemaining > 0 ? (calorieGoal - 200).toFixed(0) : calorieGoal} kcal. Isso garantirá energia e evitará o catabolismo.</p>`;
+            } else if (calsRemaining < -200) {
+                analysisText += `<h4 class="font-bold text-lg text-red-600">🚨 Meta Excedida!</h4>`;
+                analysisText += `<p>Sua meta foi excedida em ${(calsRemaining * -1).toFixed(0)} kcal. Foque em refeições com maior volume e baixa densidade calórica na próxima vez.</p>`;
+            } else {
+                 analysisText += `<h4 class="font-bold text-lg text-green-700">✅ Progresso Calórico Excelente!</h4>`;
+                 analysisText += `<p>Você está no caminho certo para a perda de peso. Restam ${calsRemaining.toFixed(0)} kcal. Continue focado(a)!</p>`;
+            }
+        } else if (goalType === 'ganhar') {
+             if (calsRemaining > 0) {
+                 analysisText += `<h4 class="font-bold text-lg text-yellow-600">⚠️ Déficit para Ganho de Massa.</h4>`;
+                 analysisText += `<p>Para ganhar massa, você precisa atingir sua meta calórica de ${calorieGoal} kcal. Você ainda precisa consumir mais ${calsRemaining.toFixed(0)} kcal. Considere um shake pós-jantar!</p>`;
+             } else {
+                 analysisText += `<h4 class="font-bold text-lg text-green-700">🚀 Bom Trabalho!</h4>`;
+                 analysisText += `<p>Meta calórica para ganho de massa atingida. Foco na recuperação!</p>`;
+             }
+        } else {
+             analysisText += `<h4 class="font-bold text-lg text-green-700">⚖️ Balanço Calórico.</h4>`;
+             analysisText += `<p>Atingir ${totalCals.toFixed(0)} kcal está adequado para a sua meta de Manutenção de Peso.</p>`;
+        }
+        
+        // Exemplo 2: Feedback Proteico
+        const proteinRatio = totalProtein / totalCals * 4;
+        if (proteinRatio < 0.25) { // Se menos de 25% das calorias vieram de proteínas
+            analysisText += `<hr class="my-4 border-gray-200">`;
+            analysisText += `<h4 class="font-bold text-lg text-orange-600">📉 Baixa Proteína!</h4>`;
+            analysisText += `<p>Sua ingestão de Proteínas (${totalProtein.toFixed(1)}g) está abaixo do ideal para o seu objetivo. Tente distribuir melhor fontes magras ao longo do dia.</p>`;
+        }
+        
+        // Exemplo 3: Qualidade da Dieta (Gordura Visceral)
+        if (unhealthyItems.length > 0) {
+            analysisText += `<hr class="my-4 border-gray-200">`;
+            analysisText += `<h4 class="font-bold text-lg text-red-600">⚠️ Alimentos de Risco (Gordura Visceral)</h4>`;
+            analysisText += `<p>Você registrou: ${unhealthyItems}. O consumo regular desses itens pode prejudicar a saúde metabólica e a gordura visceral. Tente substituí-los por alternativas integrais ou magras.</p>`;
+        }
+        
+        // Exemplo 4: Hidratação
+        if (waterRemaining > 500) {
+            analysisText += `<hr class="my-4 border-gray-200">`;
+            analysisText += `<h4 class="font-bold text-lg text-blue-600">💧 Hidratação Incompleta.</h4>`;
+            analysisText += `<p>Faltou consumir ${waterRemaining} ml para atingir a meta de ${waterGoal} ml. A hidratação é vital para a absorção de nutrientes e desempenho físico!</p>`;
+        }
+        
+        // Preenche o modal com a análise
+        contentEl.innerHTML = analysisText;
+
+    }, 2000); // Simula um atraso de 2 segundos para a resposta da API
   }
 
   // AUTENTICAÇÃO E PERFIL
