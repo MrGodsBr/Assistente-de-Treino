@@ -18,6 +18,9 @@
     :root {
         --cor-proteinas-base: #10B981; /* Ex: emerald-500 */
         --cor-proteinas-dark: #059669; /* Ex: emerald-600 */
+        /* Cores do ícone para simular o gradiente roxo/azul */
+        --ai-icon-color-start: #7f00ff; /* Roxo */
+        --ai-icon-color-end: #00bcd4; /* Azul Claro */
     }
 
     /* 1. CAIXA ALTA PARA OS TÍTULOS SOLICITADOS */
@@ -284,6 +287,7 @@
               </svg>
             </button>
           </div>
+          
           <div id="searchDropdown" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-b-lg shadow-lg max-h-56 overflow-y-auto"></div>
         </div>
 
@@ -370,12 +374,35 @@
             <button 
                 id="openAIModalButton" 
                 onclick="analyzeDailySummary()" 
-                class="absolute right-0 top-1/2 transform -translate-y-1/2 p-2 rounded-full text-green-600 hover:bg-gray-100 transition-colors"
+                class="absolute right-0 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors"
                 title="Análise de IA"
             >
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.002 2.002 2.003-2.002m-4.005 18l2.002-2.002 2.003 2.002m-13.003-9h16M3 12h4m5 0h16M3 17h4M6 12a6 6 0 1112 0 6 6 0 01-12 0z"/>
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="url(#ai-gradient)" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="ai-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:var(--ai-icon-color-start);stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:var(--ai-icon-color-end);stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="5" y="5" width="14" height="14" rx="3" stroke="white" stroke-width="1.5" fill="none"/>
+                    
+                    <path d="M15 8l1-2 1 2h-2z" fill="white"/>
+                    <path d="M15 15l1-2 1 2h-2z" fill="white"/>
+                    <circle cx="8" cy="8" r="1" fill="white"/>
+                    <circle cx="18" cy="18" r="1" fill="white"/>
+                    
+                    <rect x="0" y="0" width="24" height="24" rx="5" fill="url(#ai-gradient)" mask="url(#ai-mask)"/>
+                    
+                    <mask id="ai-mask">
+                        <rect x="0" y="0" width="24" height="24" fill="white" />
+                        <rect x="5" y="5" width="14" height="14" rx="3" fill="black"/>
+                    </mask>
+                    
+                    <path fill="white" d="M11.667 4L13.333 7.636L17 9.303L13.333 11.006L11.667 14.643L10 11.006L6.333 9.303L10 7.636L11.667 4Z"/>
                 </svg>
+
+
+                
             </button>
         </div>
         <div id="weightProgressSection">
@@ -671,14 +698,14 @@
     hideModal(document.getElementById('aiModal'), document.getElementById('aiModalOverlay'));
   }
   
-  // FUNÇÃO DE SIMULAÇÃO DA ANÁLISE (Aqui seria a chamada real à Gemini API)
+  // FUNÇÃO DE ANÁLISE DA IA MELHORADA
   function analyzeDailySummary() {
     if (!userId) { 
         showLoginModal();
         return; 
     }
     
-    showAIModal(); // Abre o modal
+    showAIModal(); 
     const contentEl = document.getElementById('aiAnalysisContent');
     
     // 1. Mostrar estado de carregamento
@@ -687,69 +714,103 @@
         <div class="spinner mx-auto h-8 w-8 border-t-4 border-b-4 border-green-600"></div>
     `;
 
-    // Dados de exemplo para análise
-    const totalCals = Object.values(dailyLog).filter(i => i.type === 'food').reduce((sum, i) => sum + i.cals, 0);
-    const totalProtein = Object.values(dailyLog).filter(i => i.type === 'food').reduce((sum, i) => sum + i.protein, 0);
-    const totalCarbs = Object.values(dailyLog).filter(i => i.type === 'food').reduce((sum, i) => sum + i.carbs, 0);
+    // 2. Coletar Dados para o Prompt
+    let totalCals = 0, totalProtein = 0, totalCarbs = 0;
+    const foodItems = Object.values(dailyLog).filter(i => i.type === 'food');
+    foodItems.forEach(i => { 
+        totalCals += i.cals; 
+        totalProtein += i.protein; 
+        totalCarbs += i.carbs; 
+    });
+    
     const waterConsumed = waterLog;
     const goalType = currentGoalType;
     const calsRemaining = calorieGoal - totalCals;
     const waterRemaining = waterGoal - waterConsumed;
-    const unhealthyItems = Object.values(dailyLog).filter(i => i.type === 'food' && i.visceralFat).map(i => i.name).join(', ');
+    const unhealthyItemsCount = foodItems.filter(i => i.visceralFat).length;
+    const mealsLogged = MEAL_KEYS.filter(meal => foodItems.some(item => item.meal === meal));
+    
+    const analysisData = {
+        totalCals: totalCals,
+        calorieGoal: calorieGoal,
+        totalProtein: totalProtein,
+        totalCarbs: totalCarbs,
+        waterConsumed: waterConsumed,
+        waterGoal: waterGoal,
+        goalType: goalType,
+        unhealthyItemsCount: unhealthyItemsCount,
+        mealsLogged: mealsLogged,
+    };
     
     // Simulação da Análise da IA
     setTimeout(() => {
-        let analysisText = "";
+        let analysisHTML = "";
         
-        // Exemplo 1: Feedback Calórico e de Peso
-        if (goalType === 'perder') {
-            if (calsRemaining > 200) {
-                analysisText += `<h4 class="font-bold text-lg text-red-600">🛑 Calorias Baixas Demais.</h4>`;
-                analysisText += `<p>Você consumiu apenas ${totalCals.toFixed(0)} kcal. Para uma perda de peso saudável e sustentável, tente atingir pelo menos ${calsRemaining > 0 ? (calorieGoal - 200).toFixed(0) : calorieGoal} kcal. Isso garantirá energia e evitará o catabolismo.</p>`;
-            } else if (calsRemaining < -200) {
-                analysisText += `<h4 class="font-bold text-lg text-red-600">🚨 Meta Excedida!</h4>`;
-                analysisText += `<p>Sua meta foi excedida em ${(calsRemaining * -1).toFixed(0)} kcal. Foque em refeições com maior volume e baixa densidade calórica na próxima vez.</p>`;
-            } else {
-                 analysisText += `<h4 class="font-bold text-lg text-green-700">✅ Progresso Calórico Excelente!</h4>`;
-                 analysisText += `<p>Você está no caminho certo para a perda de peso. Restam ${calsRemaining.toFixed(0)} kcal. Continue focado(a)!</p>`;
-            }
-        } else if (goalType === 'ganhar') {
-             if (calsRemaining > 0) {
-                 analysisText += `<h4 class="font-bold text-lg text-yellow-600">⚠️ Déficit para Ganho de Massa.</h4>`;
-                 analysisText += `<p>Para ganhar massa, você precisa atingir sua meta calórica de ${calorieGoal} kcal. Você ainda precisa consumir mais ${calsRemaining.toFixed(0)} kcal. Considere um shake pós-jantar!</p>`;
-             } else {
-                 analysisText += `<h4 class="font-bold text-lg text-green-700">🚀 Bom Trabalho!</h4>`;
-                 analysisText += `<p>Meta calórica para ganho de massa atingida. Foco na recuperação!</p>`;
-             }
+        // --- 1. Feedback Geral (Metas Batidas/Não Batidas) ---
+        analysisHTML += `<h4 class="font-bold text-xl text-gray-800 border-b pb-1 mb-2">⭐ Resumo do Desempenho</h4>`;
+        
+        let calsStatus, waterStatus, macroStatus;
+        
+        if (totalCals >= calorieGoal) {
+            calsStatus = `<p class="text-green-700 font-semibold">✅ Meta de Calorias: Atingida!</p>`;
         } else {
-             analysisText += `<h4 class="font-bold text-lg text-green-700">⚖️ Balanço Calórico.</h4>`;
-             analysisText += `<p>Atingir ${totalCals.toFixed(0)} kcal está adequado para a sua meta de Manutenção de Peso.</p>`;
+            calsStatus = `<p class="text-yellow-700 font-semibold">⚠️ Meta de Calorias: ${calsRemaining.toFixed(0)} kcal restantes.</p>`;
         }
         
-        // Exemplo 2: Feedback Proteico
-        const proteinRatio = totalProtein / totalCals * 4;
-        if (proteinRatio < 0.25) { // Se menos de 25% das calorias vieram de proteínas
-            analysisText += `<hr class="my-4 border-gray-200">`;
-            analysisText += `<h4 class="font-bold text-lg text-orange-600">📉 Baixa Proteína!</h4>`;
-            analysisText += `<p>Sua ingestão de Proteínas (${totalProtein.toFixed(1)}g) está abaixo do ideal para o seu objetivo. Tente distribuir melhor fontes magras ao longo do dia.</p>`;
+        if (waterConsumed >= waterGoal) {
+            waterStatus = `<p class="text-blue-700 font-semibold">💧 Meta de Água: Atingida!</p>`;
+        } else {
+            waterStatus = `<p class="text-orange-700 font-semibold">💧 Meta de Água: Faltam ${waterRemaining.toFixed(0)} ml.</p>`;
         }
         
-        // Exemplo 3: Qualidade da Dieta (Gordura Visceral)
-        if (unhealthyItems.length > 0) {
-            analysisText += `<hr class="my-4 border-gray-200">`;
-            analysisText += `<h4 class="font-bold text-lg text-red-600">⚠️ Alimentos de Risco (Gordura Visceral)</h4>`;
-            analysisText += `<p>Você registrou: ${unhealthyItems}. O consumo regular desses itens pode prejudicar a saúde metabólica e a gordura visceral. Tente substituí-los por alternativas integrais ou magras.</p>`;
+        // Simulação de Análise de Macros (Regra simples: Proteína deve ser > 30% das calorias para ganho/perda)
+        const proteinPct = totalProtein * 4 / totalCals;
+        if (totalCals > 0 && proteinPct >= 0.30) {
+             macroStatus = `<p class="text-green-700 font-semibold">💪 Proteína: Excelente (Bom suporte à massa muscular).</p>`;
+        } else if (totalCals > 0) {
+             macroStatus = `<p class="text-yellow-700 font-semibold">💪 Proteína: Moderada. Tente aumentar a ingestão de fontes magras.</p>`;
+        } else {
+             macroStatus = `<p class="text-gray-500 font-semibold">💪 Proteína: Dados insuficientes.</p>`;
         }
         
-        // Exemplo 4: Hidratação
-        if (waterRemaining > 500) {
-            analysisText += `<hr class="my-4 border-gray-200">`;
-            analysisText += `<h4 class="font-bold text-lg text-blue-600">💧 Hidratação Incompleta.</h4>`;
-            analysisText += `<p>Faltou consumir ${waterRemaining} ml para atingir a meta de ${waterGoal} ml. A hidratação é vital para a absorção de nutrientes e desempenho físico!</p>`;
+        analysisHTML += calsStatus + waterStatus + macroStatus;
+        
+        // --- 2. Análise da Qualidade dos Alimentos (Refeições do Dia) ---
+        analysisHTML += `<hr class="my-4 border-gray-200">`;
+        analysisHTML += `<h4 class="font-bold text-xl text-gray-800 border-b pb-1 mb-2">🍎 Qualidade da Dieta</h4>`;
+
+        if (unhealthyItemsCount > 0) {
+            analysisHTML += `<p class="text-red-600 font-semibold">🚨 Risco: ${unhealthyItemsCount} itens marcados com "⚠️" (Gordura Visceral).</p>`;
+            analysisHTML += `<p class="text-sm">O Gemini sugere cautela com itens de alta densidade calórica e baixo valor nutricional. **Próximo Passo:** Avalie a substituição desses alimentos por frutas, vegetais ou proteínas magras.</p>`;
+        } else if (foodItems.length > 3) {
+            analysisHTML += `<p class="text-green-700 font-semibold">🌟 Ótima Escolha!</p>`;
+            analysisHTML += `<p class="text-sm">Sua dieta hoje pareceu focada em alimentos de alta qualidade. Continue assim para melhorar a composição corporal!</p>`;
+        } else {
+             analysisHTML += `<p class="text-gray-500 text-sm">Não há dados suficientes para analisar a qualidade da dieta.</p>`;
         }
+        
+        // --- 3. Conselhos Finais baseados nas Refeições ---
+        analysisHTML += `<hr class="my-4 border-gray-200">`;
+        analysisHTML += `<h4 class="font-bold text-xl text-gray-800 border-b pb-1 mb-2">💡 Plano de Ação</h4>`;
+        
+        if (mealsLogged.length < 3 && foodItems.length > 0) {
+            analysisHTML += `<p class="text-yellow-600 font-medium">Melhore a Distribuição:</p>`;
+            analysisHTML += `<p class="text-sm">Você registrou apenas ${mealsLogged.length} refeições. Para otimizar a digestão e manter o metabolismo ativo, tente ter pelo menos 3 a 4 refeições bem distribuídas.</p>`;
+        } else if (calsRemaining > 500 && goalType === 'ganhar') {
+            analysisHTML += `<p class="text-yellow-600 font-medium">Estratégia para Bulking:</p>`;
+            analysisHTML += `<p class="text-sm">Para bater sua meta de Ganho de Massa, adicione lanches líquidos (shakes) entre as refeições para aumentar as calorias sem sentir muito peso no estômago.</p>`;
+        } else if (waterRemaining > 500) {
+            analysisHTML += `<p class="text-blue-600 font-medium">Foco na Hidratação:</p>`;
+            analysisHTML += `<p class="text-sm">Deixe uma garrafa de água à vista ou defina lembretes. Bater a meta de água é crucial para o sucesso da dieta.</p>`;
+        } else {
+            analysisHTML += `<p class="text-green-700 font-medium">Recomendação:</p>`;
+            analysisHTML += `<p class="text-sm">Mantenha a consistência! Seu plano para amanhã deve seguir a mesma estrutura de sucesso que você demonstrou hoje.</p>`;
+        }
+
+
         
         // Preenche o modal com a análise
-        contentEl.innerHTML = analysisText;
+        contentEl.innerHTML = analysisHTML;
 
     }, 2000); // Simula um atraso de 2 segundos para a resposta da API
   }
