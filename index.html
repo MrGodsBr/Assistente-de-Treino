@@ -354,12 +354,12 @@
 
   <script>
     // /* --- ✅ CONFIGURAÇÃO DO FIREBASE INSERIDA --- */
-    // Lembre-se de RESTRINGIR sua chave de API no painel do Google Cloud.
+    // A linha 'storageBucket' foi comentada para evitar erros no plano gratuito.
     const firebaseConfig = {
       apiKey: "AIzaSyC9WSxM9GA64fq9lkLhsTyvMbD1AlO1MM4",
       authDomain: "assistente-de-treino-668ce.firebaseapp.com",
       projectId: "assistente-de-treino-668ce",
-      storageBucket: "assistente-de-treino-668ce.firebasestorage.app",
+      // storageBucket: "assistente-de-treino-668ce.firebasestorage.app", // <-- CORRIGIDO
       messagingSenderId: "878456748339",
       appId: "1:878456748339:web:5b310b5e91a7b23d0ba646",
       measurementId: "G-FCQ5CQT1WY"
@@ -382,7 +382,7 @@
 
     let firebaseApp, firebaseAuth, firebaseDb, userId = null;
 
-    // /* --- MÓDUlo: ESTADO E VARIÁVEIS GLOBAIS --- */
+    // /* --- MÓDULO: ESTADO E VARIÁVEIS GLOBAIS --- */
     let calorieGoal = 0;
     let waterGoal = 0; 
     let currentWeight = 0; 
