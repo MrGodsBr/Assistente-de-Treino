@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fitness-Pro 2.0</title>
+  <title>FITNESS-PRO 2.0</title>
   <meta name="theme-color" content="#16a34a">
-  <meta name="description" content="Fitness-Pro 2.0 - Assistente de nutrição e fitness">
+  <meta name="description" content="FITNESS-PRO 2.0 - Assistente de nutrição e fitness">
 
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -25,10 +25,6 @@
     /* Estilos para a nova estrutura de lista */
     .meal-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; }
     .meal-section:first-child { border-top: none; padding-top: 0; }
-    /* ALTERAÇÃO SOLICITADA: Cor da barra de progresso de peso (Meta de Peso) */
-    #weightProgress {
-      background-color: #10B981; /* Cor verde (emerald-500) */
-    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-teal-50 min-h-screen flex flex-col items-center justify-start p-4 py-8">
@@ -144,7 +140,11 @@
   <div id="mainApp" class="bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 hidden">
 
     <header class="flex justify-between items-center border-b pb-4">
-      <h1 class="text-3xl font-bold text-green-600">Fitness-Pro 2.0</h1>
+      <h1 class="text-3xl font-bold">
+        <span class="text-green-600">FITNESS</span>
+        <span class="text-white">-</span>
+        <span class="text-blue-600">PRO 2.0</span>
+      </h1>
       <button id="shareAppButton" class="text-blue-600 p-2 rounded-full hover:bg-gray-100 transition-colors" title="Compartilhar o App">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
@@ -167,7 +167,7 @@
     <details id="goalsDetails" class="bg-gray-50 p-4 rounded-lg border border-gray-200">
       <summary class="text-xl font-semibold text-gray-700 cursor-pointer list-none">
         <div class="flex justify-between items-center text-green-600">
-          <span>MINHAS METAS</span>
+          <span>Minhas Metas</span>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
           </svg>
@@ -222,7 +222,7 @@
       <p id="goalText" class="text-center text-lg font-semibold text-green-700 mt-4 hidden"></p>
     </details>
     <div id="addFoodSection">
-      <h2 class="text-xl font-semibold text-gray-700 mb-3">ADICIONAR ALIMENTO</h2>
+      <h2 class="text-xl font-semibold text-gray-700 mb-3">Adicionar Alimento</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
         <div class="relative sm:col-span-3">
           <label for="foodSearch" class="block text-sm font-medium text-gray-700 mb-1">1. Pesquisar Alimento</label>
@@ -269,12 +269,12 @@
       </div>
     </div>
     <div class="border-t border-gray-200 pt-4">
-        <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2">HISTÓRICO:</label>
+        <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2">Histórico:</label>
         <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
         <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
     </div>
     <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
-        <h2 class="text-xl font-semibold text-blue-600 mb-3">💧 ADICIONAR HIDRATAÇÃO</h2>
+        <h2 class="text-xl font-semibold text-blue-600 mb-3">💧 Adicionar Hidratação</h2>
         <div class="flex items-end space-x-3 mb-4">
             <div class="flex-grow">
                 <label for="waterQuantityInput" class="block text-sm font-medium text-gray-700">Qtd. de Água (ml)</label>
@@ -295,13 +295,13 @@
     </div>
     <div class="border-b border-gray-200 py-4">
       <h3 class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
-        <span>REFEIÇÕES DO DIA:</span>
+        <span>Refeições do Dia:</span>
         <span id="goalTag" class="text-xs font-medium text-blue-700 bg-blue-100 py-0.5 px-2 rounded-full flex-shrink-0 hidden"></span>
       </h3>
       <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50 min-h-48">
         <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
         <div id="water_container" class="mb-2 meal-section"> 
-            <h4 class="font-semibold text-gray-700 mb-2 text-lg">💧 REGISTROS DE ÁGUA</h4>
+            <h4 class="font-semibold text-gray-700 mb-2 text-lg">💧 Registros de Água</h4>
             <div class="space-y-2" id="list-water"></div>
         </div>
         <div id="cafe_da_manha_container"></div>
@@ -312,15 +312,15 @@
       <p class="text-xs text-gray-500 mt-2">⚠️ indica alimentos que podem aumentar a gordura visceral.</p>
     </div>
     <div class="space-y-4">
-      <h2 class="text-xl font-semibold text-gray-800 text-center">RESUMO DO DIA</h2>
+      <h2 class="text-xl font-semibold text-gray-800 text-center">Resumo do Dia</h2>
       
       <div id="weightProgressSection">
         <div class="flex justify-between items-center mb-1">
-          <span class="text-base font-medium text-emerald-600">Meta de Peso</span>
-          <span id="weightGoalText" class="text-sm font-semibold text-emerald-600">0 kg / 0 kg</span>
+          <span class="text-base font-medium text-indigo-600">Meta de Peso</span>
+          <span id="weightGoalText" class="text-sm font-semibold text-indigo-600">0 kg / 0 kg</span>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-          <div id="weightProgress" class="bg-emerald-500 h-4 rounded-full" style="width: 0%"></div>
+          <div id="weightProgress" class="bg-indigo-500 h-4 rounded-full" style="width: 0%"></div>
         </div>
       </div>
       <div>
@@ -890,7 +890,7 @@
       if (target === initial) {
           progressEl.style.width = '0%';
           progressEl.classList.remove('bg-green-500', 'bg-red-500', 'bg-gray-400');
-          /* ALTERAÇÃO SOLICITADA: Cor de fundo removida do Tailwind para usar a do CSS/Inline */
+          progressEl.classList.add('bg-indigo-500');
           goalText.textContent = `${current.toFixed(1)} kg / ${target.toFixed(1)} kg`;
           return;
       }
@@ -902,10 +902,12 @@
           
           if (target < initial) { 
               progress = ((initial - current) / totalChange) * 100;
-              /* ALTERAÇÃO SOLICITADA: Classes removidas para o CSS customizado */
+              progressEl.classList.remove('bg-green-500', 'bg-gray-400');
+              progressEl.classList.add('bg-red-500'); 
           } else { 
               progress = ((current - initial) / totalChange) * 100;
-              /* ALTERAÇÃO SOLICITADA: Classes removidas para o CSS customizado */
+              progressEl.classList.remove('bg-red-500', 'bg-gray-400');
+              progressEl.classList.add('bg-green-500'); 
           }
       }
       
@@ -1412,7 +1414,7 @@
     const goalType=document.getElementById('goalType').value||'ganhar';
     const goalName=goalDisplayNames[goalType];
 
-    let msg = `🏋️ Fitness-Pro 2.0 - Resumo do Dia (${currentDateString})\n\n`; 
+    let msg = `🏋️ FITNESS-PRO 2.0 - Resumo do Dia (${currentDateString})\n\n`;
     msg += `👤 ${userName}\n`;
     msg += `🎯 Objetivo: ${goalName}\n`;
     msg += `📊 Meta Calorias: ${calorieGoal.toFixed(0)} kcal\n`;
@@ -1452,7 +1454,7 @@
   }
 
   function shareApp(){
-    const message=`🏋️ Fitness-Pro 2.0\n\nConheça o app que está me ajudando a alcançar meus objetivos! 💪\n\nAcesse: ${window.location.href}`;
+    const message=`🏋️ FITNESS-PRO 2.0\n\nConheça o app que está me ajudando a alcançar meus objetivos! 💪\n\nAcesse: ${window.location.href}`;
     const url=`https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url,'_blank');
   }
