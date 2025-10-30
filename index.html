@@ -245,13 +245,27 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
         <div class="relative sm:col-span-3">
           <label for="foodSearch" class="block text-sm font-medium text-gray-700 mb-1">1. Pesquisar Alimento</label>
-          <input
-            type="text"
-            id="foodSearch"
-            placeholder="Digite o nome do alimento..."
-            class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            autocomplete="off"
-          >
+          
+          <div class="relative">
+            <input
+              type="text"
+              id="foodSearch"
+              placeholder="Digite o nome do alimento..."
+              class="w-full p-3 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              autocomplete="off"
+            >
+            <button 
+              type="button" 
+              id="clearSearchButton"
+              onclick="clearFoodSearch()" 
+              class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+              title="Limpar Busca"
+            >
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
           <div id="searchDropdown" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-b-lg shadow-lg max-h-56 overflow-y-auto"></div>
         </div>
 
@@ -471,6 +485,8 @@
     
     // --- PROTEÍNAS (PROTEINS) ---
     'peito_frango': { name: 'Peito de Frango (grelhado)', protein: 31, carbs: 0, cals: 165, unit: '100g', visceralFat: false },
+    // NOVO ALIMENTO ADICIONADO
+    'coxa_frango': { name: 'Coxa de Frango (cozida/sem pele)', protein: 25, carbs: 0, cals: 185, unit: '100g', visceralFat: false }, 
     'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, cals: 77, unit: 'unidade', visceralFat: false },
     'ovo_frito': { name: 'Ovo Frito (em óleo)', protein: 6.2, carbs: 0.6, cals: 95, unit: 'unidade', visceralFat: false },
     'ovos_mexidos': { name: 'Ovos Mexidos (c/ manteiga)', protein: 6.5, carbs: 1.5, cals: 105, unit: 'unidade (1 ovo)', visceralFat: true },
@@ -1350,12 +1366,23 @@
       console.error("Erro ao adicionar alimento:", e);
     }
     
-
-    document.getElementById('foodSearch').value='';
+    // LIMPA A BUSCA APÓS ADICIONAR
+    clearFoodSearch();
+    //document.getElementById('foodSearch').value='';
     document.getElementById('foodQuantity').value='';
-    selectedFoodKey=null;
-    hideElement(document.getElementById('searchDropdown'));
+    //selectedFoodKey=null;
+    //hideElement(document.getElementById('searchDropdown'));
     addFoodButton.disabled = false;
+  }
+  
+  // NOVA FUNÇÃO PARA LIMPAR A BUSCA
+  function clearFoodSearch() {
+    document.getElementById('foodSearch').value = '';
+    document.getElementById('foodQuantity').value = '';
+    selectedFoodKey = null;
+    hideElement(document.getElementById('searchDropdown'));
+    document.getElementById('addFoodButton').disabled = false;
+    document.getElementById('foodSearch').focus();
   }
 
   async function removeFoodFromLog(itemId){
@@ -1419,6 +1446,7 @@
     selectedFoodKey=key;
     document.getElementById('foodSearch').value=foodDatabase[key].name;
     hideElement(document.getElementById('searchDropdown'));
+    document.getElementById('foodQuantity').focus();
   }
 
   function shareToWhatsApp(){
