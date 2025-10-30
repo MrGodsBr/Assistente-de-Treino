@@ -12,6 +12,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -62,7 +63,7 @@
               <input type="password" id="regPasswordInput" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
               <button type="button" onclick="togglePasswordVisibility('regPasswordInput')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
                 <svg id="regPasswordInput_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065-7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065 7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
                 </svg>
                 <svg id="regPasswordInput_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
@@ -102,7 +103,7 @@
           <input type="password" id="loginPassword" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
           <button type="button" onclick="togglePasswordVisibility('loginPassword')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
             <svg id="loginPassword_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065-7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065 7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
             </svg>
             <svg id="loginPassword_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
@@ -355,35 +356,75 @@
   <footer class="mt-8 text-sm text-gray-500">Desenvolvido por Thiago</footer>
 
   <script>
-    // Seus dados de configuração do Firebase
+    // /* --- 🔒 AÇÃO NECESSÁRIA: CONFIGURAÇÃO DO FIREBASE --- */
+    // Por favor, substitua os valores abaixo pelos do seu projeto
+    // e RESTRINJA sua chave de API no painel do Google Cloud/Firebase
+    // para o domínio do seu site.
     const firebaseConfig = {
-      apiKey: "AIzaSyC9WSxM9GA64fq9lkLhsTyvMbD1AlO1MM4",
-      authDomain: "assistente-de-treino-668ce.firebaseapp.com",
-      projectId: "assistente-de-treino-668ce",
-      storageBucket: "assistente-de-treino-668ce.firebasestorage.app",
-      messagingSenderId: "878456748339",
-      appId: "1:878456748339:web:5b310b5e91a7b23d0ba646",
-      measurementId: "G-FCQ5CQT1WY"
+      apiKey: "/* SEU_API_KEY_AQUI */",
+      authDomain: "/* SEU_AUTHDOMAIN_AQUI */",
+      projectId: "/* SEU_PROJECTID_AQUI */",
+      storageBucket: "/* SEU_STORAGEBUCKET_AQUI */",
+      messagingSenderId: "/* SEU_MESSAGINGSENDERID_AQUI */",
+      appId: "/* SEU_APPID_AQUI */",
+      measurementId: "/* SEU_MEASUREMENTID_AQUI */"
     };
 
-    let firebaseApp, firebaseAuth, firebaseDb, userId = null;
+    // /* --- 🔒 AÇÃO NECESSÁRIA: REGRAS DO FIRESTORE --- */
+    // Vá para o seu console do Firebase -> Firestore Database -> Rules
+    // E cole o seguinte para garantir que usuários só editem seus próprios dados:
+    /*
+    rules_version = '2';
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        // Usuário só pode ler/escrever seus próprios documentos
+        match /users/{userId}/{document=**} {
+          allow read, write: if request.auth.uid == userId;
+        }
+      }
+    }
+    */
+    // /* --- 🔒 AÇÃO NECESSÁRIA: REGRAS DO STORAGE --- */
+    // Vá para o seu console do Firebase -> Storage -> Rules
+    // E cole o seguinte para garantir que usuários só salvem suas próprias fotos:
+    /*
+    rules_version = '2';
+    service firebase.storage {
+      match /b/{bucket}/o {
+        // Usuário só pode salvar fotos na sua própria pasta (profile_pics/{userId})
+        match /profile_pics/{userId} {
+          allow read: if true; // Permite que qualquer um leia (necessário para exibir a foto)
+          allow write: if request.auth.uid == userId && request.resource.size < 5 * 1024 * 1024; // Só o dono, max 5MB
+        }
+      }
+    }
+    */
+
+
+    let firebaseApp, firebaseAuth, firebaseDb, firebaseStorage, userId = null;
 
     // /* --- MÓDULO: ESTADO E VARIÁVEIS GLOBAIS --- */
     let calorieGoal = 0;
     let waterGoal = 0; 
     let currentWeight = 0; 
     let targetWeight = 0; 
+    let initialWeight = 0; // NOVO: Para progresso de peso
     let selectedFoodKey = null;
     let dailyLog = {}; 
     let waterLog = 0; 
+    
+    // CORREÇÃO: Lógica de data segura contra fuso horário
     const TODAY = new Date(); 
     TODAY.setHours(0, 0, 0, 0); 
-    const todayDateString = TODAY.toISOString().split('T')[0]; 
+    const Y = TODAY.getFullYear();
+    const M = String(TODAY.getMonth() + 1).padStart(2, '0');
+    const D = String(TODAY.getDate()).padStart(2, '0');
+    const todayDateString = `${Y}-${M}-${D}`; 
     
     let currentDateString = todayDateString; 
     
     let goalExceededNotified = false;
-    let profilePicBase64 = null;
+    // let profilePicBase64 = null; // REMOVIDO: Usaremos o Firebase Storage
     let isEditingProfile = false;
     let currentGoalType = 'ganhar';
     let unsubscribeListener = null; 
@@ -540,6 +581,9 @@
 
     function getProfileDocRef() { return firebaseDb.collection('users').doc(userId).collection('data').doc('profile'); }
     function getMetasDocRef() { return firebaseDb.collection('users').doc(userId).collection('data').doc('metas'); }
+    
+    // NOVO: Helper para Storage
+    function getProfilePicRef(uid) { return firebaseStorage.ref().child(`profile_pics/${uid}`); }
     // /* --- FIM MÓDULO: HELPERS FIREBASE --- */
 
 
@@ -549,19 +593,18 @@
     function showModal(modal, overlay){ showElement(overlay); showElement(modal); requestAnimationFrame(()=>{ modal.classList.remove('scale-90','opacity-0'); modal.classList.add('scale-100','opacity-100');}); }
     function hideModal(modal, overlay){ modal.classList.remove('scale-100','opacity-100'); modal.classList.add('scale-90','opacity-0'); setTimeout(()=>{ hideElement(modal); hideElement(overlay); clearRegError(); }, 250); }
     
-    // Novo: Funções de erro específicas para o modal de Registro/Edição
     function showRegError(message){ const el=document.getElementById('regError'); el.textContent=message; showElement(el); }
     function clearRegError(){ const el=document.getElementById('regError'); el.textContent=''; hideElement(el); }
     
-    // Novo: Funções de erro específicas para o modal de Login
     function showLoginError(message){ const el=document.getElementById('loginError'); el.textContent=message; showElement(el); }
     function clearLoginError(){ const el=document.getElementById('loginError'); el.textContent=''; hideElement(el); }
 
+    // Usado apenas para preview da imagem no modal de registro
     function fileToBase64(file){ return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=e=>reject(e); r.readAsDataURL(file); }); }
-    function saveProfilePicLocally(){ if(profilePicBase64){ localStorage.setItem(`profilePic_${userId}`, profilePicBase64); document.getElementById('profileImageDisplay').src=profilePicBase64; document.getElementById('regProfileImage').src=profilePicBase64; } }
-    function loadProfilePicLocally(){ const pic=localStorage.getItem(`profilePic_${userId}`); if(pic){ profilePicBase64=pic; document.getElementById('profileImageDisplay').src=pic; document.getElementById('regProfileImage').src=pic; } }
     
-    // NOVO: Função para alternar a visibilidade da senha
+    // REMOVIDO: saveProfilePicLocally()
+    // REMOVIDO: loadProfilePicLocally()
+
     function togglePasswordVisibility(fieldId) {
         const input = document.getElementById(fieldId);
         const eye = document.getElementById(fieldId + '_eye');
@@ -582,7 +625,6 @@
 
     // /* --- MÓDULO: AUTENTICAÇÃO E PERFIL --- */
     
-    // Novo: Função para limpar e mostrar o modal de Registro Completo (Criação de Conta/Edição)
     function showRegistrationModal(isEdit = false) {
         isEditingProfile = isEdit;
         const modal = document.getElementById('fullRegistrationModal');
@@ -591,7 +633,6 @@
         clearRegError();
         document.getElementById('regModalTitle').textContent = isEdit ? 'Editar Perfil' : 'Crie sua Conta';
         
-        // Esconde campos de Email/Senha se for edição
         const regFields = document.getElementById('registrationFields');
         const saveButton = document.getElementById('registerAndProfileButton');
         const showLogin = document.getElementById('showLoginButton');
@@ -602,7 +643,8 @@
             saveButton.textContent = 'Salvar Alterações';
             // Preenche dados para edição
             document.getElementById('regUserNameInput').value = document.getElementById('userNameDisplay').textContent;
-            document.getElementById('regPhoneInput').value = localStorage.getItem(`phone_${userId}`) || '';
+            document.getElementById('regPhoneInput').value = localStorage.getItem(`phone_${userId}`) || ''; // Telefone ainda pode ser local
+            // A foto é preenchida pelo loadProfileAndMetas
         } else {
             showElement(regFields);
             showElement(showLogin);
@@ -612,12 +654,12 @@
             document.getElementById('regPhoneInput').value = '';
             document.getElementById('regEmailInput').value = '';
             document.getElementById('regPasswordInput').value = '';
+            document.getElementById('regProfileImage').src = 'https://placehold.co/96x96/E0F2F1/065F46?text=FP';
         }
         
         showModal(modal, overlay);
     }
     
-    // Novo: Função para limpar e mostrar o modal de Login Simples
     function showLoginModal() {
         clearLoginError();
         document.getElementById('loginEmail').value = '';
@@ -625,25 +667,55 @@
         showModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
     }
     
-    // NOVO: Função central de Autenticação/Criação de Perfil
+    // NOVO: Helper para upload da foto
+    async function uploadProfilePic(uid, file) {
+        if (!file) return null;
+        
+        try {
+            const fileRef = getProfilePicRef(uid);
+            const task = await fileRef.put(file);
+            const downloadURL = await task.ref.getDownloadURL();
+            return downloadURL;
+        } catch (e) {
+            console.error("Erro no upload da foto:", e);
+            showRegError("Erro ao salvar sua foto. Tente novamente.");
+            return null;
+        }
+    }
+    
+    // CORREÇÃO: Função de Autenticação/Criação de Perfil (com Storage)
     async function handleFullRegistration() {
         clearRegError();
         const userName = document.getElementById('regUserNameInput').value.trim();
         const phone = document.getElementById('regPhoneInput').value.trim();
+        const file = document.getElementById('regProfilePicInput').files[0];
         
         if(!userName){ showRegError("Por favor, insira um nome de usuário."); return; }
 
         if (isEditingProfile) {
             // Se estiver editando, apenas salva os dados de perfil
             try {
-                await getProfileDocRef().set({ 
+                const profileData = { 
                     userName, 
                     phone: phone || null, 
                     userId 
-                }, { merge: true });
-                saveProfilePicLocally();
-                localStorage.setItem(`phone_${userId}`, phone || ''); // Salva telefone localmente para edição
+                };
+                
+                // Se uma *nova* foto foi selecionada, faz o upload
+                if (file) {
+                    const photoURL = await uploadProfilePic(userId, file);
+                    if (photoURL) profileData.photoURL = photoURL;
+                }
+
+                await getProfileDocRef().set(profileData, { merge: true });
+                
+                localStorage.setItem(`phone_${userId}`, phone || ''); 
                 document.getElementById('userNameDisplay').textContent = userName;
+                // Atualiza a imagem principal se ela foi alterada
+                if (profileData.photoURL) {
+                    document.getElementById('profileImageDisplay').src = profileData.photoURL;
+                }
+                
                 hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
             } catch (e) {
                 showRegError("Erro ao salvar perfil. Verifique as regras do Firebase.");
@@ -666,23 +738,25 @@
             const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
             const newUserId = userCredential.user.uid;
             
-            // 2. Salva os dados de perfil no Firestore usando o novo UID
-            await firebaseDb.collection('users').doc(newUserId).collection('data').doc('profile').set({
+            const profileData = {
                 userName,
                 phone: phone || null,
                 userId: newUserId,
                 email: email
-            });
+            };
             
-            // 3. Salva a foto localmente e recarrega
-            if (profilePicBase64) {
-                localStorage.setItem(`profilePic_${newUserId}`, profilePicBase64);
+            // 2. Faz upload da foto (se houver)
+            if (file) {
+                const photoURL = await uploadProfilePic(newUserId, file);
+                if (photoURL) profileData.photoURL = photoURL;
             }
+            
+            // 3. Salva os dados de perfil no Firestore
+            await firebaseDb.collection('users').doc(newUserId).collection('data').doc('profile').set(profileData);
             
             localStorage.setItem('hasEverLoggedIn', 'true'); 
             
             // O onAuthStateChanged tratará o novo login
-            // Alert opcional, mas útil para feedback.
             alert("Conta e perfil criados com sucesso! Você será redirecionado.");
             hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
 
@@ -700,7 +774,6 @@
         }
     }
     
-    // NOVO: Função de Login Simples
     async function handleLogin() {
         clearLoginError();
         const email = document.getElementById('loginEmail').value;
@@ -714,40 +787,37 @@
         try {
             await firebaseAuth.signInWithEmailAndPassword(email, password);
             localStorage.setItem('hasEverLoggedIn', 'true'); 
-            
-            // O onAuthStateChanged tratará a mudança de estado
             hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
-            
         } catch (e) {
             showLoginError("Login falhou. Verifique email e senha.");
             console.error("Erro no login:", e);
         }
     }
     
-    // NOVO: Função de Logout
     async function handleLogout() {
         await firebaseAuth.signOut();
         location.reload(); 
     }
     
-    // CORREÇÃO: Função de carregamento do perfil/metas
-    // Retorna true se tudo estiver ok, false se for novo usuário (precisa cadastrar) ou falha.
+    // CORREÇÃO: Função de carregamento do perfil/metas (com Storage)
     async function loadProfileAndMetas(){
       try{
         const pSnap = await getProfileDocRef().get();
         
-        // 1. SE O USUÁRIO ESTÁ LOGADO MAS NÃO TEM PERFIL (Novo Cadastro)
         if(!pSnap.exists && userId){
             showRegistrationModal(false); 
-            return false; // Perfil não completo
+            return false;
         }
         
-        // 2. SE O PERFIL EXISTE: Carrega os dados
         if(pSnap.exists){
           const d=pSnap.data();
           document.getElementById('userNameDisplay').textContent=d.userName||'Usuário';
           localStorage.setItem(`phone_${userId}`, d.phone || ''); 
-          loadProfilePicLocally();
+          
+          // NOVO: Carrega foto do Storage URL ou usa placeholder
+          const photoURL = d.photoURL || 'https://placehold.co/64x64/E0F2F1/065F46?text=FP';
+          document.getElementById('profileImageDisplay').src = photoURL;
+          document.getElementById('regProfileImage').src = photoURL;
           
           const mSnap = await getMetasDocRef().get();
           if(mSnap.exists){
@@ -759,22 +829,25 @@
             document.getElementById('gender').value=d.gender||'male';
             document.getElementById('activity').value=d.activity||'1.55';
             document.getElementById('goalType').value=d.goalType||'ganhar';
+            
             calorieGoal = parseFloat(d.calorieGoal)||0;
             waterGoal = parseFloat(d.waterGoal)||0; 
             currentGoalType = d.goalType||'ganhar';
             currentWeight = parseFloat(d.weight)||0; 
             targetWeight = parseFloat(d.targetWeight)||0; 
+            
+            // CORREÇÃO: Carrega o peso inicial. Se não existir, usa o peso atual como base.
+            initialWeight = parseFloat(d.initialWeight) || currentWeight;
           }
           updateGoalDisplay();
           updateMealSuggestion();
           return true; // Sucesso
         }
         
-        return false; // Não deveria ser atingido se o userId for nulo, mas é um fallback.
+        return false; 
 
       }catch(e){
         console.error("Erro ao carregar perfil/metas:", e); 
-        // Em caso de erro de conexão ou leitura (com userId), força o modal para que o usuário tente novamente.
         if(userId) showRegistrationModal(false);
         return false;
       }
@@ -783,7 +856,9 @@
     // /* --- FIM MÓDULO: AUTENTICAÇÃO E PERFIL --- */
 
 
-    // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO (MANTIDO) --- */
+    // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO --- */
+    
+    // CORREÇÃO: saveMetas agora salva 'initialWeight'
     async function saveMetas(){
       if (!userId) { showLoginModal(); return; } 
         
@@ -811,7 +886,6 @@
         return;
       }
 
-
       let bmr = (10*weight)+(6.25*height)-(5*age)+(gender==='male'?5:-161);
       const tdee = bmr*activity;
       let finalCalorieGoal = goalType==='perder'? tdee-400 : goalType==='manter'? tdee : tdee+400;
@@ -823,23 +897,46 @@
           mlPerKg = 25;
       }
       const finalWaterGoal = Math.round(weight * mlPerKg);
+      
+      const metasRef = getMetasDocRef();
+      let existingInitialWeight = null;
+      
+      // Tenta ler a meta anterior para preservar o 'initialWeight'
+      try {
+        const doc = await metasRef.get();
+        if (doc.exists && doc.data().initialWeight) {
+          existingInitialWeight = doc.data().initialWeight;
+        }
+      } catch (e) { console.warn("Não foi possível ler meta anterior", e); }
 
       calorieGoal=finalCalorieGoal;
       waterGoal=finalWaterGoal;
       currentGoalType=goalType;
       currentWeight = weight; 
-      targetWeight = targetWeightValue; 
+      targetWeight = targetWeightValue;
+      // Salva o peso inicial (ou o peso atual se for a primeira vez)
+      initialWeight = existingInitialWeight || weight; 
 
       try{
-        await getMetasDocRef().set({ 
-            weight, targetWeight: targetWeightValue, height, age, gender, activity, goalType, 
+        const dataToSave = { 
+            weight, 
+            targetWeight: targetWeightValue, 
+            height, 
+            age, 
+            gender, 
+            activity, 
+            goalType, 
             calorieGoal: finalCalorieGoal.toFixed(0),
-            waterGoal: finalWaterGoal.toFixed(0) 
-        });
+            waterGoal: finalWaterGoal.toFixed(0),
+            initialWeight: initialWeight // Salva o peso inicial
+        };
+      
+        await metasRef.set(dataToSave);
+        
         updateGoalDisplay();
         updateTotals(false);
         updateWaterTracker(true); 
-        updateWeightProgress(); 
+        updateWeightProgress(); // Agora esta função tem os dados corretos
         updateMealSuggestion();
       }catch(e){
         goalText.textContent="Erro ao salvar meta. Verifique sua conexão.";
@@ -868,23 +965,23 @@
       updateWeightProgress(); 
     }
     
+    // CORREÇÃO: Lógica de progresso de peso
     function updateWeightProgress() {
         const goalText = document.getElementById('weightGoalText');
         const progressEl = document.getElementById('weightProgress');
         const progressSection = document.getElementById('weightProgressSection');
 
-        if (currentWeight === 0 || targetWeight === 0 || currentGoalType === 'manter') {
+        if (currentWeight === 0 || targetWeight === 0 || currentGoalType === 'manter' || initialWeight === 0) {
             hideElement(progressSection);
             return;
         }
         
         showElement(progressSection); 
 
-        const startWeight = parseFloat(document.getElementById('weight').value) || 0; 
+        // Usa as variáveis globais carregadas do Firestore
         const current = currentWeight;
         const target = targetWeight;
-
-        const initial = startWeight > 0 ? startWeight : current;
+        const initial = initialWeight; 
 
         if (target === initial) {
             progressEl.style.width = '0%';
@@ -896,16 +993,20 @@
 
         let progress = 0;
         let totalChange = Math.abs(target - initial);
+        let progressMade = 0;
         
         if (totalChange > 0) {
-            
             if (target < initial) { 
-                progress = ((initial - current) / totalChange) * 100;
-                progressEl.classList.remove('bg-green-500', 'bg-gray-400');
+                // Objetivo: Perder peso
+                progressMade = initial - current; // Quanto já perdeu
+                progress = (progressMade / totalChange) * 100;
+                progressEl.classList.remove('bg-green-500', 'bg-gray-400', 'bg-indigo-500');
                 progressEl.classList.add('bg-red-500'); 
             } else { 
-                progress = ((current - initial) / totalChange) * 100;
-                progressEl.classList.remove('bg-red-500', 'bg-gray-400');
+                // Objetivo: Ganhar peso
+                progressMade = current - initial; // Quanto já ganhou
+                progress = (progressMade / totalChange) * 100;
+                progressEl.classList.remove('bg-red-500', 'bg-gray-400', 'bg-indigo-500');
                 progressEl.classList.add('bg-green-500'); 
             }
         }
@@ -1268,13 +1369,11 @@
             listContainer = document.getElementById(`list-${item.meal}`);
         }
         
-        // Remove o elemento existente antes de adicionar o novo/modificado
         if (existingElement) {
             existingElement.remove();
         }
 
         if (listContainer) {
-            // Insere de forma ordenada, baseado na lista de IDs em dailyLog
             const itemIds = Object.keys(dailyLog).filter(id => {
                 const logItem = dailyLog[id];
                 return logItem.type === item.type && 
@@ -1302,7 +1401,6 @@
                 listContainer.appendChild(newItemElement);
             }
             
-            // Garante que o container de refeição tem a classe de section se for comida
             if (item.type !== 'water') {
                 const mealSection = listContainer.closest('.meal-section');
                 if (mealSection && !mealSection.id.startsWith('section-')) {
@@ -1319,7 +1417,6 @@
             element.remove();
 
             if (listContainer) {
-                // Se a lista estiver vazia (e não for a lista de água), remove a seção inteira da refeição
                 if (listContainer.children.length === 0 && listContainer.id !== 'list-water') {
                     const mealSection = listContainer.closest('.meal-section');
                     if (mealSection) mealSection.remove();
@@ -1476,7 +1573,6 @@
         msg += `\n`;
       }
 
-
       const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;
       window.open(url,'_blank');
     }
@@ -1493,24 +1589,19 @@
     
     let isAppInitialized = false;
 
-    // CORREÇÃO: Listener para o estado de autenticação do Firebase
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             userId = user.uid;
             
-            // Tenta carregar o perfil e metas. Se for um novo usuário, showRegistrationModal será chamado.
             const profileLoaded = await loadProfileAndMetas();
             
-            // 1. Se o perfil não foi carregado (porque não existe), o app principal fica escondido
             if (!profileLoaded) {
                 document.getElementById('loadingScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.add('hidden');
                 return; 
             }
             
-            // 2. Se o perfil foi carregado (sucesso)
             if (!isAppInitialized) {
-                // Inicializa o log do dia de hoje
                 const dateSelector = document.getElementById('dateSelector');
                 dateSelector.value = todayDateString;
                 dateSelector.max = todayDateString; 
@@ -1519,17 +1610,14 @@
                 document.getElementById('mainApp').classList.remove('hidden');
                 isAppInitialized = true;
             } else {
-                 // Esconde modais se o login foi concluído e o perfil existe.
                  hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
                  hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
             }
             
-            // Atualiza botões de perfil para Logout/Editar
             document.getElementById('authControlButton').textContent = 'Fazer Logout';
             document.getElementById('authControlButton').onclick = handleLogout;
             document.getElementById('editProfileButton').onclick = () => showRegistrationModal(true); 
             
-            // Reabilita as áreas principais
             document.getElementById('goalsDetails').classList.remove('opacity-50');
             document.getElementById('addFoodSection').classList.remove('opacity-50');
             document.getElementById('hydrationTracker').classList.remove('opacity-50');
@@ -1541,13 +1629,11 @@
             document.getElementById('mainApp').classList.remove('hidden');
             isAppInitialized = true; 
 
-            // Se o usuário fez logout, mata o listener de logs
             if (unsubscribeListener) {
                 unsubscribeListener(); 
                 unsubscribeListener = null;
             }
             
-            // Usuários sem login serão direcionados para o modal de registro/login
             const hasEverLoggedIn = localStorage.getItem('hasEverLoggedIn');
 
             if (hasEverLoggedIn === 'true') {
@@ -1556,14 +1642,16 @@
                  showRegistrationModal(false); 
             }
             
-            // Atualiza botões de perfil para Login/Registro
             document.getElementById('userNameDisplay').textContent = 'Visitante';
-            document.getElementById('profileImageDisplay').src = 'https://placehold.co/64x64/E0F2F1/065F46?text=FP';
+            // CORREÇÃO: Define a foto placeholder no logout
+            const placeholderImg = 'https://placehold.co/64x64/E0F2F1/065F46?text=FP';
+            document.getElementById('profileImageDisplay').src = placeholderImg;
+            document.getElementById('regProfileImage').src = placeholderImg; 
+            
             document.getElementById('authControlButton').textContent = 'Fazer Login / Criar Conta';
             document.getElementById('authControlButton').onclick = showLoginModal;
             document.getElementById('editProfileButton').onclick = showLoginModal;
 
-            // Desabilita funcionalidades de log/metas
             document.getElementById('goalsDetails').classList.add('opacity-50');
             document.getElementById('addFoodSection').classList.add('opacity-50');
             document.getElementById('hydrationTracker').classList.add('opacity-50');
@@ -1576,18 +1664,16 @@
           firebaseApp = firebase.initializeApp(firebaseConfig);
           firebaseAuth = firebase.auth();
           firebaseDb = firebase.firestore();
+          firebaseStorage = firebase.storage(); // NOVO: Inicializa o Storage
         }
 
         try{
-            // Tenta habilitar a persistência
             await firebaseDb.enablePersistence({ synchronizeTabs: true });
         }catch(err){
-            // Se a persistência falhar (ex: navegador privado), apenas alerta e segue.
             console.warn('Persistência não habilitada:', err?.code||err);
         }
         
       }catch(e){
-        // Exibe erro fatal de conexão no loading screen
         const l=document.getElementById('loadingScreen');
         l.innerHTML = `
           <p class="text-red-600 font-semibold">Erro ao conectar com o servidor</p>
@@ -1628,22 +1714,23 @@
       // Listeners do Novo Modal de Registro/Login
       document.getElementById('registerAndProfileButton').addEventListener('click', handleFullRegistration); 
       
+      // CORREÇÃO: Listener da foto apenas para preview
       document.getElementById('regProfilePicInput').addEventListener('change', async (e)=>{
         const file=e.target.files[0];
-        if(file){ profilePicBase64=await fileToBase64(file); document.getElementById('regProfileImage').src=profilePicBase64; }
+        if(file){ 
+            const previewSrc = await fileToBase64(file); 
+            document.getElementById('regProfileImage').src = previewSrc; 
+        }
       });
       
-      // Botão 'Já tenho conta. Fazer Login'
       document.getElementById('showLoginButton').addEventListener('click', (e) => {
           e.preventDefault();
           hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
           showLoginModal();
       });
 
-      // Botão 'Entrar'
       document.getElementById('loginSubmitButton').addEventListener('click', handleLogin); 
       
-      // Botão 'Não tenho conta. Criar Perfil'
       document.getElementById('showRegistrationButton').addEventListener('click', (e) => {
           e.preventDefault();
           hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
