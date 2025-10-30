@@ -22,13 +22,9 @@
     .modal-transition { transition: opacity 0.3s, transform 0.3s; }
     .spinner { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    /* Estilos para a nova estrutura de lista */
     .meal-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; }
     .meal-section:first-child { border-top: none; padding-top: 0; }
-    
-    /* CORREÇÃO: Adiciona a regra para a seta girar */
-    details[open] summary svg {
-      transform: rotate(180deg);
-    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-teal-50 min-h-screen flex flex-col items-center justify-start p-4 py-8">
@@ -66,7 +62,7 @@
               <input type="password" id="regPasswordInput" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
               <button type="button" onclick="togglePasswordVisibility('regPasswordInput')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
                 <svg id="regPasswordInput_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065 7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065-7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
                 </svg>
                 <svg id="regPasswordInput_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
@@ -81,10 +77,10 @@
         <input type="tel" id="regPhoneInput" placeholder="(99) 99999-9999" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
       </div>
 
-      <button id="registerAndProfileButton" type="button" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
+      <button id="registerAndProfileButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
         Criar Conta e Perfil
       </button>
-      <button id="showLoginButton" type="button" class="w-full text-sm text-gray-600 font-medium py-2 mt-4 hover:text-gray-900">
+      <button id="showLoginButton" class="w-full text-sm text-gray-600 font-medium py-2 mt-4 hover:text-gray-900">
         Já tenho conta. Fazer Login
       </button>
     </div>
@@ -106,7 +102,7 @@
           <input type="password" id="loginPassword" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
           <button type="button" onclick="togglePasswordVisibility('loginPassword')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
             <svg id="loginPassword_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065 7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275-4.307 5.065-7.25 9.543-7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
             </svg>
             <svg id="loginPassword_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
@@ -114,10 +110,10 @@
           </button>
         </div>
       </div>
-      <button id="loginSubmitButton" type="button" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
+      <button id="loginSubmitButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
         Entrar
       </button>
-      <button id="showRegistrationButton" type="button" class="w-full text-sm text-gray-600 font-medium py-2 mt-4 hover:text-gray-900">
+      <button id="showRegistrationButton" class="w-full text-sm text-gray-600 font-medium py-2 mt-4 hover:text-gray-900">
         Não tenho conta. Criar Perfil
       </button>
     </div>
@@ -135,7 +131,7 @@
       <h3 class="text-2xl font-bold text-gray-800 mt-4">Meta Atingida!</h3>
       <p class="text-base text-gray-600 mt-2">Você ultrapassou sua meta de calorias do dia.</p>
       <p id="modalGoalText" class="text-sm text-gray-500 mt-1"></p>
-      <button id="closeWarningModalButton" type="button" class="mt-6 w-full bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
+      <button id="closeWarningModalButton" class="mt-6 w-full bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
         Entendi
       </button>
     </div>
@@ -145,7 +141,7 @@
 
     <header class="flex justify-between items-center border-b pb-4">
       <h1 class="text-3xl font-bold text-green-600">Fitness-Pro 2.0</h1>
-      <button id="shareAppButton" type="button" class="text-blue-600 p-2 rounded-full hover:bg-gray-100 transition-colors" title="Compartilhar o App">
+      <button id="shareAppButton" class="text-blue-600 p-2 rounded-full hover:bg-gray-100 transition-colors" title="Compartilhar o App">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.42" y1="6.51" x2="8.59" y2="10.49"></line>
@@ -157,11 +153,11 @@
       <img id="profileImageDisplay" src="https://placehold.co/64x64/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-16 h-16 rounded-full object-cover shadow-md">
       <div class="flex-grow">
         <span id="userNameDisplay" class="block text-xl font-semibold text-gray-800">Usuário</span>
-        <button id="authControlButton" type="button" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors mt-1">
+        <button id="authControlButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors mt-1">
           Fazer Login / Criar Conta
         </button>
       </div>
-      <button id="editProfileButton" type="button" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">Editar</button>
+      <button id="editProfileButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">Editar</button>
     </div>
     
     <details id="goalsDetails" class="bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -176,15 +172,15 @@
       <div id="profileForm" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div>
           <label for="weight" class="block text-sm font-medium text-gray-700">Peso Atual (kg)</label>
-          <input type="number" id="weight" inputmode="decimal" placeholder="70" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="number" id="weight" placeholder="70" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <div>
           <label for="targetWeight" class="block text-sm font-medium text-gray-700">Meta Peso (kg)</label>
-          <input type="number" id="targetWeight" inputmode="decimal" placeholder="75" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="number" id="targetWeight" placeholder="75" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <div>
           <label for="height" class="block text-sm font-medium text-gray-700">Altura (cm)</label>
-          <input type="number" id="height" inputmode="decimal" placeholder="175" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="number" id="height" placeholder="175" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <div>
           <label for="age" class="block text-sm font-medium text-gray-700">Idade</label>
@@ -215,7 +211,7 @@
             <option value="perder">Perder Peso (Cutting)</option>
           </select>
         </div>
-        <button id="calculateButton" type="button" class="col-span-2 sm:col-span-3 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+        <button id="calculateButton" class="col-span-2 sm:col-span-3 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
           Calcular e Salvar Meta
         </button>
       </div>
@@ -251,7 +247,6 @@
           <input
             type="number"
             id="foodQuantity"
-            inputmode="decimal"
             placeholder="Qtd."
             min="0"
             step="0.1"
@@ -261,10 +256,10 @@
 
         <div id="mealSuggestion" class="text-sm text-gray-600 mt-1 sm:col-span-3 px-1"></div>
 
-        <button id="addFoodButton" type="button" class="sm:col-span-3 w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-3">
+        <button id="addFoodButton" class="sm:col-span-3 w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-3">
           Adicionar Alimento
         </button>
-        <button id="shareButton" type="button" class="sm:col-span-3 w-full bg-cyan-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors mt-3">
+        <button id="shareButton" class="sm:col-span-3 w-full bg-cyan-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors mt-3">
           Compartilhar Resumo no WhatsApp
         </button>
       </div>
@@ -282,7 +277,6 @@
                 <input
                     type="number"
                     id="waterQuantityInput"
-                    inputmode="decimal"
                     placeholder="250"
                     min="50"
                     step="50"
@@ -290,7 +284,7 @@
                     class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
             </div>
-            <button id="addWaterButton" type="button" class="h-10 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+            <button id="addWaterButton" class="h-10 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
                 Adicionar
             </button>
         </div>
@@ -361,32 +355,16 @@
   <footer class="mt-8 text-sm text-gray-500">Desenvolvido por Thiago</footer>
 
   <script>
-    // /* --- ✅ CONFIGURAÇÃO DO FIREBASE INSERIDA --- */
-    // A linha 'storageBucket' foi comentada para evitar erros no plano gratuito.
+    // Seus dados de configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyC9WSxM9GA64fq9lkLhsTyvMbD1AlO1MM4",
       authDomain: "assistente-de-treino-668ce.firebaseapp.com",
       projectId: "assistente-de-treino-668ce",
-      // storageBucket: "assistente-de-treino-668ce.firebasestorage.app", // <-- CORRIGIDO
+      storageBucket: "assistente-de-treino-668ce.firebasestorage.app",
       messagingSenderId: "878456748339",
       appId: "1:878456748339:web:5b310b5e91a7b23d0ba646",
       measurementId: "G-FCQ5CQT1WY"
     };
-
-    // /* --- 🔒 AÇÃO NECESSÁRIA: REGRAS DO FIRESTORE --- */
-    // Vá para o seu console do Firebase -> Cloud Firestore -> Rules
-    // E cole o seguinte para garantir que usuários só editem seus próprios dados:
-    /*
-    rules_version = '2';
-    service cloud.firestore {
-      match /databases/{database}/documents {
-        // Usuário só pode ler/escrever seus próprios documentos
-        match /users/{userId}/{document=**} {
-          allow read, write: if request.auth.uid == userId;
-        }
-      }
-    }
-    */
 
     let firebaseApp, firebaseAuth, firebaseDb, userId = null;
 
@@ -395,23 +373,17 @@
     let waterGoal = 0; 
     let currentWeight = 0; 
     let targetWeight = 0; 
-    let initialWeight = 0; // Para progresso de peso
     let selectedFoodKey = null;
     let dailyLog = {}; 
     let waterLog = 0; 
-    
-    // CORREÇÃO: Lógica de data segura contra fuso horário
     const TODAY = new Date(); 
     TODAY.setHours(0, 0, 0, 0); 
-    const Y = TODAY.getFullYear();
-    const M = String(TODAY.getMonth() + 1).padStart(2, '0');
-    const D = String(TODAY.getDate()).padStart(2, '0');
-    const todayDateString = `${Y}-${M}-${D}`; 
+    const todayDateString = TODAY.toISOString().split('T')[0]; 
     
     let currentDateString = todayDateString; 
     
     let goalExceededNotified = false;
-    let profilePicBase64 = null; 
+    let profilePicBase64 = null;
     let isEditingProfile = false;
     let currentGoalType = 'ganhar';
     let unsubscribeListener = null; 
@@ -568,7 +540,6 @@
 
     function getProfileDocRef() { return firebaseDb.collection('users').doc(userId).collection('data').doc('profile'); }
     function getMetasDocRef() { return firebaseDb.collection('users').doc(userId).collection('data').doc('metas'); }
-    
     // /* --- FIM MÓDULO: HELPERS FIREBASE --- */
 
 
@@ -578,27 +549,19 @@
     function showModal(modal, overlay){ showElement(overlay); showElement(modal); requestAnimationFrame(()=>{ modal.classList.remove('scale-90','opacity-0'); modal.classList.add('scale-100','opacity-100');}); }
     function hideModal(modal, overlay){ modal.classList.remove('scale-100','opacity-100'); modal.classList.add('scale-90','opacity-0'); setTimeout(()=>{ hideElement(modal); hideElement(overlay); clearRegError(); }, 250); }
     
+    // Novo: Funções de erro específicas para o modal de Registro/Edição
     function showRegError(message){ const el=document.getElementById('regError'); el.textContent=message; showElement(el); }
     function clearRegError(){ const el=document.getElementById('regError'); el.textContent=''; hideElement(el); }
     
+    // Novo: Funções de erro específicas para o modal de Login
     function showLoginError(message){ const el=document.getElementById('loginError'); el.textContent=message; showElement(el); }
     function clearLoginError(){ const el=document.getElementById('loginError'); el.textContent=''; hideElement(el); }
 
     function fileToBase64(file){ return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=e=>reject(e); r.readAsDataURL(file); }); }
     function saveProfilePicLocally(){ if(profilePicBase64){ localStorage.setItem(`profilePic_${userId}`, profilePicBase64); document.getElementById('profileImageDisplay').src=profilePicBase64; document.getElementById('regProfileImage').src=profilePicBase64; } }
-    function loadProfilePicLocally(){ 
-      const pic=localStorage.getItem(`profilePic_${userId}`); 
-      const placeholder = 'https://placehold.co/64x64/E0F2F1/065F46?text=FP';
-      if(pic){ 
-        profilePicBase64=pic; 
-        document.getElementById('profileImageDisplay').src=pic; 
-        document.getElementById('regProfileImage').src=pic; 
-      } else {
-        document.getElementById('profileImageDisplay').src=placeholder; 
-        document.getElementById('regProfileImage').src=placeholder;
-      }
-    }
+    function loadProfilePicLocally(){ const pic=localStorage.getItem(`profilePic_${userId}`); if(pic){ profilePicBase64=pic; document.getElementById('profileImageDisplay').src=pic; document.getElementById('regProfileImage').src=pic; } }
     
+    // NOVO: Função para alternar a visibilidade da senha
     function togglePasswordVisibility(fieldId) {
         const input = document.getElementById(fieldId);
         const eye = document.getElementById(fieldId + '_eye');
@@ -619,6 +582,7 @@
 
     // /* --- MÓDULO: AUTENTICAÇÃO E PERFIL --- */
     
+    // Novo: Função para limpar e mostrar o modal de Registro Completo (Criação de Conta/Edição)
     function showRegistrationModal(isEdit = false) {
         isEditingProfile = isEdit;
         const modal = document.getElementById('fullRegistrationModal');
@@ -627,6 +591,7 @@
         clearRegError();
         document.getElementById('regModalTitle').textContent = isEdit ? 'Editar Perfil' : 'Crie sua Conta';
         
+        // Esconde campos de Email/Senha se for edição
         const regFields = document.getElementById('registrationFields');
         const saveButton = document.getElementById('registerAndProfileButton');
         const showLogin = document.getElementById('showLoginButton');
@@ -635,22 +600,24 @@
             hideElement(regFields);
             hideElement(showLogin);
             saveButton.textContent = 'Salvar Alterações';
+            // Preenche dados para edição
             document.getElementById('regUserNameInput').value = document.getElementById('userNameDisplay').textContent;
             document.getElementById('regPhoneInput').value = localStorage.getItem(`phone_${userId}`) || '';
         } else {
             showElement(regFields);
             showElement(showLogin);
             saveButton.textContent = 'Criar Conta e Perfil';
+            // Limpa dados para novo registro
             document.getElementById('regUserNameInput').value = '';
             document.getElementById('regPhoneInput').value = '';
             document.getElementById('regEmailInput').value = '';
             document.getElementById('regPasswordInput').value = '';
-            document.getElementById('regProfileImage').src = 'https://placehold.co/96x96/E0F2F1/065F46?text=FP';
         }
         
         showModal(modal, overlay);
     }
     
+    // Novo: Função para limpar e mostrar o modal de Login Simples
     function showLoginModal() {
         clearLoginError();
         document.getElementById('loginEmail').value = '';
@@ -658,6 +625,7 @@
         showModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
     }
     
+    // NOVO: Função central de Autenticação/Criação de Perfil
     async function handleFullRegistration() {
         clearRegError();
         const userName = document.getElementById('regUserNameInput').value.trim();
@@ -666,16 +634,15 @@
         if(!userName){ showRegError("Por favor, insira um nome de usuário."); return; }
 
         if (isEditingProfile) {
+            // Se estiver editando, apenas salva os dados de perfil
             try {
                 await getProfileDocRef().set({ 
                     userName, 
                     phone: phone || null, 
                     userId 
                 }, { merge: true });
-                
                 saveProfilePicLocally();
-                
-                localStorage.setItem(`phone_${userId}`, phone || ''); 
+                localStorage.setItem(`phone_${userId}`, phone || ''); // Salva telefone localmente para edição
                 document.getElementById('userNameDisplay').textContent = userName;
                 hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
             } catch (e) {
@@ -685,6 +652,7 @@
             return;
         }
 
+        // Se estiver registrando (Criação de Conta)
         const email = document.getElementById('regEmailInput').value;
         const password = document.getElementById('regPasswordInput').value;
         
@@ -694,9 +662,11 @@
         }
 
         try {
+            // 1. Cria a conta no Firebase
             const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
             const newUserId = userCredential.user.uid;
             
+            // 2. Salva os dados de perfil no Firestore usando o novo UID
             await firebaseDb.collection('users').doc(newUserId).collection('data').doc('profile').set({
                 userName,
                 phone: phone || null,
@@ -704,12 +674,15 @@
                 email: email
             });
             
+            // 3. Salva a foto localmente e recarrega
             if (profilePicBase64) {
                 localStorage.setItem(`profilePic_${newUserId}`, profilePicBase64);
             }
             
             localStorage.setItem('hasEverLoggedIn', 'true'); 
             
+            // O onAuthStateChanged tratará o novo login
+            // Alert opcional, mas útil para feedback.
             alert("Conta e perfil criados com sucesso! Você será redirecionado.");
             hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
 
@@ -727,6 +700,7 @@
         }
     }
     
+    // NOVO: Função de Login Simples
     async function handleLogin() {
         clearLoginError();
         const email = document.getElementById('loginEmail').value;
@@ -740,32 +714,39 @@
         try {
             await firebaseAuth.signInWithEmailAndPassword(email, password);
             localStorage.setItem('hasEverLoggedIn', 'true'); 
+            
+            // O onAuthStateChanged tratará a mudança de estado
             hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
+            
         } catch (e) {
             showLoginError("Login falhou. Verifique email e senha.");
             console.error("Erro no login:", e);
         }
     }
     
+    // NOVO: Função de Logout
     async function handleLogout() {
         await firebaseAuth.signOut();
         location.reload(); 
     }
     
+    // CORREÇÃO: Função de carregamento do perfil/metas
+    // Retorna true se tudo estiver ok, false se for novo usuário (precisa cadastrar) ou falha.
     async function loadProfileAndMetas(){
       try{
         const pSnap = await getProfileDocRef().get();
         
+        // 1. SE O USUÁRIO ESTÁ LOGADO MAS NÃO TEM PERFIL (Novo Cadastro)
         if(!pSnap.exists && userId){
             showRegistrationModal(false); 
-            return false;
+            return false; // Perfil não completo
         }
         
+        // 2. SE O PERFIL EXISTE: Carrega os dados
         if(pSnap.exists){
           const d=pSnap.data();
           document.getElementById('userNameDisplay').textContent=d.userName||'Usuário';
           localStorage.setItem(`phone_${userId}`, d.phone || ''); 
-          
           loadProfilePicLocally();
           
           const mSnap = await getMetasDocRef().get();
@@ -778,23 +759,22 @@
             document.getElementById('gender').value=d.gender||'male';
             document.getElementById('activity').value=d.activity||'1.55';
             document.getElementById('goalType').value=d.goalType||'ganhar';
-            
             calorieGoal = parseFloat(d.calorieGoal)||0;
             waterGoal = parseFloat(d.waterGoal)||0; 
             currentGoalType = d.goalType||'ganhar';
             currentWeight = parseFloat(d.weight)||0; 
             targetWeight = parseFloat(d.targetWeight)||0; 
-            initialWeight = parseFloat(d.initialWeight) || currentWeight;
           }
           updateGoalDisplay();
           updateMealSuggestion();
           return true; // Sucesso
         }
         
-        return false; 
+        return false; // Não deveria ser atingido se o userId for nulo, mas é um fallback.
 
       }catch(e){
         console.error("Erro ao carregar perfil/metas:", e); 
+        // Em caso de erro de conexão ou leitura (com userId), força o modal para que o usuário tente novamente.
         if(userId) showRegistrationModal(false);
         return false;
       }
@@ -803,8 +783,7 @@
     // /* --- FIM MÓDULO: AUTENTICAÇÃO E PERFIL --- */
 
 
-    // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO (Correção Mantida) --- */
-    
+    // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO (MANTIDO) --- */
     async function saveMetas(){
       if (!userId) { showLoginModal(); return; } 
         
@@ -832,6 +811,7 @@
         return;
       }
 
+
       let bmr = (10*weight)+(6.25*height)-(5*age)+(gender==='male'?5:-161);
       const tdee = bmr*activity;
       let finalCalorieGoal = goalType==='perder'? tdee-400 : goalType==='manter'? tdee : tdee+400;
@@ -843,40 +823,19 @@
           mlPerKg = 25;
       }
       const finalWaterGoal = Math.round(weight * mlPerKg);
-      
-      const metasRef = getMetasDocRef();
-      let existingInitialWeight = null;
-      
-      try {
-        const doc = await metasRef.get();
-        if (doc.exists && doc.data().initialWeight) {
-          existingInitialWeight = doc.data().initialWeight;
-        }
-      } catch (e) { console.warn("Não foi possível ler meta anterior", e); }
 
       calorieGoal=finalCalorieGoal;
       waterGoal=finalWaterGoal;
       currentGoalType=goalType;
       currentWeight = weight; 
-      targetWeight = targetWeightValue;
-      initialWeight = existingInitialWeight || weight; 
+      targetWeight = targetWeightValue; 
 
       try{
-        const dataToSave = { 
-            weight, 
-            targetWeight: targetWeightValue, 
-            height, 
-            age, 
-            gender, 
-            activity, 
-            goalType, 
+        await getMetasDocRef().set({ 
+            weight, targetWeight: targetWeightValue, height, age, gender, activity, goalType, 
             calorieGoal: finalCalorieGoal.toFixed(0),
-            waterGoal: finalWaterGoal.toFixed(0),
-            initialWeight: initialWeight 
-        };
-      
-        await metasRef.set(dataToSave);
-        
+            waterGoal: finalWaterGoal.toFixed(0) 
+        });
         updateGoalDisplay();
         updateTotals(false);
         updateWaterTracker(true); 
@@ -914,16 +873,18 @@
         const progressEl = document.getElementById('weightProgress');
         const progressSection = document.getElementById('weightProgressSection');
 
-        if (currentWeight === 0 || targetWeight === 0 || currentGoalType === 'manter' || initialWeight === 0) {
+        if (currentWeight === 0 || targetWeight === 0 || currentGoalType === 'manter') {
             hideElement(progressSection);
             return;
         }
         
         showElement(progressSection); 
 
+        const startWeight = parseFloat(document.getElementById('weight').value) || 0; 
         const current = currentWeight;
         const target = targetWeight;
-        const initial = initialWeight; 
+
+        const initial = startWeight > 0 ? startWeight : current;
 
         if (target === initial) {
             progressEl.style.width = '0%';
@@ -935,18 +896,16 @@
 
         let progress = 0;
         let totalChange = Math.abs(target - initial);
-        let progressMade = 0;
         
         if (totalChange > 0) {
+            
             if (target < initial) { 
-                progressMade = initial - current; 
-                progress = (progressMade / totalChange) * 100;
-                progressEl.classList.remove('bg-green-500', 'bg-gray-400', 'bg-indigo-500');
+                progress = ((initial - current) / totalChange) * 100;
+                progressEl.classList.remove('bg-green-500', 'bg-gray-400');
                 progressEl.classList.add('bg-red-500'); 
             } else { 
-                progressMade = current - initial; 
-                progress = (progressMade / totalChange) * 100;
-                progressEl.classList.remove('bg-red-500', 'bg-gray-400', 'bg-indigo-500');
+                progress = ((current - initial) / totalChange) * 100;
+                progressEl.classList.remove('bg-red-500', 'bg-gray-400');
                 progressEl.classList.add('bg-green-500'); 
             }
         }
@@ -968,7 +927,7 @@
     // /* --- FIM MÓDULO: LÓGICA DE METAS E CÁLCULO --- */
 
 
-    // /* --- MÓDULO: LÓGICA DE LOG DIÁRIO (Sem Alterações) --- */
+    // /* --- MÓDULO: LÓGICA DE LOG DIÁRIO (MANTIDO) --- */
     function loadLogForDate(dateString) {
         if (!userId) return; 
         
@@ -981,6 +940,7 @@
         dailyLog = {}; 
         waterLog = 0; 
 
+        // Limpar a UI antes de carregar o novo log
         MEAL_KEYS.forEach(k => {
              const container = document.getElementById(`${k}_container`);
              if(container) container.innerHTML = '';
@@ -1229,7 +1189,7 @@
         
         const isToday = currentDateString === todayDateString;
         const deleteButtonHtml = isToday ? `
-            <button type="button" onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
+            <button onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
@@ -1257,7 +1217,7 @@
       
       const isToday = currentDateString === todayDateString;
       const deleteButtonHtml = isToday ? `
-        <button type="button" onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
+        <button onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
           <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
@@ -1308,11 +1268,13 @@
             listContainer = document.getElementById(`list-${item.meal}`);
         }
         
+        // Remove o elemento existente antes de adicionar o novo/modificado
         if (existingElement) {
             existingElement.remove();
         }
 
         if (listContainer) {
+            // Insere de forma ordenada, baseado na lista de IDs em dailyLog
             const itemIds = Object.keys(dailyLog).filter(id => {
                 const logItem = dailyLog[id];
                 return logItem.type === item.type && 
@@ -1340,6 +1302,7 @@
                 listContainer.appendChild(newItemElement);
             }
             
+            // Garante que o container de refeição tem a classe de section se for comida
             if (item.type !== 'water') {
                 const mealSection = listContainer.closest('.meal-section');
                 if (mealSection && !mealSection.id.startsWith('section-')) {
@@ -1356,6 +1319,7 @@
             element.remove();
 
             if (listContainer) {
+                // Se a lista estiver vazia (e não for a lista de água), remove a seção inteira da refeição
                 if (listContainer.children.length === 0 && listContainer.id !== 'list-water') {
                     const mealSection = listContainer.closest('.meal-section');
                     if (mealSection) mealSection.remove();
@@ -1366,6 +1330,7 @@
     
     function manageEmptyListText(){
         const empty = document.getElementById('emptyListText');
+        
         const hasFoodItems = Object.values(dailyLog).length > 0;
         
         if (hasFoodItems) {
@@ -1511,6 +1476,7 @@
         msg += `\n`;
       }
 
+
       const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;
       window.open(url,'_blank');
     }
@@ -1527,19 +1493,24 @@
     
     let isAppInitialized = false;
 
+    // CORREÇÃO: Listener para o estado de autenticação do Firebase
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             userId = user.uid;
             
+            // Tenta carregar o perfil e metas. Se for um novo usuário, showRegistrationModal será chamado.
             const profileLoaded = await loadProfileAndMetas();
             
+            // 1. Se o perfil não foi carregado (porque não existe), o app principal fica escondido
             if (!profileLoaded) {
                 document.getElementById('loadingScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.add('hidden');
                 return; 
             }
             
+            // 2. Se o perfil foi carregado (sucesso)
             if (!isAppInitialized) {
+                // Inicializa o log do dia de hoje
                 const dateSelector = document.getElementById('dateSelector');
                 dateSelector.value = todayDateString;
                 dateSelector.max = todayDateString; 
@@ -1548,14 +1519,17 @@
                 document.getElementById('mainApp').classList.remove('hidden');
                 isAppInitialized = true;
             } else {
+                 // Esconde modais se o login foi concluído e o perfil existe.
                  hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
                  hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
             }
             
+            // Atualiza botões de perfil para Logout/Editar
             document.getElementById('authControlButton').textContent = 'Fazer Logout';
             document.getElementById('authControlButton').onclick = handleLogout;
             document.getElementById('editProfileButton').onclick = () => showRegistrationModal(true); 
             
+            // Reabilita as áreas principais
             document.getElementById('goalsDetails').classList.remove('opacity-50');
             document.getElementById('addFoodSection').classList.remove('opacity-50');
             document.getElementById('hydrationTracker').classList.remove('opacity-50');
@@ -1567,11 +1541,13 @@
             document.getElementById('mainApp').classList.remove('hidden');
             isAppInitialized = true; 
 
+            // Se o usuário fez logout, mata o listener de logs
             if (unsubscribeListener) {
                 unsubscribeListener(); 
                 unsubscribeListener = null;
             }
             
+            // Usuários sem login serão direcionados para o modal de registro/login
             const hasEverLoggedIn = localStorage.getItem('hasEverLoggedIn');
 
             if (hasEverLoggedIn === 'true') {
@@ -1580,15 +1556,14 @@
                  showRegistrationModal(false); 
             }
             
+            // Atualiza botões de perfil para Login/Registro
             document.getElementById('userNameDisplay').textContent = 'Visitante';
-            const placeholderImg = 'https://placehold.co/64x64/E0F2F1/065F46?text=FP';
-            document.getElementById('profileImageDisplay').src = placeholderImg;
-            document.getElementById('regProfileImage').src = placeholderImg; 
-            
+            document.getElementById('profileImageDisplay').src = 'https://placehold.co/64x64/E0F2F1/065F46?text=FP';
             document.getElementById('authControlButton').textContent = 'Fazer Login / Criar Conta';
             document.getElementById('authControlButton').onclick = showLoginModal;
             document.getElementById('editProfileButton').onclick = showLoginModal;
 
+            // Desabilita funcionalidades de log/metas
             document.getElementById('goalsDetails').classList.add('opacity-50');
             document.getElementById('addFoodSection').classList.add('opacity-50');
             document.getElementById('hydrationTracker').classList.add('opacity-50');
@@ -1604,13 +1579,15 @@
         }
 
         try{
+            // Tenta habilitar a persistência
             await firebaseDb.enablePersistence({ synchronizeTabs: true });
         }catch(err){
+            // Se a persistência falhar (ex: navegador privado), apenas alerta e segue.
             console.warn('Persistência não habilitada:', err?.code||err);
         }
         
       }catch(e){
-        console.error("Erro fatal de inicialização:", e); // Log do erro
+        // Exibe erro fatal de conexão no loading screen
         const l=document.getElementById('loadingScreen');
         l.innerHTML = `
           <p class="text-red-600 font-semibold">Erro ao conectar com o servidor</p>
@@ -1624,6 +1601,7 @@
     document.addEventListener('DOMContentLoaded', ()=>{
       initializeApp();
       
+      // Listeners do App Principal
       document.getElementById('dateSelector').addEventListener('change', (e) => {
           loadLogForDate(e.target.value);
       });
@@ -1632,6 +1610,7 @@
       document.getElementById('calculateButton').addEventListener('click', saveMetas);
       document.getElementById('addFoodButton').addEventListener('click', addFoodToLog);
       
+      // Listeners Sem Condição
       document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
       document.getElementById('mealTimeSelect').addEventListener('change', updateMealSuggestion);
       document.getElementById('foodSearch').addEventListener('input', searchFood);
@@ -1646,24 +1625,25 @@
         }
       });
       
+      // Listeners do Novo Modal de Registro/Login
       document.getElementById('registerAndProfileButton').addEventListener('click', handleFullRegistration); 
       
       document.getElementById('regProfilePicInput').addEventListener('change', async (e)=>{
         const file=e.target.files[0];
-        if(file){ 
-            profilePicBase64 = await fileToBase64(file); 
-            document.getElementById('regProfileImage').src = profilePicBase64; 
-        }
+        if(file){ profilePicBase64=await fileToBase64(file); document.getElementById('regProfileImage').src=profilePicBase64; }
       });
       
+      // Botão 'Já tenho conta. Fazer Login'
       document.getElementById('showLoginButton').addEventListener('click', (e) => {
           e.preventDefault();
           hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
           showLoginModal();
       });
 
+      // Botão 'Entrar'
       document.getElementById('loginSubmitButton').addEventListener('click', handleLogin); 
       
+      // Botão 'Não tenho conta. Criar Perfil'
       document.getElementById('showRegistrationButton').addEventListener('click', (e) => {
           e.preventDefault();
           hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
