@@ -9,15 +9,15 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-  
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <style>
-    /* ALTERADO: Aplicação da fonte Montserrat no corpo */
-    body { font-family: 'Montserrat', 'Inter', sans-serif; scroll-behavior: smooth; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+    /* NOVO: Classe para garantir que os títulos sejam sempre em maiúsculo */
+    .uppercase-title { text-transform: uppercase; }
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
     #calorieProgress, #waterProgress, #weightProgress { transition: width 0.3s ease-in-out; }
@@ -27,8 +27,6 @@
     /* Estilos para a nova estrutura de lista */
     .meal-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; }
     .meal-section:first-child { border-top: none; padding-top: 0; }
-    /* NOVO: Estilo para forçar títulos em maiúsculo, garantindo consistência com a Montserrat */
-    .uppercase-title { text-transform: uppercase; }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-teal-50 min-h-screen flex flex-col items-center justify-start p-4 py-8">
@@ -167,7 +165,7 @@
     <details id="goalsDetails" class="bg-gray-50 p-4 rounded-lg border border-gray-200">
       <summary class="text-xl font-semibold text-gray-700 cursor-pointer list-none">
         <div class="flex justify-between items-center text-green-600">
-          <span class="uppercase-title font-bold">MINHAS METAS</span>
+          <span class="uppercase-title">Minhas Metas</span>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
           </svg>
@@ -222,7 +220,7 @@
       <p id="goalText" class="text-center text-lg font-semibold text-green-700 mt-4 hidden"></p>
     </details>
     <div id="addFoodSection">
-      <h2 class="text-xl font-semibold text-gray-700 mb-3 uppercase-title">ADICIONAR ALIMENTO</h2>
+      <h2 class="text-xl font-semibold text-gray-700 mb-3 uppercase-title">Adicionar Alimento</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
         <div class="relative sm:col-span-3">
           <label for="foodSearch" class="block text-sm font-medium text-gray-700 mb-1">1. Pesquisar Alimento</label>
@@ -269,12 +267,12 @@
       </div>
     </div>
     <div class="border-t border-gray-200 pt-4">
-        <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2 uppercase-title">HISTÓRICO:</label>
+        <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2 uppercase-title">Histórico:</label>
         <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
         <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
     </div>
     <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
-        <h2 class="text-xl font-semibold text-blue-600 mb-3 uppercase-title">💧 ADICIONAR HIDRATAÇÃO</h2>
+        <h2 class="text-xl font-semibold text-blue-600 mb-3 uppercase-title">💧 Adicionar Hidratação</h2>
         <div class="flex items-end space-x-3 mb-4">
             <div class="flex-grow">
                 <label for="waterQuantityInput" class="block text-sm font-medium text-gray-700">Qtd. de Água (ml)</label>
@@ -294,14 +292,14 @@
         </div>
     </div>
     <div class="border-b border-gray-200 py-4">
-      <h3 class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2 uppercase-title">
-        <span>REFEIÇÕES DO DIA:</span>
+      <h3 class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
+        <span class="uppercase-title">Refeições do Dia:</span>
         <span id="goalTag" class="text-xs font-medium text-blue-700 bg-blue-100 py-0.5 px-2 rounded-full flex-shrink-0 hidden"></span>
       </h3>
       <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50 min-h-48">
         <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
         <div id="water_container" class="mb-2 meal-section"> 
-            <h4 class="font-semibold text-gray-700 mb-2 text-lg uppercase-title">💧 REGISTROS DE ÁGUA</h4>
+            <h4 class="font-semibold text-gray-700 mb-2 text-lg uppercase-title">💧 Registros de Água</h4>
             <div class="space-y-2" id="list-water"></div>
         </div>
         <div id="cafe_da_manha_container"></div>
@@ -312,7 +310,7 @@
       <p class="text-xs text-gray-500 mt-2">⚠️ indica alimentos que podem aumentar a gordura visceral.</p>
     </div>
     <div class="space-y-4">
-      <h2 class="text-xl font-semibold text-gray-800 text-center uppercase-title">RESUMO DO DIA</h2>
+      <h2 class="text-xl font-semibold text-gray-800 text-center uppercase-title">Resumo do Dia</h2>
       
       <div id="weightProgressSection">
         <div class="flex justify-between items-center mb-1">
@@ -770,9 +768,6 @@
             targetWeight = parseFloat(d.targetWeight)||0; 
           }
           updateGoalDisplay();
-          updateTotals(false);
-          updateWaterTracker(true); 
-          updateWeightProgress(); 
           updateMealSuggestion();
           return true; // Sucesso
         }
@@ -1489,7 +1484,7 @@
     }
 
     function shareApp(){
-      const message=`🏋️ Fitness-Pro 2.0\n\nConheça o app que está me ajudando a alcançar meus objetivos 💪\n\nAcesse: ${window.location.href}`;
+      const message=`🏋️ Fitness-Pro 2.0\n\nConheça o app que está me ajudando a alcançar meus objetivos! 💪\n\nAcesse: ${window.location.href}`;
       const url=`https://wa.me/?text=${encodeURIComponent(message)}`;
       window.open(url,'_blank');
     }
