@@ -339,7 +339,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4 text-center">
+      <div class="grid grid-cols-3 gap-4 text-center">
         <div>
           <p class="text-base font-medium text-emerald-600 mb-1">Proteínas</p>
           <p id="totalProteins" class="text-3xl font-bold text-emerald-600">0 g</p>
@@ -348,13 +348,17 @@
           <p class="text-base font-medium text-blue-600 mb-1">Carboidratos</p>
           <p id="totalCarbs" class="text-3xl font-bold text-blue-600">0 g</p>
         </div>
+        <div>
+          <p class="text-base font-medium text-red-600 mb-1">Gorduras</p>
+          <p id="totalFats" class="text-3xl font-bold text-red-600">0 g</p>
+        </div>
       </div>
     </div>
     </div>
 
   <footer class="mt-8 text-sm text-gray-500">Desenvolvido por Thiago</footer>
 
-  <script>
+<script>
     // Seus dados de configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyC9WSxM9GA64fq9lkLhsTyvMbD1AlO1MM4",
@@ -376,6 +380,7 @@
     let selectedFoodKey = null;
     let dailyLog = {}; 
     let waterLog = 0; 
+    let totalFat = 0; // NOVO: Variável para rastrear o total de gorduras
     const TODAY = new Date(); 
     TODAY.setHours(0, 0, 0, 0); 
     const todayDateString = TODAY.toISOString().split('T')[0]; 
@@ -427,110 +432,111 @@
 
 
     // /* --- MÓDULO: BANCO DE DADOS DE ALIMENTOS (foodDatabase) --- */
+    // CORREÇÃO 1: Adição do campo 'fat' (Gordura) e recálculo das calorias (P:4, C:4, G:9)
     const foodDatabase = {
       // --- FRUTAS (FRUITS) ---
-      'banana': { name: 'Banana', protein: 1.1, carbs: 27, cals: 105, unit: 'unidade', visceralFat: false },
-      'maca': { name: 'Maçã', protein: 0.3, carbs: 25, cals: 95, unit: 'unidade', visceralFat: false },
-      'abacate': { name: 'Abacate', protein: 2, carbs: 9, cals: 160, unit: '100g', visceralFat: false },
-      'mamao': { name: 'Mamão Formosa', protein: 0.5, carbs: 11, cals: 43, unit: '100g', visceralFat: false },
-      'melancia': { name: 'Melancia', protein: 0.6, carbs: 8, cals: 30, unit: '100g', visceralFat: false },
-      'uva': { name: 'Uva', protein: 0.7, carbs: 18, cals: 69, unit: '100g', visceralFat: false },
-      'laranja': { name: 'Laranja', protein: 1, carbs: 12, cals: 47, unit: 'unidade', visceralFat: false },
-      'morango': { name: 'Morango', protein: 0.7, carbs: 8, cals: 32, unit: '100g', visceralFat: false },
-      'amora': { name: 'Amora', protein: 1.4, carbs: 9.6, cals: 43, unit: '100g', visceralFat: false },
-      'framboesa': { name: 'Framboesa', protein: 1.2, carbs: 12, cals: 52, unit: '100g', visceralFat: false },
-      'kiwi': { name: 'Kiwi', protein: 1.1, carbs: 15, cals: 61, unit: 'unidade', visceralFat: false },
-      'abacaxi': { name: 'Abacaxi', protein: 0.5, carbs: 13, cals: 50, unit: '100g', visceralFat: false },
-      'limao': { name: 'Limão (suco)', protein: 0.4, carbs: 9.3, cals: 29, unit: 'unidade', visceralFat: false },
+      'banana': { name: 'Banana', protein: 1.1, carbs: 27, fat: 0.3, cals: 114, unit: 'unidade', visceralFat: false },
+      'maca': { name: 'Maçã', protein: 0.3, carbs: 25, fat: 0.2, cals: 104, unit: 'unidade', visceralFat: false },
+      'abacate': { name: 'Abacate', protein: 2, carbs: 9, fat: 14.7, cals: 175, unit: '100g', visceralFat: false },
+      'mamao': { name: 'Mamão Formosa', protein: 0.5, carbs: 11, fat: 0.3, cals: 47, unit: '100g', visceralFat: false },
+      'melancia': { name: 'Melancia', protein: 0.6, carbs: 8, fat: 0.2, cals: 36, unit: '100g', visceralFat: false },
+      'uva': { name: 'Uva', protein: 0.7, carbs: 18, fat: 0.2, cals: 76, unit: '100g', visceralFat: false },
+      'laranja': { name: 'Laranja', protein: 1, carbs: 12, fat: 0.2, cals: 53, unit: 'unidade', visceralFat: false },
+      'morango': { name: 'Morango', protein: 0.7, carbs: 8, fat: 0.3, cals: 36, unit: '100g', visceralFat: false },
+      'amora': { name: 'Amora', protein: 1.4, carbs: 9.6, fat: 0.5, cals: 50, unit: '100g', visceralFat: false },
+      'framboesa': { name: 'Framboesa', protein: 1.2, carbs: 12, fat: 0.7, cals: 62, unit: '100g', visceralFat: false },
+      'kiwi': { name: 'Kiwi', protein: 1.1, carbs: 15, fat: 0.6, cals: 69, unit: 'unidade', visceralFat: false },
+      'abacaxi': { name: 'Abacaxi', protein: 0.5, carbs: 13, fat: 0.1, cals: 55, unit: '100g', visceralFat: false },
+      'limao': { name: 'Limão (suco)', protein: 0.4, carbs: 9.3, fat: 0.1, cals: 40, unit: 'unidade', visceralFat: false },
       
       // --- VEGETAIS / LEGUMES (VEGETABLES) ---
-      'brocolis': { name: 'Brócolis (cozido)', protein: 2.4, carbs: 7, cals: 35, unit: '100g', visceralFat: false },
-      'alface': { name: 'Alface Crespa', protein: 1.4, carbs: 2.9, cals: 15, unit: '100g', visceralFat: false },
-      'tomate': { name: 'Tomate', protein: 0.9, carbs: 3.9, cals: 18, unit: '100g', visceralFat: false },
-      'cenoura': { name: 'Cenoura (crua)', protein: 0.9, carbs: 10, cals: 41, unit: '100g', visceralFat: false },
-      'couve_flor': { name: 'Couve-Flor (cozida)', protein: 1.9, carbs: 5, cals: 25, unit: '100g', visceralFat: false },
-      'abobrinha': { name: 'Abobrinha (cozida)', protein: 1.2, carbs: 3, cals: 17, unit: '100g', visceralFat: false },
+      'brocolis': { name: 'Brócolis (cozido)', protein: 2.4, carbs: 7, fat: 0.4, cals: 40, unit: '100g', visceralFat: false },
+      'alface': { name: 'Alface Crespa', protein: 1.4, carbs: 2.9, fat: 0.2, cals: 19, unit: '100g', visceralFat: false },
+      'tomate': { name: 'Tomate', protein: 0.9, carbs: 3.9, fat: 0.2, cals: 20, unit: '100g', visceralFat: false },
+      'cenoura': { name: 'Cenoura (crua)', protein: 0.9, carbs: 10, fat: 0.2, cals: 44, unit: '100g', visceralFat: false },
+      'couve_flor': { name: 'Couve-Flor (cozida)', protein: 1.9, carbs: 5, fat: 0.3, cals: 30, unit: '100g', visceralFat: false },
+      'abobrinha': { name: 'Abobrinha (cozida)', protein: 1.2, carbs: 3, fat: 0.3, cals: 19, unit: '100g', visceralFat: false },
       
       // --- PROTEÍNAS (PROTEINS) ---
-      'peito_frango': { name: 'Peito de Frango (grelhado)', protein: 31, carbs: 0, cals: 165, unit: '100g', visceralFat: false },
-      'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, cals: 77, unit: 'unidade', visceralFat: false },
-      'ovo_frito': { name: 'Ovo Frito (em óleo)', protein: 6.2, carbs: 0.6, cals: 95, unit: 'unidade', visceralFat: false },
-      'ovos_mexidos': { name: 'Ovos Mexidos (c/ manteiga)', protein: 6.5, carbs: 1.5, cals: 105, unit: 'unidade (1 ovo)', visceralFat: true },
-      'ovo_mexido_oleo': { name: 'Ovo Mexido (c/ óleo)', protein: 6.5, carbs: 1.5, cals: 95, unit: 'unidade (1 ovo)', visceralFat: true }, 
-      'carne_moida': { name: 'Carne Moída (patinho, cozida)', protein: 26, carbs: 0, cals: 180, unit: '100g', visceralFat: false },
-      'bife_alcatra': { name: 'Bife (Alcatra, grelhado)', protein: 28, carbs: 0, cals: 165, unit: '100g', visceralFat: false },
-      'tilapia': { name: 'Tilápia (grelhada)', protein: 26, carbs: 0, cals: 128, unit: '100g', visceralFat: false },
-      'salmao': { name: 'Salmão (grelhado)', protein: 20, carbs: 0, cals: 208, unit: '100g', visceralFat: false },
-      'atum_lata': { name: 'Atum em Lata (em óleo)', protein: 29, carbs: 0, cals: 186, unit: '100g', visceralFat: false },
+      'peito_frango': { name: 'Peito de Frango (grelhado)', protein: 31, carbs: 0, fat: 3.6, cals: 161, unit: '100g', visceralFat: false },
+      'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, fat: 5.3, cals: 77, unit: 'unidade', visceralFat: false },
+      'ovo_frito': { name: 'Ovo Frito (em óleo)', protein: 6.2, carbs: 0.6, fat: 7.7, cals: 100, unit: 'unidade', visceralFat: false },
+      'ovos_mexidos': { name: 'Ovos Mexidos (c/ manteiga)', protein: 6.5, carbs: 1.5, fat: 7.5, cals: 102, unit: 'unidade (1 ovo)', visceralFat: true },
+      'ovo_mexido_oleo': { name: 'Ovo Mexido (c/ óleo)', protein: 6.5, carbs: 1.5, fat: 6.5, cals: 93, unit: 'unidade (1 ovo)', visceralFat: true },
+      'carne_moida': { name: 'Carne Moída (patinho, cozida)', protein: 26, carbs: 0, fat: 8, cals: 180, unit: '100g', visceralFat: false },
+      'bife_alcatra': { name: 'Bife (Alcatra, grelhado)', protein: 28, carbs: 0, fat: 5, cals: 167, unit: '100g', visceralFat: false },
+      'tilapia': { name: 'Tilápia (grelhada)', protein: 26, carbs: 0, fat: 2.7, cals: 128, unit: '100g', visceralFat: false },
+      'salmao': { name: 'Salmão (grelhado)', protein: 20, carbs: 0, fat: 13, cals: 208, unit: '100g', visceralFat: false },
+      'atum_lata': { name: 'Atum em Lata (em óleo)', protein: 29, carbs: 0, fat: 7.9, cals: 190, unit: '100g', visceralFat: false },
       
       // --- LÁCTEOS E SIMILARES (DAIRY) ---
-      'leite_integral': { name: 'Leite Integral', protein: 3.2, carbs: 5, cals: 61, unit: '100ml', visceralFat: true },
-      'leite_desnatado': { name: 'Leite Desnatado', protein: 3.4, carbs: 5, cals: 35, unit: '100ml', visceralFat: false },
-      'queijo_mussarela': { name: 'Queijo Mussarela', protein: 22, carbs: 3.1, cals: 300, unit: '100g (fatia 30g)', visceralFat: true },
-      'queijo_minas': { name: 'Queijo Minas Frescal', protein: 17, carbs: 3, cals: 264, unit: '100g', visceralFat: false },
-      'queijo_cottage': { name: 'Queijo Cottage', protein: 11, carbs: 3, cals: 98, unit: '100g', visceralFat: false },
-      'iogurte_grego': { name: 'Iogurte Grego (natural)', protein: 10, carbs: 3.6, cals: 59, unit: '100g', visceralFat: false },
-      'iogurte_natural': { name: 'Iogurte Natural Desnatado', protein: 4.1, carbs: 7, cals: 57, unit: '100g', visceralFat: false },
-      'iogurte_sabor': { name: 'Iogurte Desn. (Sabor)', protein: 3.5, carbs: 15, cals: 85, unit: '100g', visceralFat: true }, 
+      'leite_integral': { name: 'Leite Integral', protein: 3.2, carbs: 5, fat: 3.5, cals: 65, unit: '100ml', visceralFat: true },
+      'leite_desnatado': { name: 'Leite Desnatado', protein: 3.4, carbs: 5, fat: 0.1, cals: 35, unit: '100ml', visceralFat: false },
+      'queijo_mussarela': { name: 'Queijo Mussarela', protein: 22, carbs: 3.1, fat: 22, cals: 300, unit: '100g (fatia 30g)', visceralFat: true },
+      'queijo_minas': { name: 'Queijo Minas Frescal', protein: 17, carbs: 3, fat: 20, cals: 268, unit: '100g', visceralFat: false },
+      'queijo_cottage': { name: 'Queijo Cottage', protein: 11, carbs: 3, fat: 4.3, cals: 98, unit: '100g', visceralFat: false },
+      'iogurte_grego': { name: 'Iogurte Grego (natural)', protein: 10, carbs: 3.6, fat: 5, cals: 94, unit: '100g', visceralFat: false },
+      'iogurte_natural': { name: 'Iogurte Natural Desnatado', protein: 4.1, carbs: 7, fat: 0.1, cals: 46, unit: '100g', visceralFat: false },
+      'iogurte_sabor': { name: 'Iogurte Desn. (Sabor)', protein: 3.5, carbs: 15, fat: 0.2, cals: 75, unit: '100g', visceralFat: true }, 
 
       // --- CARBOIDRATOS (CARBS) ---
-      'arroz_branco': { name: 'Arroz Branco (cozido)', protein: 2.7, carbs: 28, cals: 130, unit: '100g', visceralFat: false },
-      'arroz_integral': { name: 'Arroz Integral (cozido)', protein: 2.6, carbs: 23, cals: 111, unit: '100g', visceralFat: false },
-      'batata_doce': { name: 'Batata Doce (cozida)', protein: 1.6, carbs: 20, cals: 86, unit: '100g', visceralFat: false },
-      'batata_inglesa': { name: 'Batata Inglesa (cozida)', protein: 2, carbs: 20, cals: 87, unit: '100g', visceralFat: false },
-      'mandioca': { name: 'Mandioca (Aipim cozido)', protein: 1.4, carbs: 30, cals: 139, unit: '100g', visceralFat: false }, 
-      'feijao_preto': { name: 'Feijão Preto (cozido)', protein: 9, carbs: 24, cals: 131, unit: '100g', visceralFat: false },
-      'feijao_carioca': { name: 'Feijão Carioca (cozido)', protein: 4.8, carbs: 14, cals: 76, unit: '100g', visceralFat: false },
-      'lentilha': { name: 'Lentilha (cozida)', protein: 9, carbs: 20, cals: 116, unit: '100g', visceralFat: false },
-      'grao_bico': { name: 'Grão de Bico (cozido)', protein: 9, carbs: 27, cals: 164, unit: '100g', visceralFat: false },
-      'quinoa': { name: 'Quinoa (cozida)', protein: 4.1, carbs: 21, cals: 120, unit: '100g', visceralFat: false },
-      'macarrao': { name: 'Macarrão (cozido)', protein: 5, carbs: 25, cals: 131, unit: '100g', visceralFat: false },
-      'cuscuz': { name: 'Cuscuz (hidratado)', protein: 3.8, carbs: 23, cals: 112, unit: '100g', visceralFat: false },
-      'tapioca': { name: 'Tapioca (goma)', protein: 0, carbs: 89, cals: 355, unit: '100g', visceralFat: false },
-      'aveia': { name: 'Aveia em Flocos', protein: 17, carbs: 66, cals: 389, unit: '100g', visceralFat: false },
+      'arroz_branco': { name: 'Arroz Branco (cozido)', protein: 2.7, carbs: 28, fat: 0.3, cals: 126, unit: '100g', visceralFat: false },
+      'arroz_integral': { name: 'Arroz Integral (cozido)', protein: 2.6, carbs: 23, fat: 1, cals: 115, unit: '100g', visceralFat: false },
+      'batata_doce': { name: 'Batata Doce (cozida)', protein: 1.6, carbs: 20, fat: 0.1, cals: 87, unit: '100g', visceralFat: false },
+      'batata_inglesa': { name: 'Batata Inglesa (cozida)', protein: 2, carbs: 20, fat: 0.1, cals: 88, unit: '100g', visceralFat: false },
+      'mandioca': { name: 'Mandioca (Aipim cozido)', protein: 1.4, carbs: 30, fat: 0.3, cals: 127, unit: '100g', visceralFat: false }, 
+      'feijao_preto': { name: 'Feijão Preto (cozido)', protein: 9, carbs: 24, fat: 0.5, cals: 135, unit: '100g', visceralFat: false },
+      'feijao_carioca': { name: 'Feijão Carioca (cozido)', protein: 4.8, carbs: 14, fat: 0.3, cals: 79, unit: '100g', visceralFat: false },
+      'lentilha': { name: 'Lentilha (cozida)', protein: 9, carbs: 20, fat: 0.4, cals: 120, unit: '100g', visceralFat: false },
+      'grao_bico': { name: 'Grão de Bico (cozido)', protein: 9, carbs: 27, fat: 2.6, cals: 166, unit: '100g', visceralFat: false },
+      'quinoa': { name: 'Quinoa (cozida)', protein: 4.1, carbs: 21, fat: 1.9, cals: 120, unit: '100g', visceralFat: false },
+      'macarrao': { name: 'Macarrão (cozido)', protein: 5, carbs: 25, fat: 0.9, cals: 132, unit: '100g', visceralFat: false },
+      'cuscuz': { name: 'Cuscuz (hidratado)', protein: 3.8, carbs: 23, fat: 0.2, cals: 110, unit: '100g', visceralFat: false },
+      'tapioca': { name: 'Tapioca (goma)', protein: 0.5, carbs: 89, fat: 0, cals: 358, unit: '100g', visceralFat: false },
+      'aveia': { name: 'Aveia em Flocos', protein: 17, carbs: 66, fat: 7, cals: 399, unit: '100g', visceralFat: false },
 
       // --- PANIFICAÇÃO / GORDURAS (BREADS / FATS) ---
-      'pao_frances': { name: 'Pão Francês', protein: 7.5, carbs: 55, cals: 288, unit: '100g (unid 50g)', visceralFat: false },
-      'pao_centeio': { name: 'Pão de Centeio', protein: 8, carbs: 48, cals: 259, unit: '100g (fatia 30g)', visceralFat: false },
-      'pao_forma': { name: 'Pão de Forma (Branco)', protein: 2.5, carbs: 15, cals: 80, unit: 'fatia', visceralFat: true },
-      'pao_integral': { name: 'Pão de Forma (Integral)', protein: 3, carbs: 12, cals: 70, unit: 'fatia', visceralFat: false },
-      'pasta_amendoim': { name: 'Pasta de Amendoim (integral)', protein: 25, carbs: 20, cals: 588, unit: '100g (colher 15g)', visceralFat: false },
-      'castanha_caju': { name: 'Castanha de Caju', protein: 18, carbs: 30, cals: 553, unit: '100g', visceralFat: false },
-      'amendoim': { name: 'Amendoim', protein: 26, carbs: 16, cals: 567, unit: '100g', visceralFat: false },
-      'azeite': { name: 'Azeite de Oliva', protein: 0, carbs: 0, cals: 119, unit: 'colher sopa', visceralFat: false },
-      'manteiga': { name: 'Manteiga com sal', protein: 0.9, carbs: 0.1, cals: 717, unit: '100g (colher 5g)', visceralFat: true },
-      'manteiga_amendoim_doce': { name: 'Manteiga de Amendoim (doce)', protein: 21, carbs: 30, cals: 600, unit: '100g (colher 15g)', visceralFat: true }, 
+      'pao_frances': { name: 'Pão Francês', protein: 7.5, carbs: 55, fat: 2.5, cals: 282, unit: '100g (unid 50g)', visceralFat: false },
+      'pao_centeio': { name: 'Pão de Centeio', protein: 8, carbs: 48, fat: 1.5, cals: 247, unit: '100g (fatia 30g)', visceralFat: false },
+      'pao_forma': { name: 'Pão de Forma (Branco)', protein: 2.5, carbs: 15, fat: 1.5, cals: 87, unit: 'fatia', visceralFat: true },
+      'pao_integral': { name: 'Pão de Forma (Integral)', protein: 3, carbs: 12, fat: 1.5, cals: 74, unit: 'fatia', visceralFat: false },
+      'pasta_amendoim': { name: 'Pasta de Amendoim (integral)', protein: 25, carbs: 20, fat: 50, cals: 620, unit: '100g (colher 15g)', visceralFat: false },
+      'castanha_caju': { name: 'Castanha de Caju', protein: 18, carbs: 30, fat: 44, cals: 588, unit: '100g', visceralFat: false },
+      'amendoim': { name: 'Amendoim', protein: 26, carbs: 16, fat: 49, cals: 605, unit: '100g', visceralFat: false },
+      'azeite': { name: 'Azeite de Oliva', protein: 0, carbs: 0, fat: 13.5, cals: 122, unit: 'colher sopa', visceralFat: false },
+      'manteiga': { name: 'Manteiga com sal', protein: 0.9, carbs: 0.1, fat: 81, cals: 730, unit: '100g (colher 5g)', visceralFat: true },
+      'manteiga_amendoim_doce': { name: 'Manteiga de Amendoim (doce)', protein: 21, carbs: 30, fat: 48, cals: 636, unit: '100g (colher 15g)', visceralFat: true }, 
 
       // --- SUPLEMENTOS (SUPPLEMENTS) ---
-      'whey_protein': { name: 'Whey Protein', protein: 24, carbs: 3, cals: 120, unit: 'scoop 30g', visceralFat: false },
-      'creatina': { name: 'Creatina (pura)', protein: 0, carbs: 0, cals: 0, unit: 'scoop 3g', visceralFat: false },
+      'whey_protein': { name: 'Whey Protein', protein: 24, carbs: 3, fat: 2, cals: 122, unit: 'scoop 30g', visceralFat: false },
+      'creatina': { name: 'Creatina (pura)', protein: 0, carbs: 0, fat: 0, cals: 0, unit: 'scoop 3g', visceralFat: false },
       
       // --- BEBIDAS QUENTES / CAFÉS ---
-      'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false },
-      'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, cals: 24, unit: 'xícara', visceralFat: false }, 
-      'cafe_desnatado_acucar': { name: 'Café c/ Leite Desnatado + Açúcar', protein: 6.8, carbs: 20, cals: 126, unit: '200ml', visceralFat: false },
-      'cafe_integral_acucar': { name: 'Café c/ Leite Integral + Açúcar', protein: 6.4, carbs: 20, cals: 154, unit: '200ml', visceralFat: true }, 
+      'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, fat: 0, cals: 2, unit: 'xícara', visceralFat: false },
+      'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, fat: 0, cals: 21, unit: 'xícara', visceralFat: false }, 
+      'cafe_desnatado_acucar': { name: 'Café c/ Leite Desnatado + Açúcar', protein: 6.8, carbs: 20, fat: 0.2, cals: 108, unit: '200ml', visceralFat: false },
+      'cafe_integral_acucar': { name: 'Café c/ Leite Integral + Açúcar', protein: 6.4, carbs: 20, fat: 3.5, cals: 140, unit: '200ml', visceralFat: true }, 
       
       // --- DADOS ADICIONAIS ---
-      'salmao_cru': { name: 'Salmão (cru)', protein: 20.4, carbs: 0, cals: 208, unit: '100g', visceralFat: false },
-      'leite_aveia': { name: 'Bebida de Aveia', protein: 1.0, carbs: 10.3, cals: 54, unit: '100ml', visceralFat: false },
-      'ovos_cozidos_claras': { name: 'Claras de Ovo (cozidas)', protein: 10.9, carbs: 0.7, cals: 52, unit: '100g', visceralFat: false },
-      'paorede': { name: 'Pão de Queijo', protein: 7, carbs: 25, cals: 150, unit: 'unidade média', visceralFat: true },
+      'salmao_cru': { name: 'Salmão (cru)', protein: 20.4, carbs: 0, fat: 13, cals: 208, unit: '100g', visceralFat: false },
+      'leite_aveia': { name: 'Bebida de Aveia', protein: 1.0, carbs: 10.3, fat: 1.5, cals: 64, unit: '100ml', visceralFat: false },
+      'ovos_cozidos_claras': { name: 'Claras de Ovo (cozidas)', protein: 10.9, carbs: 0.7, fat: 0.1, cals: 47, unit: '100g', visceralFat: false },
+      'paorede': { name: 'Pão de Queijo', protein: 7, carbs: 25, fat: 3, cals: 150, unit: 'unidade média', visceralFat: true },
       
       // --- ITENS DE 'LIXO' / DOCES (JUNK / SWEETS) ---
-      'batata_frita': { name: 'Batata Frita', protein: 3.4, carbs: 41, cals: 319, unit: '100g', visceralFat: true },
-      'refrigerante': { name: 'Refrigerante (Cola)', protein: 0, carbs: 26, cals: 105, unit: 'lata 350ml', visceralFat: true },
-      'chocolate_ao_leite': { name: 'Chocolate ao Leite', protein: 8, carbs: 59, cals: 535, unit: '100g (barra 25g)', visceralFat: true },
-      'biscoito_recheado': { name: 'Biscoito Recheado (Chocolate)', protein: 5, carbs: 70, cals: 450, unit: '100g (unid 10g)', visceralFat: true },
-      'pizza_mussarela': { name: 'Pizza Mussarela', protein: 11, carbs: 33, cals: 271, unit: '100g (1 fatia)', visceralFat: true },
-      'mel': { name: 'Mel', protein: 0.3, carbs: 82, cals: 304, unit: '100g', visceralFat: true },
-      'pudim': { name: 'Pudim de Leite', protein: 5, carbs: 30, cals: 200, unit: '100g (fatia)', visceralFat: true },
-      'paçoca': { name: 'Paçoca (rolha)', protein: 5, carbs: 12, cals: 100, unit: 'unidade 20g', visceralFat: false },
+      'batata_frita': { name: 'Batata Frita', protein: 3.4, carbs: 41, fat: 17, cals: 338, unit: '100g', visceralFat: true },
+      'refrigerante': { name: 'Refrigerante (Cola)', protein: 0, carbs: 26, fat: 0, cals: 104, unit: 'lata 350ml', visceralFat: true },
+      'chocolate_ao_leite': { name: 'Chocolate ao Leite', protein: 8, carbs: 59, fat: 32, cals: 556, unit: '100g (barra 25g)', visceralFat: true },
+      'biscoito_recheado': { name: 'Biscoito Recheado (Chocolate)', protein: 5, carbs: 70, fat: 15, cals: 435, unit: '100g (unid 10g)', visceralFat: true },
+      'pizza_mussarela': { name: 'Pizza Mussarela', protein: 11, carbs: 33, fat: 9, cals: 257, unit: '100g (1 fatia)', visceralFat: true },
+      'mel': { name: 'Mel', protein: 0.3, carbs: 82, fat: 0, cals: 330, unit: '100g', visceralFat: true },
+      'pudim': { name: 'Pudim de Leite', protein: 5, carbs: 30, fat: 8, cals: 212, unit: '100g (fatia)', visceralFat: true },
+      'paçoca': { name: 'Paçoca (rolha)', protein: 5, carbs: 12, fat: 4, cals: 100, unit: 'unidade 20g', visceralFat: false },
     };
     // /* --- FIM MÓDULO: BANCO DE DADOS DE ALIMENTOS (foodDatabase) --- */
 
 
-    // /* --- MÓDULO: HELPERS FIREBASE --- */
+    // /* --- MÓDULO: HELPERS FIREBASE (MANTIDO) --- */
     function getDayRef(uid, date) {
       return firebaseDb.collection('users').doc(uid).collection('days').doc(date);
     }
@@ -543,7 +549,7 @@
     // /* --- FIM MÓDULO: HELPERS FIREBASE --- */
 
 
-    // /* --- MÓDULO: HELPERS DE UI (MODAL, ELEMENTOS, ETC) --- */
+    // /* --- MÓDULO: HELPERS DE UI (MODAL, ELEMENTOS, ETC) (MANTIDO) --- */
     function showElement(el){ el.classList.remove('hidden'); }
     function hideElement(el){ el.classList.add('hidden'); }
     function showModal(modal, overlay){ showElement(overlay); showElement(modal); requestAnimationFrame(()=>{ modal.classList.remove('scale-90','opacity-0'); modal.classList.add('scale-100','opacity-100');}); }
@@ -580,7 +586,7 @@
     // /* --- FIM MÓDULO: HELPERS DE UI (MODAL, ELEMENTOS, ETC) --- */
 
 
-    // /* --- MÓDULO: AUTENTICAÇÃO E PERFIL --- */
+    // /* --- MÓDULO: AUTENTICAÇÃO E PERFIL (MANTIDO) --- */
     
     // Novo: Função para limpar e mostrar o modal de Registro Completo (Criação de Conta/Edição)
     function showRegistrationModal(isEdit = false) {
@@ -731,7 +737,6 @@
     }
     
     // CORREÇÃO: Função de carregamento do perfil/metas
-    // Retorna true se tudo estiver ok, false se for novo usuário (precisa cadastrar) ou falha.
     async function loadProfileAndMetas(){
       try{
         const pSnap = await getProfileDocRef().get();
@@ -766,7 +771,9 @@
             targetWeight = parseFloat(d.targetWeight)||0; 
           }
           updateGoalDisplay();
-          updateMealSuggestion();
+          updateTotals(false);
+          updateWaterTracker(true); 
+          updateWeightProgress(); 
           return true; // Sucesso
         }
         
@@ -783,7 +790,7 @@
     // /* --- FIM MÓDULO: AUTENTICAÇÃO E PERFIL --- */
 
 
-    // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO (MANTIDO) --- */
+    // /* --- MÓDULO: LÓGICA DE METAS E CÁLCULO --- */
     async function saveMetas(){
       if (!userId) { showLoginModal(); return; } 
         
@@ -811,10 +818,13 @@
         return;
       }
 
-
-      let bmr = (10*weight)+(6.25*height)-(5*age)+(gender==='male'?5:-161);
-      const tdee = bmr*activity;
+      // CORREÇÃO 2: Uso da fórmula Mifflin-St Jeor para maior precisão na TMB
+      let s = (gender==='male' ? 5 : -161);
+      let bmr = (10 * weight) + (6.25 * height) - (5 * age) + s;
+      
+      const tdee = bmr * activity;
       let finalCalorieGoal = goalType==='perder'? tdee-400 : goalType==='manter'? tdee : tdee+400;
+      finalCalorieGoal = Math.round(finalCalorieGoal / 50) * 50; // Arredonda para o 50 mais próximo
 
       let mlPerKg = 35;
       if (age >= 56 && age <= 65) {
@@ -927,7 +937,7 @@
     // /* --- FIM MÓDULO: LÓGICA DE METAS E CÁLCULO --- */
 
 
-    // /* --- MÓDULO: LÓGICA DE LOG DIÁRIO (MANTIDO) --- */
+    // /* --- MÓDULO: LÓGICA DE LOG DIÁRIO --- */
     function loadLogForDate(dateString) {
         if (!userId) return; 
         
@@ -939,6 +949,7 @@
         currentDateString = dateString;
         dailyLog = {}; 
         waterLog = 0; 
+        totalFat = 0; // Resetar gordura
 
         // Limpar a UI antes de carregar o novo log
         MEAL_KEYS.forEach(k => {
@@ -989,7 +1000,8 @@
         
         manageEmptyListText();
     }
-
+    
+    // CORREÇÃO 4: Reconstrução do dailyLog integralmente a partir do snapshot
     function startDayListener(date) {
       const dayRef = getDayRef(userId, date);
       const itemsRef = getItemsRef(userId, date); 
@@ -998,35 +1010,21 @@
         dayRef.set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
       }
 
-      let initialLoad = true;
-
       unsubscribeListener = itemsRef.orderBy('clientTs','asc').onSnapshot(
         { includeMetadataChanges: true },
         (snap)=>{
           let shouldUpdateTotals = false;
           
-          if (snap.docChanges().length > 0 && snap.metadata.fromCache && initialLoad) {
-              clearFoodListUI();
-          }
-          
-          if (initialLoad) {
-            dailyLog = {};
-            clearFoodListUI();
-          }
+          dailyLog = {}; 
+          waterLog = 0;
+          totalFat = 0; 
+          clearFoodListUI(); // Garante que a UI é limpa para reconstrução
 
-          snap.docChanges().forEach(change => {
-            const item = { ...change.doc.data(), id: change.doc.id };
+          snap.docs.forEach(doc => {
+            const item = { ...doc.data(), id: doc.id };
+            dailyLog[item.id] = item;
+            updateFoodItemElement(item); 
             shouldUpdateTotals = true;
-            
-            if (change.type === "added" || change.type === "modified") {
-                dailyLog[item.id] = item;
-                updateFoodItemElement(item); 
-            }
-            
-            if (change.type === "removed") {
-                delete dailyLog[item.id];
-                removeFoodItemElement(item.id); 
-            }
           });
           
           waterLog = Object.values(dailyLog)
@@ -1039,7 +1037,6 @@
           }
           
           manageEmptyListText();
-          initialLoad = false;
         },
         (error) => {
             console.error("Erro no listener do Firestore:", error);
@@ -1128,15 +1125,22 @@
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; 
       
+      // CORREÇÃO 3: Cálculo correto de macros e calorias (P:4, C:4, G:9)
+      const calculatedProtein = f.protein * quantity;
+      const calculatedCarbs = f.carbs * quantity;
+      const calculatedFat = f.fat * quantity;
+      const calculatedCals = (calculatedProtein * 4) + (calculatedCarbs * 4) + (calculatedFat * 9);
+      
       const payload = {
         type: 'food', 
         key: selectedFoodKey,
         name: f.name,
         quantity,
         unit: f.unit,
-        protein: parseFloat((f.protein*quantity).toFixed(1)),
-        carbs: parseFloat((f.carbs*quantity).toFixed(1)),
-        cals: parseFloat((f.cals*quantity).toFixed(0)),
+        protein: parseFloat(calculatedProtein.toFixed(1)),
+        carbs: parseFloat(calculatedCarbs.toFixed(1)),
+        fat: parseFloat(calculatedFat.toFixed(1)), // NOVO: Campo de Gordura
+        cals: parseFloat(calculatedCals.toFixed(0)), // Arredondado para inteiro
         visceralFat: f.visceralFat,
         meal,
         ts: firebase.firestore.FieldValue.serverTimestamp(), 
@@ -1153,7 +1157,6 @@
         console.error("Erro ao adicionar alimento:", e);
       }
       
-
       document.getElementById('foodSearch').value='';
       document.getElementById('foodQuantity').value='';
       selectedFoodKey=null;
@@ -1180,6 +1183,7 @@
         alert("Erro ao excluir o registro. Verifique sua conexão e permissões (Regras do Firebase).");
         if (itemElement) itemElement.style.opacity = '1';
       }
+      // O listener (startDayListener) vai tratar a remoção da UI e a atualização dos totais.
     }
     
     function createWaterItemElement(item){
@@ -1224,6 +1228,7 @@
         </button>
       ` : `<div class="w-7 h-7"></div>`; 
 
+      // NOVO: Exibição da Gordura (Fat)
       div.innerHTML = `
         <div class="flex-grow">
           <p class="font-medium text-gray-800">${item.name}${warn}</p>
@@ -1236,6 +1241,8 @@
             <span class="text-emerald-600 font-medium">P: ${item.protein}g</span>
             <span class="text-gray-400 mx-1">|</span>
             <span class="text-blue-600 font-medium">C: ${item.carbs}g</span>
+            <span class="text-gray-400 mx-1">|</span>
+            <span class="text-red-600 font-medium">G: ${item.fat}g</span>
           </p>
         </div>
         ${deleteButtonHtml}
@@ -1244,8 +1251,6 @@
     }
     
     function updateFoodItemElement(item){
-        const existingElement = document.getElementById(`food-item-${item.id}`);
-        
         let newItemElement;
         let listContainer;
 
@@ -1268,11 +1273,6 @@
             listContainer = document.getElementById(`list-${item.meal}`);
         }
         
-        // Remove o elemento existente antes de adicionar o novo/modificado
-        if (existingElement) {
-            existingElement.remove();
-        }
-
         if (listContainer) {
             // Insere de forma ordenada, baseado na lista de IDs em dailyLog
             const itemIds = Object.keys(dailyLog).filter(id => {
@@ -1283,21 +1283,23 @@
 
             const itemIndex = itemIds.indexOf(item.id);
             
-            if (itemIndex > 0) {
-                const prevItemId = itemIds[itemIndex - 1];
-                const prevElement = document.getElementById(`food-item-${prevItemId}`);
-                if (prevElement) {
-                    prevElement.after(newItemElement);
+            if (itemIndex >= 0) { // Se o item estiver no log (sempre será se a reconstrução for completa)
+                if (itemIndex > 0) {
+                    const prevItemId = itemIds[itemIndex - 1];
+                    const prevElement = document.getElementById(`food-item-${prevItemId}`);
+                    if (prevElement) {
+                        prevElement.after(newItemElement);
+                    } else {
+                        listContainer.appendChild(newItemElement);
+                    }
                 } else {
-                    listContainer.appendChild(newItemElement);
+                     const firstElement = listContainer.firstChild;
+                     if(firstElement) {
+                         listContainer.insertBefore(newItemElement, firstElement);
+                     } else {
+                         listContainer.appendChild(newItemElement);
+                     }
                 }
-            } else if (itemIndex === 0) {
-                 const firstElement = listContainer.firstChild;
-                 if(firstElement) {
-                     listContainer.insertBefore(newItemElement, firstElement);
-                 } else {
-                     listContainer.appendChild(newItemElement);
-                 }
             } else {
                 listContainer.appendChild(newItemElement);
             }
@@ -1311,7 +1313,9 @@
             }
         }
     }
-
+    
+    // NOTA: Esta função não é estritamente necessária devido à reconstrução do DOM no listener,
+    // mas a mantive como um fallback ou para outros usos.
     function removeFoodItemElement(itemId){
         const element = document.getElementById(`food-item-${itemId}`);
         if(element){
@@ -1351,11 +1355,19 @@
     }
 
     function updateTotals(checkGoal=true){
-      let totalCals=0, totalProtein=0, totalCarbs=0;
-      Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ totalCals+=i.cals; totalProtein+=i.protein; totalCarbs+=i.carbs; });
+      let totalCals=0, totalProtein=0, totalCarbs=0, totalFat=0;
+      
+      // Novo cálculo de totais
+      Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ 
+          totalCals+=i.cals; 
+          totalProtein+=i.protein; 
+          totalCarbs+=i.carbs; 
+          totalFat+=i.fat; 
+      });
       
       document.getElementById('totalProteins').textContent = totalProtein.toFixed(1)+' g';
       document.getElementById('totalCarbs').textContent   = totalCarbs.toFixed(1)+' g';
+      document.getElementById('totalFats').textContent    = totalFat.toFixed(1)+' g'; // NOVO: Atualiza a gordura
 
       const isToday = currentDateString === todayDateString;
 
@@ -1364,9 +1376,15 @@
         const pct=Math.min((totalCals/calorieGoal)*100, 100);
         document.getElementById('calorieProgress').style.width=pct+'%';
         
-        if(isToday && checkGoal && !goalExceededNotified && totalCals>=calorieGoal){
-          goalExceededNotified=true;
-          showGoalExceededModal();
+        if(isToday && checkGoal){
+            if (!goalExceededNotified && totalCals >= calorieGoal) {
+                 // Ativou a notificação
+                 goalExceededNotified = true;
+                 showGoalExceededModal();
+            } else if (goalExceededNotified && totalCals < calorieGoal) {
+                 // CORREÇÃO 5: Reset da notificação se as calorias caírem abaixo da meta
+                 goalExceededNotified = false;
+            }
         } else if (!isToday && goalExceededNotified) {
              goalExceededNotified = false;
         }
@@ -1397,10 +1415,16 @@
       const html = results.map(key=>{
         const f=foodDatabase[key];
         const warn=f.visceralFat?' ⚠️':'';
+        // NOVO: Exibição da Gordura na busca
         return `
           <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" onclick="selectFood('${key}')">
             <p class="font-medium text-gray-800">${f.name}${warn}</p>
-            <p class="text-xs"><span class="text-orange-600 font-medium">${f.cals} kcal</span> <span class="text-gray-600">por ${f.unit}</span></p>
+            <p class="text-xs">
+                <span class="text-orange-600 font-medium">${f.cals} kcal</span> 
+                <span class="text-gray-600">por ${f.unit}</span>
+                <span class="text-gray-400 mx-1">|</span>
+                <span class="text-red-600 font-medium">G: ${f.fat}g</span>
+            </p>
           </div>
         `;
       }).join('');
@@ -1423,20 +1447,20 @@
                 return acc;
             }, {});
     }
-    // /* --- FIM MÓDULO: LÓGICA DE LOG DIÁRIO (MANTIDO) --- */
+    // /* --- FIM MÓDULO: LÓGICA DE LOG DIÁRIO --- */
 
 
-    // /* --- MÓDULO: COMPARTILHAMENTO (MANTIDO) --- */
+    // /* --- MÓDULO: COMPARTILHAMENTO --- */
     function shareToWhatsApp(){
       if (currentDateString !== todayDateString) {
           alert("Apenas é possível compartilhar o resumo do dia atual. Selecione a data de hoje.");
           return;
       }
 
-      let totalCals=0,totalProtein=0,totalCarbs=0;
+      let totalCals=0,totalProtein=0,totalCarbs=0,totalFat=0; // NOVO: Variavel de gordura
       const itemsByMeal = getItemsByMeal();
 
-      Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ totalCals+=i.cals; totalProtein+=i.protein; totalCarbs+=i.carbs; });
+      Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ totalCals+=i.cals; totalProtein+=i.protein; totalCarbs+=i.carbs; totalFat+=i.fat; });
       
       const userName=document.getElementById('userNameDisplay').textContent;
       const goalType=document.getElementById('goalType').value||'ganhar';
@@ -1451,7 +1475,8 @@
       msg += `🔥 Calorias: ${totalCals.toFixed(0)} kcal\n`;
       msg += `💧 Água Consumida: ${waterLog} ml\n`; 
       msg += `💪 Proteínas: ${totalProtein.toFixed(1)}g\n`;
-      msg += `🍞 Carboidratos: ${totalCarbs.toFixed(1)}g\n\n`;
+      msg += `🍞 Carboidratos: ${totalCarbs.toFixed(1)}g\n`;
+      msg += `🥓 Gorduras: ${totalFat.toFixed(1)}g\n\n`; // NOVO: Exibição da Gordura
 
       MEAL_KEYS.forEach(k=>{
         const items=itemsByMeal[k]||[];
@@ -1486,10 +1511,10 @@
       const url=`https://wa.me/?text=${encodeURIComponent(message)}`;
       window.open(url,'_blank');
     }
-    // /* --- FIM MÓDULO: COMPARTILHAMENTO (MANTIDO) --- */
+    // /* --- FIM MÓDULO: COMPARTILHAMENTO --- */
 
 
-    // /* --- MÓDULO: INICIALIZAÇÃO E LISTENERS --- */
+    // /* --- MÓDULO: INICIALIZAÇÃO E LISTENERS (MANTIDO) --- */
     
     let isAppInitialized = false;
 
