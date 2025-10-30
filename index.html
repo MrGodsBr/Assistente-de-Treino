@@ -18,9 +18,19 @@
     :root {
         --cor-proteinas-base: #10B981; /* Ex: emerald-500 */
         --cor-proteinas-dark: #059669; /* Ex: emerald-600 */
-        /* Cores do ícone para simular o gradiente roxo/azul */
-        --ai-icon-color-start: #7f00ff; /* Roxo */
-        --ai-icon-color-end: #00bcd4; /* Azul Claro */
+        /* Cores de Referência para o Gradiente do Botão AI Assistant */
+        --ai-grad-start: #ff7e5f; /* Laranja/Rosa */
+        --ai-grad-end: #feb47b;   /* Laranja/Amarelo */
+        --ai-grad-bg: #8e44ad;   /* Roxo Fundo */
+    }
+    
+    /* GRADIENTE CUSTOMIZADO para simular o botão */
+    .ai-button-gradient {
+        background-image: linear-gradient(to right, #e74c3c, #f39c12); /* Base */
+        position: relative;
+        overflow: hidden;
+        /* Simulação do gradiente roxo */
+        background: linear-gradient(90deg, #bb74b9 0%, #ff8c00 100%);
     }
 
     /* 1. CAIXA ALTA PARA OS TÍTULOS SOLICITADOS */
@@ -368,41 +378,22 @@
     </div>
     <div class="space-y-4">
         
-        <div class="relative flex justify-center items-center">
-            <h2 class="text-xl font-semibold text-gray-800 text-center titulo-secao-caixa-alta">Resumo do Dia</h2> 
+        <div class="relative flex flex-col justify-center items-center">
+            <h2 class="text-xl font-semibold text-gray-800 text-center titulo-secao-caixa-alta mb-4">Resumo do Dia</h2> 
             
             <button 
                 id="openAIModalButton" 
                 onclick="analyzeDailySummary()" 
-                class="absolute right-0 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors"
-                title="Análise de IA"
+                class="ai-button-gradient flex items-center justify-center space-x-2 px-6 py-3 rounded-full text-white font-bold shadow-lg transform hover:scale-[1.02] transition duration-150 ease-in-out"
+                title="Análise Avançada de IA"
+                style="min-width: 200px;"
             >
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="url(#ai-gradient)" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="ai-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:var(--ai-icon-color-start);stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:var(--ai-icon-color-end);stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <rect x="5" y="5" width="14" height="14" rx="3" stroke="white" stroke-width="1.5" fill="none"/>
-                    
-                    <path d="M15 8l1-2 1 2h-2z" fill="white"/>
-                    <path d="M15 15l1-2 1 2h-2z" fill="white"/>
-                    <circle cx="8" cy="8" r="1" fill="white"/>
-                    <circle cx="18" cy="18" r="1" fill="white"/>
-                    
-                    <rect x="0" y="0" width="24" height="24" rx="5" fill="url(#ai-gradient)" mask="url(#ai-mask)"/>
-                    
-                    <mask id="ai-mask">
-                        <rect x="0" y="0" width="24" height="24" fill="white" />
-                        <rect x="5" y="5" width="14" height="14" rx="3" fill="black"/>
-                    </mask>
-                    
-                    <path fill="white" d="M11.667 4L13.333 7.636L17 9.303L13.333 11.006L11.667 14.643L10 11.006L6.333 9.303L10 7.636L11.667 4Z"/>
-                </svg>
-
-
+                 <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.188C2.697 14.01 2 13.042 2 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    <path fill="white" d="M17.485 10.999l1.414 1.414-1.414 1.414-1.414-1.414zM16 8l.5.5.5-.5H16zM20 4l1 1-1 1h-2z"/>
+                 </svg>
                 
+                 <span>AI Assistant</span>
             </button>
         </div>
         <div id="weightProgressSection">
@@ -483,7 +474,7 @@
 
   const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
   const mealDisplayNames = {
-    cafe_da_manha: "☕ Café da Manhã",
+    cafe_da_manha: "☕ Café da Manã",
     almoco: "🍽️ Almoço",
     lanche: "🍎 Lanche",
     jantar: "🍲 Jantar",
@@ -764,8 +755,8 @@
         }
         
         // Simulação de Análise de Macros (Regra simples: Proteína deve ser > 30% das calorias para ganho/perda)
-        const proteinPct = totalProtein * 4 / totalCals;
-        if (totalCals > 0 && proteinPct >= 0.30) {
+        const proteinPct = totalCals > 0 ? (totalProtein * 4 / totalCals) : 0;
+        if (totalCals > 0 && proteinPct >= 0.30) { 
              macroStatus = `<p class="text-green-700 font-semibold">💪 Proteína: Excelente (Bom suporte à massa muscular).</p>`;
         } else if (totalCals > 0) {
              macroStatus = `<p class="text-yellow-700 font-semibold">💪 Proteína: Moderada. Tente aumentar a ingestão de fontes magras.</p>`;
@@ -781,7 +772,7 @@
 
         if (unhealthyItemsCount > 0) {
             analysisHTML += `<p class="text-red-600 font-semibold">🚨 Risco: ${unhealthyItemsCount} itens marcados com "⚠️" (Gordura Visceral).</p>`;
-            analysisHTML += `<p class="text-sm">O Gemini sugere cautela com itens de alta densidade calórica e baixo valor nutricional. **Próximo Passo:** Avalie a substituição desses alimentos por frutas, vegetais ou proteínas magras.</p>`;
+            analysisHTML += `<p class="text-sm">O Gemini sugere cautela com itens de alta densidade calórica e baixo valor nutricional. **Próximo Passo:** Avalie a substituição desses alimentos por alternativas integrais ou magras.</p>`;
         } else if (foodItems.length > 3) {
             analysisHTML += `<p class="text-green-700 font-semibold">🌟 Ótima Escolha!</p>`;
             analysisHTML += `<p class="text-sm">Sua dieta hoje pareceu focada em alimentos de alta qualidade. Continue assim para melhorar a composição corporal!</p>`;
