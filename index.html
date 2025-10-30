@@ -1688,30 +1688,45 @@
           }, {});
   }
 
+  // #############################################
+  // ##           FUNÇÃO searchFood CORRIGIDA           ##
+  // #############################################
   function searchFood(){
-    const q=document.getElementById('foodSearch').value.toLowerCase().trim();
-    const dd=document.getElementById('searchDropdown');
-    
-    // #############################################
-    // ##               A CORREÇÃO                ##
-    // #############################################
-    // Alterado de 'q.length < 2' para 'q.length < 1'
-    if(q.length < 1){ 
+    // Helper para remover acentos (ex: "Maçã" vira "Maca")
+    const normalizeText = (text) => {
+        return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    };
+
+    const q_raw = document.getElementById('foodSearch').value.trim();
+    const dd = document.getElementById('searchDropdown');
+
+    // 1ª CORREÇÃO: Alterado de 'q.length < 2' para 'q_raw.length < 1'
+    if(q_raw.length < 1){ 
       hideElement(dd); 
       return; 
     }
-    // #############################################
     
-    const results=Object.keys(foodDatabase).filter(k=>{
-      const f=foodDatabase[key];
-      return f.name.toLowerCase().includes(q)||k.includes(q);
+    // Converte a pesquisa para minúsculas E remove acentos
+    const q = normalizeText(q_raw.toLowerCase());
+
+    const results=Object.keys(foodDatabase).filter(k => {
+      const f = foodDatabase[k];
+      
+      // 2ª CORREÇÃO: Normaliza o nome do alimento no banco de dados antes de comparar
+      const keyNormalized = normalizeText(k);
+      const nameNormalized = normalizeText(f.name.toLowerCase());
+      
+      // Compara os textos normalizados (sem acentos)
+      return nameNormalized.includes(q) || keyNormalized.includes(q);
     });
+
     if(results.length===0){
       dd.innerHTML='<div class="p-3 text-gray-500 text-sm">Nenhum alimento encontrado</div>';
       showElement(dd); return;
     }
-    const html = results.map(key=>{
-      const f=foodDatabase[key];
+    
+    const html = results.map(key => { // 'key' aqui é o ID do alimento, ex: 'feijao_preto'
+      const f = foodDatabase[key];
       const warn=f.visceralFat?' ⚠️':'';
       return `
         <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" onclick="selectFood('${key}')">
@@ -1720,8 +1735,14 @@
         </div>
       `;
     }).join('');
-    dd.innerHTML=html; showElement(dd);
+
+    dd.innerHTML=html; 
+    showElement(dd);
   }
+  // #############################################
+  // ##        FIM DA FUNÇÃO CORRIGIDA          ##
+  // #############################################
+
 
   function selectFood(key){
     selectedFoodKey=key;
