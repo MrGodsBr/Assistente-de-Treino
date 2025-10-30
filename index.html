@@ -187,6 +187,7 @@
       Fechar Análise
     </button>
   </div>
+
   <div id="mainApp" class="bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 hidden">
 
     <header class="flex justify-between items-center border-b pb-4">
@@ -429,13 +430,15 @@
         <div>
           <p class="text-base font-medium text-emerald-600 mb-1">Proteínas</p>
           <p id="totalProteins" class="text-3xl font-bold text-emerald-600">0 g</p>
+          <p id="proteinGoalText" class="text-sm font-medium text-gray-500">Meta: 0 g</p>
         </div>
         <div>
           <p class="text-base font-medium text-blue-600 mb-1">Carboidratos</p>
           <p id="totalCarbs" class="text-3xl font-bold text-blue-600">0 g</p>
+          <p id="carbGoalText" class="text-sm font-medium text-gray-500">Meta: 0 g</p>
         </div>
       </div>
-    </div>
+      </div>
     </div>
 
   <footer class="mt-8 text-sm text-gray-500">Desenvolvido por Thiago</footer>
@@ -455,8 +458,15 @@
   let firebaseApp, firebaseAuth, firebaseDb, userId = null;
 
   // Estado global
+  
+  // --- CORREÇÃO (JS): ADICIONANDO VARIÁVEIS GLOBAIS DE METAS DE MACROS ---
   let calorieGoal = 0;
+  let proteinGoal = 0; // ADICIONADO
+  let carbGoal = 0;    // ADICIONADO
+  let fatGoal = 0;     // ADICIONADO
   let waterGoal = 0;
+  // --- FIM DA CORREÇÃO ---
+
   let currentWeight = 0;
   let targetWeight = 0;
   let selectedFoodKey = null;
@@ -754,17 +764,20 @@
             waterStatus = `<p class="text-orange-700 font-semibold">💧 Meta de Água: Faltam ${waterRemaining.toFixed(0)} ml.</p>`;
         }
         
-        // Simulação de Análise de Macros (Regra simples: Proteína deve ser > 30% das calorias para ganho/perda)
-        const proteinPct = totalCals > 0 ? (totalProtein * 4 / totalCals) : 0;
-        if (totalCals > 0 && proteinPct >= 0.30) { 
-             macroStatus = `<p class="text-green-700 font-semibold">💪 Proteína: Excelente (Bom suporte à massa muscular).</p>`;
-        } else if (totalCals > 0) {
-             macroStatus = `<p class="text-yellow-700 font-semibold">💪 Proteína: Moderada. Tente aumentar a ingestão de fontes magras.</p>`;
+        // --- CORREÇÃO (JS): ANÁLISE DE IA AGORA USA AS METAS DE MACROS ---
+        let proteinStatus = '';
+        if (proteinGoal > 0) {
+            if (totalProtein >= proteinGoal) {
+                proteinStatus = `<p class="text-green-700 font-semibold">💪 Proteína: Meta Atingida!</p>`;
+            } else {
+                proteinStatus = `<p class="text-yellow-700 font-semibold">💪 Proteína: Faltam ${(proteinGoal - totalProtein).toFixed(0)}g.</p>`;
+            }
         } else {
-             macroStatus = `<p class="text-gray-500 font-semibold">💪 Proteína: Dados insuficientes.</p>`;
+             proteinStatus = `<p class="text-gray-500 font-semibold">💪 Proteína: Nenhuma meta definida.</p>`;
         }
         
-        analysisHTML += calsStatus + waterStatus + macroStatus;
+        analysisHTML += calsStatus + waterStatus + proteinStatus;
+        // --- FIM DA CORREÇÃO ---
         
         // --- 2. Análise da Qualidade dos Alimentos (Refeições do Dia) ---
         analysisHTML += `<hr class="my-4 border-gray-200">`;
@@ -901,8 +914,15 @@
             document.getElementById('gender').value=mData.gender||'male';
             document.getElementById('activity').value=mData.activity||'1.55';
             document.getElementById('goalType').value=mData.goalType||'ganhar';
+            
+            // --- CORREÇÃO (JS): CARREGANDO AS METAS DE MACROS ---
             calorieGoal = parseFloat(mData.calorieGoal)||0;
             waterGoal = parseFloat(mData.waterGoal)||0; 
+            proteinGoal = parseFloat(mData.proteinGoal) || 0; // ADICIONADO
+            carbGoal = parseFloat(mData.carbGoal) || 0;     // ADICIONADO
+            fatGoal = parseFloat(mData.fatGoal) || 0;         // ADICIONADO
+            // --- FIM DA CORREÇÃO ---
+
             currentGoalType = mData.goalType||'ganhar';
             currentWeight = parseFloat(mData.weight)||0; 
             targetWeight = parseFloat(mData.targetWeight)||0; 
@@ -1019,11 +1039,12 @@
       return;
     }
 
-
+    // --- CÁLCULO DE CALORIAS (SEU CÓDIGO ORIGINAL - ESTÁ CORRETO) ---
     let bmr = (10*weight)+(6.25*height)-(5*age)+(gender==='male'?5:-161);
     const tdee = bmr*activity;
     let finalCalorieGoal = goalType==='perder'? tdee-400 : goalType==='manter'? tdee : tdee+400;
 
+    // --- CÁLCULO DE ÁGUA (SEU CÓDIGO ORIGINAL - ESTÁ CORRETO) ---
     let mlPerKg = 35;
     if (age >= 56 && age <= 65) {
         mlPerKg = 30;
@@ -1032,18 +1053,64 @@
     }
     const finalWaterGoal = Math.round(weight * mlPerKg);
 
+    // ####################################
+    // ##  INÍCIO DA CORREÇÃO (CÁLCULO JS) ##
+    // ####################################
+    // Aqui calculamos os macronutrientes com base nas calorias
+    
+    // 1. Meta de Proteína (g)
+    // Usando 2.0g/kg para Bulking/Cutting (como no seu caso), e 1.8g/kg para Manutenção
+    let proteinGoalInGrams = 0;
+    if (goalType === 'manter') {
+        proteinGoalInGrams = weight * 1.8; 
+    } else {
+        proteinGoalInGrams = weight * 2.0; // 2.0g/kg para bulking ou cutting
+    }
+    const caloriesFromProtein = proteinGoalInGrams * 4;
+
+    // 2. Meta de Gordura (g)
+    // Usando 25% das calorias totais para saúde hormonal
+    const caloriesFromFat = finalCalorieGoal * 0.25;
+    const fatGoalInGrams = caloriesFromFat / 9;
+
+    // 3. Meta de Carboidratos (g)
+    // O restante das calorias é para carboidratos
+    const caloriesFromCarbs = finalCalorieGoal - caloriesFromProtein - caloriesFromFat;
+    const carbGoalInGrams = caloriesFromCarbs / 4;
+
+    // ####################################
+    // ##   FIM DA CORREÇÃO (CÁLCULO JS)   ##
+    // ####################################
+
+
+    // Atualiza o estado global do App
     calorieGoal=finalCalorieGoal;
     waterGoal=finalWaterGoal;
+    
+    // --- CORREÇÃO (JS): ATUALIZANDO METAS GLOBAIS DE MACROS ---
+    proteinGoal = proteinGoalInGrams;
+    carbGoal = carbGoalInGrams;
+    fatGoal = fatGoalInGrams;
+    // --- FIM DA CORREÇÃO ---
+    
     currentGoalType=goalType;
     currentWeight = weight; 
     targetWeight = targetWeightValue; 
 
     try{
+      // --- CORREÇÃO (JS): SALVANDO OS NOVOS MACROS NO FIREBASE ---
       await getMetasDocRef().set({ 
           weight, targetWeight: targetWeightValue, height, age, gender, activity, goalType, 
-          calorieGoal: finalCalorieGoal.toFixed(0),
-          waterGoal: finalWaterGoal.toFixed(0) 
-      });
+          calorieGoal: parseFloat(finalCalorieGoal.toFixed(0)), // Salva como número
+          waterGoal: parseFloat(finalWaterGoal.toFixed(0)),   // Salva como número
+          
+          // --- ADICIONADO ---
+          proteinGoal: parseFloat(proteinGoalInGrams.toFixed(0)),
+          carbGoal: parseFloat(carbGoalInGrams.toFixed(0)),
+          fatGoal: parseFloat(fatGoalInGrams.toFixed(0))
+          // --- FIM DA ADIÇÃO ---
+      }, { merge: true }); // Usar merge:true é uma boa prática
+
       updateGoalDisplay();
       updateTotals(false);
       updateWaterTracker(true); 
@@ -1075,6 +1142,20 @@
       goalText.classList.add('text-gray-600');
       hideElement(document.getElementById('goalTag'));
     }
+    
+    // --- CORREÇÃO (JS): ATUALIZA O TEXTO DA META DE MACROS ---
+    if (proteinGoal > 0) {
+        document.getElementById('proteinGoalText').textContent = `Meta: ${proteinGoal.toFixed(0)} g`;
+    } else {
+        document.getElementById('proteinGoalText').textContent = `Meta: 0 g`;
+    }
+    if (carbGoal > 0) {
+        document.getElementById('carbGoalText').textContent = `Meta: ${carbGoal.toFixed(0)} g`;
+    } else {
+        document.getElementById('carbGoalText').textContent = `Meta: 0 g`;
+    }
+    // --- FIM DA CORREÇÃO ---
+
     updateWaterTracker(true); 
     updateWeightProgress(); 
   }
@@ -1410,6 +1491,21 @@
     document.getElementById('totalProteins').textContent = totalProtein.toFixed(1)+' g';
     document.getElementById('totalCarbs').textContent   = totalCarbs.toFixed(1)+' g';
 
+    // --- CORREÇÃO (JS): ATUALIZA O TEXTO DA META DE MACROS QUANDO ALIMENTOS SÃO ADICIONADOS/REMOVIDOS ---
+    if (proteinGoal > 0) {
+        document.getElementById('proteinGoalText').textContent = `Meta: ${proteinGoal.toFixed(0)} g`;
+    } else {
+        document.getElementById('proteinGoalText').textContent = `Meta: 0 g`;
+    }
+    
+    if (carbGoal > 0) {
+        document.getElementById('carbGoalText').textContent = `Meta: ${carbGoal.toFixed(0)} g`;
+    } else {
+        document.getElementById('carbGoalText').textContent = `Meta: 0 g`;
+    }
+    // --- FIM DA CORREÇÃO ---
+
+
     const isToday = currentDateString === todayDateString;
 
     if(calorieGoal>0){
@@ -1643,6 +1739,12 @@
     msg += `👤 ${userName}\n`;
     msg += `🎯 Objetivo: ${goalName}\n`;
     msg += `📊 Meta Calorias: ${calorieGoal.toFixed(0)} kcal\n`;
+    
+    // --- CORREÇÃO (JS): ADICIONANDO METAS DE MACROS AO COMPARTILHAMENTO ---
+    msg += `💪 Meta Proteínas: ${proteinGoal.toFixed(0)} g\n`;
+    msg += `🍞 Meta Carboidratos: ${carbGoal.toFixed(0)} g\n`;
+    // --- FIM DA CORREÇÃO ---
+
     msg += `💧 Meta Água: ${waterGoal.toFixed(0)} ml\n\n`; 
     msg += `Consumo do Dia:\n`;
     msg += `🔥 Calorias: ${totalCals.toFixed(0)} kcal\n`;
