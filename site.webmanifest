@@ -1,6 +1,6 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "FITNESS-PRO 2.0",
+  "short_name": "FitPro",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
