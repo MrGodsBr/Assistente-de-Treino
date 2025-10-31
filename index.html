@@ -158,7 +158,6 @@
     </div>
   </div>
 
-
   <div id="warningModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
   <div id="warningModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
     <div class="text-center">
@@ -195,6 +194,50 @@
     </button>
   </div>
 
+  <div id="customFoodModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
+  <div id="customFoodModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
+    <h3 class="text-2xl font-bold text-gray-800 text-center mb-4">Criar Alimento Customizado</h3>
+    <p id="customFoodError" class="text-red-600 text-center font-medium text-sm mb-3 hidden"></p>
+
+    <div class="space-y-4">
+      <div>
+        <label for="customFoodName" class="block text-sm font-medium text-gray-700">Nome do Alimento *</label>
+        <input type="text" id="customFoodName" placeholder="Ex: Bolo de Fubá da Vovó" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+      </div>
+      
+      <button id="fetchMacrosButton" class="w-full bg-blue-100 text-blue-700 font-semibold py-2 px-4 rounded-lg hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-sm flex items-center justify-center space-x-2">
+        <span>🤖 Buscar Macros Sugeridos</span>
+        <div id="customFoodSpinner" class="spinner h-4 w-4 border-t-2 border-b-2 border-blue-600 hidden"></div>
+      </button>
+
+      <div>
+        <label for="customFoodUnit" class="block text-sm font-medium text-gray-700">Porção *</label>
+        <input type="text" id="customFoodUnit" placeholder="Ex: 100g, 1 fatia, 1 unidade" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+      </div>
+      
+      <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label for="customFoodCals" class="block text-sm font-medium text-gray-700">Calorias *</label>
+            <input type="number" id="customFoodCals" placeholder="kcal" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+          <div>
+            <label for="customFoodProt" class="block text-sm font-medium text-gray-700">Proteínas</label>
+            <input type="number" id="customFoodProt" placeholder="g" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+          <div>
+            <label for="customFoodCarbs" class="block text-sm font-medium text-gray-700">Carbos</label>
+            <input type="number" id="customFoodCarbs" placeholder="g" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+      </div>
+      
+      <button id="saveCustomFoodButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
+        Salvar e Adicionar
+      </button>
+      <button id="closeCustomFoodModal" type="button" class="w-full text-sm text-gray-600 font-medium py-2 mt-4 hover:text-gray-900">
+        Cancelar
+      </button>
+    </div>
+  </div>
   <div id="mainApp" class="bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 hidden">
 
     <header class="flex justify-between items-center border-b pb-4">
@@ -500,6 +543,13 @@
   
   // Variável para controlar o "debounce" da busca
   let searchTimeout = null;
+  
+  // ####################################################################
+  // ##           NOVA VARIÁVEL: CACHE DE ALIMENTOS CUSTOMIZADOS       ##
+  // ####################################################################
+  let customFoodCache = {}; // Guarda os alimentos que o usuário criou
+  // ####################################################################
+  
 
   const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
   const mealDisplayNames = {
@@ -575,6 +625,16 @@
     if (!userId) throw new Error('Usuário não autenticado');
     return firebaseDb.collection('users').doc(userId).collection('data').doc('metas');
   }
+  // ####################################################################
+  // ##           NOVA FUNÇÃO: REFERÊNCIA ALIMENTOS CUSTOMIZADOS       ##
+  // ####################################################################
+  function getCustomFoodsRef() {
+    if (!userId) throw new Error('Usuário não autenticado');
+    // Salva os alimentos customizados de cada usuário separadamente
+    return firebaseDb.collection('users').doc(userId).collection('custom_foods');
+  }
+  // ####################################################################
+  
 
   // UI helpers
   function showElement(el){ el.classList.remove('hidden'); }
@@ -637,6 +697,143 @@
   function hideAIModal(){
     hideModal(document.getElementById('aiModal'), document.getElementById('aiModalOverlay'));
   }
+  
+  // ####################################################################
+  // ##           NOVAS FUNÇÕES: MODAL ALIMENTO CUSTOMIZADO            ##
+  // ####################################################################
+  function showCustomFoodModal(searchQuery = '') {
+    const modal = document.getElementById('customFoodModal');
+    const overlay = document.getElementById('customFoodModalOverlay');
+    
+    // Limpa campos anteriores
+    document.getElementById('customFoodName').value = searchQuery; // Pré-preenche o nome
+    document.getElementById('customFoodUnit').value = '';
+    document.getElementById('customFoodCals').value = '';
+    document.getElementById('customFoodProt').value = '';
+    document.getElementById('customFoodCarbs').value = '';
+    
+    // Limpa erros
+    const errorEl = document.getElementById('customFoodError');
+    errorEl.textContent = '';
+    hideElement(errorEl);
+    
+    // Reseta o spinner
+    hideElement(document.getElementById('customFoodSpinner'));
+    document.getElementById('fetchMacrosButton').disabled = false;
+    
+    showModal(modal, overlay);
+  }
+
+  function hideCustomFoodModal() {
+    hideModal(document.getElementById('customFoodModal'), document.getElementById('customFoodModalOverlay'));
+  }
+
+  // Busca macros para o alimento customizado
+  async function fetchCustomFoodMacros() {
+    const name = document.getElementById('customFoodName').value.trim();
+    if (name.length < 2) {
+      alert("Por favor, digite um nome para o alimento primeiro.");
+      return;
+    }
+
+    const spinner = document.getElementById('customFoodSpinner');
+    const button = document.getElementById('fetchMacrosButton');
+    const errorEl = document.getElementById('customFoodError');
+
+    showElement(spinner);
+    button.disabled = true;
+    errorEl.textContent = '';
+    hideElement(errorEl);
+
+    try {
+      // 1. Usa a MESMA API que a busca normal
+      const response = await fetch(`/api/search?food=${encodeURIComponent(name)}`);
+      if (!response.ok) throw new Error('Não foi possível buscar sugestões.');
+
+      const results = await response.json();
+      
+      // 2. Pega o PRIMEIRO resultado (o mais provável)
+      const bestMatch = results[0];
+
+      if (bestMatch) {
+        // 3. Preenche os campos
+        document.getElementById('customFoodUnit').value = bestMatch.serving_desc || '100g';
+        document.getElementById('customFoodCals').value = bestMatch.cals.toFixed(0);
+        document.getElementById('customFoodProt').value = bestMatch.protein.toFixed(1);
+        document.getElementById('customFoodCarbs').value = bestMatch.carbs.toFixed(1);
+      } else {
+        errorEl.textContent = "Nenhum macro sugerido encontrado. Preencha manualmente.";
+        showElement(errorEl);
+      }
+
+    } catch (e) {
+      console.error("Erro ao buscar macros:", e);
+      errorEl.textContent = "Erro ao buscar. Tente novamente.";
+      showElement(errorEl);
+    } finally {
+      hideElement(spinner);
+      button.disabled = false;
+    }
+  }
+
+  // Salva o alimento customizado no Firebase
+  async function saveCustomFood() {
+    if (!userId) {
+      showLoginModal();
+      return;
+    }
+
+    const errorEl = document.getElementById('customFoodError');
+    const button = document.getElementById('saveCustomFoodButton');
+    button.disabled = true;
+    errorEl.textContent = '';
+    hideElement(errorEl);
+
+    try {
+      // 1. Coleta os dados do modal
+      const name = document.getElementById('customFoodName').value.trim();
+      const unit = document.getElementById('customFoodUnit').value.trim();
+      const cals = parseFloat(document.getElementById('customFoodCals').value);
+      const protein = parseFloat(document.getElementById('customFoodProt').value) || 0;
+      const carbs = parseFloat(document.getElementById('customFoodCarbs').value) || 0;
+
+      // 2. Validação
+      if (!name || !unit || isNaN(cals) || cals < 0) {
+        throw new Error("Preencha pelo menos Nome, Porção e Calorias.");
+      }
+
+      const foodObject = {
+        name: name,
+        unit: unit, // O nome da porção
+        cals: cals,
+        protein: protein,
+        carbs: carbs,
+        fat: 0, // Não pedimos gordura, então zeramos
+        serving_desc: unit, // Para compatibilidade com a busca
+        isCustom: true // Flag para identificar
+      };
+      
+      // 3. Salva no Firebase
+      const docRef = await getCustomFoodsRef().add(foodObject);
+      
+      // 4. Atualiza o cache local
+      foodObject.id = docRef.id;
+      customFoodCache[docRef.id] = foodObject;
+      
+      // 5. Seleciona o alimento e fecha o modal
+      selectFood(foodObject);
+      hideCustomFoodModal();
+
+    } catch (e) {
+      console.error("Erro ao salvar alimento:", e);
+      errorEl.textContent = e.message;
+      showElement(errorEl);
+    } finally {
+      button.disabled = false;
+    }
+  }
+  // ####################################################################
+
   
   // FUNÇÃO DE ANÁLISE DA IA MELHORADA
   function analyzeDailySummary() {
@@ -888,6 +1085,25 @@
         return false;
       }
     }
+    
+  // ####################################################################
+  // ##           NOVA FUNÇÃO: CARREGAR ALIMENTOS CUSTOMIZADOS         ##
+  // ####################################################################
+  async function loadCustomFoods() {
+    if (!userId) return;
+    customFoodCache = {}; // Limpa o cache ao trocar de usuário
+    try {
+      const snap = await getCustomFoodsRef().get();
+      snap.forEach(doc => {
+        customFoodCache[doc.id] = { id: doc.id, ...doc.data() };
+      });
+      console.log("Alimentos customizados carregados:", Object.keys(customFoodCache).length);
+    } catch (e) {
+      console.error("Erro ao carregar alimentos customizados:", e);
+    }
+  }
+  // ####################################################################
+
   
   // Auth state
   function attachAuthListener() {
@@ -913,6 +1129,9 @@
             hideElement(document.getElementById('loginModal'));
 
             showElement(document.getElementById('mainApp'));
+            
+            // ATUALIZADO: Carrega os alimentos customizados E os logs do dia
+            await loadCustomFoods(); 
             loadDayData(currentDateString); // Inicia o listener de logs
             
             // Reabilita funcionalidades de log/metas
@@ -934,6 +1153,7 @@
         // Usuário não logado (Visitante)
         userId = null;
         if (unsubscribeListener) { unsubscribeListener(); unsubscribeListener = null; } // Para logs de sessões anteriores
+        customFoodCache = {}; // Limpa o cache de alimentos customizados
         
         hideElement(document.getElementById('mainApp'));
         document.getElementById('authControlButton').textContent = 'Fazer Login / Criar Conta';
@@ -1679,78 +1899,96 @@
     const q = normalizeText(q_raw.toLowerCase());
     
     // 1. Mostrar "Buscando..."
-    dd.innerHTML = `<div class="p-3 text-gray-500 text-sm text-center">Buscando na internet...</div>`;
+    dd.innerHTML = `<div class="p-3 text-gray-500 text-sm text-center">Buscando...</div>`;
     showElement(dd);
+    
+    let html = '';
+    let resultCount = 0;
+    
+    // 2. Busca RÁPIDA nos Alimentos Customizados (do usuário)
+    const customResults = Object.values(customFoodCache).filter(f => {
+      const nameNormalized = normalizeText(f.name.toLowerCase());
+      return nameNormalized.includes(q);
+    });
+    
+    customResults.forEach(f => {
+      // 'f' já é o objeto completo (id, name, cals, etc)
+      html += `
+        <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" 
+             onclick='selectFood(${JSON.stringify(f)})'>
+          <p class="font-medium text-green-700">✏️ ${f.name} (Meu Alimento)</p>
+          <p class="text-xs"><span class="text-orange-600 font-medium">${f.cals} kcal</span> <span class="text-gray-600">por ${f.unit}</span></p>
+        </div>
+      `;
+    });
+    resultCount += customResults.length;
 
-    // 2. Busca RÁPIDA nos favoritos locais (foodDatabase)
+    // 3. Busca RÁPIDA nos favoritos locais (foodDatabase)
     const localResults = Object.keys(foodDatabase).filter(k => {
       const f = foodDatabase[k];
       const nameNormalized = normalizeText(f.name.toLowerCase());
       return nameNormalized.includes(q) || k.includes(q);
     });
     
-    let html = '';
-
-    // Mapeia os resultados locais
     localResults.forEach(key => {
       const f = foodDatabase[key];
       // Criamos o objeto que 'selectFood' espera
       const foodObject = {
-        id: key,
-        name: f.name,
-        serving_desc: f.unit, // Usamos 'unit' como 'serving_desc'
-        cals: f.cals,
-        carbs: f.carbs,
-        protein: f.protein,
-        fat: 0, // (Nossos favoritos locais não tinham gordura)
+        id: key, name: f.name, serving_desc: f.unit, cals: f.cals, 
+        carbs: f.carbs, protein: f.protein, fat: 0, 
         visceralFat: f.visceralFat 
       };
       
-      // ATENÇÃO: Usamos JSON.stringify para passar o OBJETO como string no HTML
-      // Usamos ' (aspas simples) para envolver o JSON.stringify
       html += `
         <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" 
              onclick='selectFood(${JSON.stringify(foodObject)})'>
-          <p class="font-medium text-gray-800">⭐ ${f.name}</p>
+          <p class="font-medium text-gray-800">⭐ ${f.name} (Rápido)</p>
           <p class="text-xs"><span class="text-orange-600 font-medium">${f.cals} kcal</span> <span class="text-gray-600">por ${f.unit}</span></p>
         </div>
       `;
     });
+    resultCount += localResults.length;
     
-    if (localResults.length > 0) {
+    if (resultCount > 0) {
       html += `<hr class="my-1 border-gray-300">`; // Divisor
     }
     
     dd.innerHTML = html + `<div id="apiLoading" class="p-3 text-gray-500 text-sm text-center">Buscando na internet...</div>`;
 
 
-    // 3. Busca na API (com "debounce" de 300ms)
+    // 4. Busca na API (com "debounce" de 300ms)
     searchTimeout = setTimeout(async () => {
       try {
         const response = await fetch(`/api/search?food=${encodeURIComponent(q_raw)}`);
-        
-        // Remove o "Buscando..."
         const loadingEl = document.getElementById('apiLoading');
-        if (loadingEl) loadingEl.remove();
         
         if (!response.ok) {
           throw new Error('Erro ao buscar na API.');
         }
         
         const apiResults = await response.json();
+        resultCount += apiResults.length;
 
-        if(apiResults.length === 0 && localResults.length === 0){
-          dd.innerHTML=`<div class="p-3 text-gray-500 text-sm">Nenhum alimento encontrado.</div>`;
-          // (Aqui adicionaremos o botão "Criar Customizado" na próxima etapa)
+        // Se não houver NENHUM resultado (nem local, nem custom, nem api)
+        if(resultCount === 0){
+          dd.innerHTML = `
+            <div class="p-3 text-gray-500 text-center text-sm">Nenhum alimento encontrado.</div>
+            <div class="p-2">
+              <button 
+                onclick="showCustomFoodModal('${q_raw.replace(/'/g, "\\'")}')" 
+                class="w-full bg-green-100 text-green-700 font-semibold py-2 px-3 rounded-lg text-sm">
+                + Criar alimento "${q_raw}"
+              </button>
+            </div>
+          `;
           return;
         }
         
+        // Remove o "Buscando..."
+        if (loadingEl) loadingEl.remove();
+        
         // Mapeia os resultados da API
         apiResults.forEach(f => {
-          // O objeto 'f' já vem pronto da nossa API
-          // (name, serving_desc, cals, carbs, protein, fat)
-          
-          // ATENÇÃO: Usamos JSON.stringify para passar o OBJETO como string no HTML
           html += `
             <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" 
                  onclick='selectFood(${JSON.stringify(f)})'>
@@ -1760,7 +1998,7 @@
           `;
         });
         
-        dd.innerHTML = html; // Atualiza o dropdown com os resultados locais + API
+        dd.innerHTML = html; // Atualiza o dropdown com os resultados locais + custom + API
 
       } catch (error) {
         console.error("Erro ao chamar a API:", error);
@@ -1993,6 +2231,16 @@
     document.getElementById('closeWarningModalButton').addEventListener('click', ()=>{
       hideModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay'));
     });
+    
+    // ####################################################################
+    // ##           NOVOS EVENTOS: MODAL ALIMENTO CUSTOMIZADO            ##
+    // ####################################################################
+    document.getElementById('closeCustomFoodModal').addEventListener('click', hideCustomFoodModal);
+    document.getElementById('fetchMacrosButton').addEventListener('click', fetchCustomFoodMacros);
+    document.getElementById('saveCustomFoodButton').addEventListener('click', saveCustomFood);
+    // ####################################################################
+
+    
     document.addEventListener('click', (e)=>{
       if(!e.target.closest('#foodSearch') && !e.target.closest('#searchDropdown')){
         hideElement(document.getElementById('searchDropdown'));
