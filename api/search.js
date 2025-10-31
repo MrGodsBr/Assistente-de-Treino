@@ -2,7 +2,6 @@
 import fetch from 'node-fetch';
 
 // Esta é a função principal que o Vercel vai executar
-// Ela recebe o 'request' (pedido) e envia o 'response' (resposta)
 export default async function handler(request, response) {
   // 1. Pega o que o usuário digitou (ex: ?food=banana)
   const searchQuery = request.query.food;
@@ -21,12 +20,10 @@ export default async function handler(request, response) {
 
   try {
     // 3. Etapa de Autenticação: Pedir um Token de Acesso para o FatSecret
-    // O FatSecret exige que você "faça login" (obtenha um token) antes de cada busca.
     const tokenResponse = await fetch('https://oauth.fatsecret.com/connect/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        // A autenticação 'Basic' usa o ID e o Secret codificados
         'Authorization': `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')}`
       },
       body: 'grant_type=client_credentials&scope=basic'
@@ -39,9 +36,13 @@ export default async function handler(request, response) {
       throw new Error('Falha ao obter token de acesso do FatSecret.');
     }
 
-    // 4. Etapa de Busca: Usar o Token para buscar o alimento
-    // Nós vamos buscar apenas alimentos "genéricos" (como "Banana", "Arroz")
-    const searchUrl = `https://platform.fatsecret.com/rest/server.api?method=foods.search&search_expression=${encodeURIComponent(searchQuery)}&food_type=generic&format=json`;
+    // ####################################################################
+    // ##                        A CORREÇÃO ESTÁ AQUI                   ##
+    // ####################################################################
+    // Adicionamos "&language=pt" para buscar em Português
+    const searchUrl = `https://platform.fatsecret.com/rest/server.api?method=foods.search&search_expression=${encodeURIComponent(searchQuery)}&food_type=generic&format=json&language=pt`;
+    // ####################################################################
+
 
     const foodResponse = await fetch(searchUrl, {
       headers: {
@@ -52,28 +53,25 @@ export default async function handler(request, response) {
     const foodData = await foodResponse.json();
 
     // 5. Etapa de Formatação: Limpar os dados antes de enviar de volta para o app
-    // O FatSecret retorna muitos dados. Vamos enviar só o que precisamos.
-    
     let formattedResults = [];
     if (foodData.foods && foodData.foods.food) {
       const foods = Array.isArray(foodData.foods.food) ? foodData.foods.food : [foodData.foods.food];
 
       formattedResults = foods.map(food => {
-        // A descrição do FatSecret é complexa, ex: "Banana - Por 100g: Cals: 89..."
-        // Vamos tentar pegar a porção padrão de 100g, se existir.
         const serving = food.servings.serving;
         let standardServing = null;
         
         if (Array.isArray(serving)) {
-            // Procura a porção de 100g
+            // Tenta achar a porção de 100g, que é a melhor para cálculo
             standardServing = serving.find(s => s.metric_serving_unit === 'g' && parseFloat(s.metric_serving_amount) === 100);
-            // Se não achar 100g, pega a primeira porção
+            // Se não achar 100g, pega a primeira porção que tiver macros
+            if (!standardServing) standardServing = serving.find(s => s.calories);
+            // Se ainda não achar, pega a primeira
             if (!standardServing) standardServing = serving[0];
         } else {
             standardServing = serving;
         }
 
-        // Se a porção padrão ainda não tiver os dados, pegamos da primeira
         const cals = parseFloat(standardServing.calories) || 0;
         const carbs = parseFloat(standardServing.carbohydrate) || 0;
         const protein = parseFloat(standardServing.protein) || 0;
@@ -89,7 +87,7 @@ export default async function handler(request, response) {
           protein: protein,
           fat: fat
         };
-      });
+      }).filter(f => f.cals > 0); // Filtra resultados que não têm calorias (ex: "Peixe (Alimento)")
     }
 
     // 6. Enviar a resposta de volta para o seu index.html
