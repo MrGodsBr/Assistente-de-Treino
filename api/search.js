@@ -6,7 +6,6 @@ import crypto from 'crypto'; // Biblioteca interna do Node.js
 // ####################################################################
 // ##           FUNÇÃO 1: Lê o TEXTO (para Marcas)                 ##
 // ####################################################################
-// "Per 100g - Calories: 89kcal | Protein: 1.10g | Carbs: 22.84g"
 function parseFoodDescription(description) {
   const macros = {
     serving_desc: "1 porção",
@@ -74,7 +73,6 @@ function parseFoodDescription(description) {
 // ####################################################################
 // ##           FUNÇÃO 2: Lê o OBJETO (para Genéricos)             ##
 // ####################################################################
-// (Lê os dados de 'servings' diretamente)
 function parseGenericServings(serving) {
     let servingData = { cals: 0, carbs: 0, protein: 0, fat: 0, serving_desc: "Porção" };
     let servingToParse = null;
@@ -137,12 +135,13 @@ export default async function handler(request, response) {
         // ###############################################################
         // ##                      A CORREÇÃO ESTÁ AQUI               ##
         // ###############################################################
-        // Força a busca a retornar APENAS alimentos genéricos (Ovo, Arroz)
+        // Força a busca a retornar APENAS alimentos genéricos E do Brasil
         food_type: 'generic', 
+        region: 'BR',      // <--- ADICIONADO (O que faltava)
+        language: 'pt',    // <--- ADICIONADO
         // ###############################################################
 
         format: 'json',
-        language: 'pt',
         oauth_consumer_key: CONSUMER_KEY,
         oauth_nonce: crypto.randomBytes(16).toString('hex'),
         oauth_signature_method: 'HMAC-SHA1',
@@ -174,25 +173,15 @@ export default async function handler(request, response) {
         
         let macros;
         
-        // ###############################################################
-        // ##                 O CÓDIGO "INTELIGENTE" ESTÁ AQUI        ##
-        // ###############################################################
-        
-        // SE o alimento tem 'food_description' (é uma Marca),
-        // nós lemos o texto.
         if (food.food_description) {
             macros = parseFoodDescription(food.food_description);
         } 
-        // SENÃO (é um Genérico, como "Ovo"), nós lemos
-        // os dados de 'servings' diretamente.
         else if (food.servings && food.servings.serving) { 
             macros = parseGenericServings(food.servings.serving);
         } 
-        // Se não tiver nenhum, é um resultado inválido
         else {
             macros = { cals: 0 }; // Será filtrado
         }
-        // ###############################################################
 
         return {
           id: food.food_id,
