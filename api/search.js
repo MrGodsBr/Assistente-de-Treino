@@ -59,17 +59,18 @@ function parseGenericServings(serving) {
     return servingData;
 }
 
-// [HANDLER PRINCIPAL DA API]
+// [HANDLER PRINCIPAL DA API (OAuth 1.0)]
 export default async function handler(request, response) {
   const searchQuery = request.query.food;
   if (!searchQuery) {
     return response.status(400).json({ error: 'Parâmetro "food" é obrigatório.' });
   }
 
+  // Lê as chaves (Consumer Key / Consumer Secret)
   const CONSUMER_KEY = process.env.FATSECRET_CLIENT_ID; 
   const CONSUMER_SECRET = process.env.FATSECRET_CLIENT_SECRET;
   if (!CONSUMER_KEY || !CONSUMER_SECRET) {
-    return response.status(500).json({ error: 'Chaves de API não configuradas no Vercel.' });
+    return response.status(500).json({ error: 'Chaves de API (Consumer Key/Secret) não configuradas no Vercel.' });
   }
 
   try {
@@ -87,8 +88,7 @@ export default async function handler(request, response) {
       data: {
         method: 'foods.search',
         search_expression: searchQuery,
-        // REMOVEMOS 'region' E 'language' para usar o padrão (Inglês)
-        // que é o único que funciona com OAuth 1.0
+        // Busca no banco de dados padrão (Inglês/US)
         format: 'json',
         oauth_consumer_key: CONSUMER_KEY,
         oauth_nonce: crypto.randomBytes(16).toString('hex'),
