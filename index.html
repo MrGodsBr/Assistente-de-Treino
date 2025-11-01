@@ -511,13 +511,11 @@
 
   // Estado global
   
-  // --- CORREÇÃO (JS): ADICIONANDO VARIÁVEIS GLOBAIS DE METAS DE MACROS ---
   let calorieGoal = 0;
-  let proteinGoal = 0; // ADICIONADO
-  let carbGoal = 0;    // ADICIONADO
-  let fatGoal = 0;     // ADICIONADO
+  let proteinGoal = 0; 
+  let carbGoal = 0;    
+  let fatGoal = 0;     
   let waterGoal = 0;
-  // --- FIM DA CORREÇÃO ---
 
   let currentWeight = 0;
   let targetWeight = 0;
@@ -535,7 +533,7 @@
   let isEditingProfile = false;
   let currentGoalType = 'ganhar';
   let unsubscribeListener = null;
-  let isInitialLoad = true; // Novo flag para controlar a primeira carga
+  let isInitialLoad = true; 
   
   // Variável para controlar o "debounce" da busca
   let searchTimeout = null;
@@ -597,7 +595,8 @@
   // ####################################################################
   // ##                 NOVO DICIONÁRIO DE TRADUÇÃO                  ##
   // ####################################################################
-  const translationDictionary = {
+  // PT -> EN (Para buscar na API)
+  const translationDictionaryPTEN = {
       'ovo': 'egg',
       'ovos': 'eggs',
       'arroz': 'rice',
@@ -622,19 +621,58 @@
       'maca': 'apple'
       // Adicione mais traduções simples aqui
   };
+  
+  // EN -> PT (Para mostrar o resultado)
+  const translationDictionaryENPT = {
+      'egg': 'Ovo',
+      'eggs': 'Ovos',
+      'rice': 'Arroz',
+      'beans': 'Feijão',
+      'fish': 'Peixe',
+      'salmon': 'Salmão',
+      'chicken': 'Frango',
+      'beef': 'Carne',
+      'potato': 'Batata',
+      'milk': 'Leite',
+      'cheese': 'Queijo',
+      'banana': 'Banana',
+      'apple': 'Maçã',
+      // Regex para nomes mais complexos (ex: "Fried Egg" -> "Ovo Frito")
+      'fried egg': 'Ovo Frito',
+      'scrambled egg': 'Ovos Mexidos',
+      'chicken breast': 'Peito de Frango'
+  };
 
   function translateQuery(query) {
-      const normalizedQuery = query.toLowerCase().trim();
+      const normalizedQuery = normalizeText(query).toLowerCase().trim();
       
-      // Tenta traduzir a frase inteira
-      if (translationDictionary[normalizedQuery]) {
-          return translationDictionary[normalizedQuery];
+      // Tenta traduzir a frase inteira ou a palavra-chave
+      if (translationDictionaryPTEN[normalizedQuery]) {
+          return translationDictionaryPTEN[normalizedQuery];
+      }
+      // Se não achar, busca pelo termo original (a API buscará a palavra no nome em inglês)
+      return normalizedQuery; 
+  }
+  
+  function translateResult(englishName) {
+      // 1. Tenta traduzir a frase exata (Ex: "Fried Egg" -> "Ovo Frito")
+      const translatedPhrase = translationDictionaryENPT[englishName.toLowerCase()];
+      if (translatedPhrase) {
+          return translatedPhrase;
       }
       
-      // Se não, retorna o termo original (que será buscado em inglês)
-      // (Isso funciona para "Ovo" -> "Avo Sandwich" mas é melhor que travar)
-      // A busca por "Egg" (traduzido) virá primeiro.
-      return normalizedQuery; 
+      // 2. Se não achar, tenta traduzir a primeira palavra (Ex: "Whole Egg" -> "Ovo inteiro")
+      const parts = englishName.split(' ');
+      if (parts.length > 1) {
+          const firstWord = parts[0].toLowerCase();
+          if (translationDictionaryENPT[firstWord]) {
+              parts[0] = translationDictionaryENPT[firstWord];
+              return parts.join(' ');
+          }
+      }
+      
+      // 3. Se tudo falhar, retorna o nome em inglês mesmo
+      return englishName;
   }
   // ####################################################################
 
@@ -730,7 +768,7 @@
     const overlay = document.getElementById('customFoodModalOverlay');
     
     document.getElementById('customFoodName').value = searchQuery; 
-    document.getElementById('customFoodUnit').value = '100g'; // Padrão
+    document.getElementById('customFoodUnit').value = '100g'; 
     document.getElementById('customFoodCals').value = '';
     document.getElementById('customFoodProt').value = '';
     document.getElementById('customFoodCarbs').value = '';
@@ -752,6 +790,7 @@
   // Busca macros para o alimento customizado (COM TRADUÇÃO)
   async function fetchCustomFoodMacros() {
     const name = document.getElementById('customFoodName').value.trim();
+    if (!userId) { showLoginModal(); return; }
     if (name.length < 2) {
       alert("Por favor, digite um nome para o alimento primeiro.");
       return;
@@ -878,7 +917,7 @@
     const goalType = currentGoalType;
     const calsRemaining = calorieGoal - totalCals;
     const waterRemaining = waterGoal - waterConsumed;
-    const unhealthyItemsCount = 0; // (Lógica removida)
+    const unhealthyItemsCount = 0; 
     const mealsLogged = MEAL_KEYS.filter(meal => foodItems.some(item => item.meal === meal));
     
     // Simulação da Análise da IA
@@ -1534,10 +1573,16 @@
         </svg>
       </button>
     ` : `<div class="w-7 h-7"></div>`; 
+    
+    // ####################################################################
+    // ##                 TRADUZINDO O NOME DO ALIMENTO                ##
+    // ####################################################################
+    const displayName = translateResult(item.name);
+    // ####################################################################
 
     div.innerHTML = `
       <div class="flex-grow">
-        <p class="font-medium text-gray-800">${item.name}${warn}</p>
+        <p class="font-medium text-gray-800">${displayName}${warn}</p>
         <p class="text-sm">
           <span class="text-gray-600">${item.quantity} ${item.unit} • </span>
           <span class="text-orange-600 font-semibold">${item.cals} kcal</span>
@@ -1866,7 +1911,7 @@
     searchTimeout = setTimeout(async () => {
       
       // ###############################################################
-      // ##                      A TRADUÇÃO ESTÁ AQUI               ##
+      // ##                      A TRADUÇÃO PT -> EN AQUI             ##
       // ###############################################################
       const translatedQuery = translateQuery(q_raw);
       // ###############################################################
@@ -1876,19 +1921,18 @@
         const loadingEl = document.getElementById('apiLoading');
         
         if (!response.ok) {
-            // Se a API travar (Erro 500), mostra esta mensagem
             if (loadingEl) {
                 loadingEl.textContent = "Erro ao buscar na internet.";
                 loadingEl.classList.remove("text-gray-500");
                 loadingEl.classList.add("text-red-500");
             }
-            return; // Interrompe a busca
+            return; 
         }
         
         const apiResults = await response.json();
         resultCount += apiResults.length;
 
-        // Se não houver NENHUM resultado (nem local, nem custom, nem api)
+        // Se não houver NENHUM resultado
         if(resultCount === 0){
           dd.innerHTML = `
             <div class="p-3 text-gray-500 text-center text-sm">Nenhum alimento encontrado.</div>
@@ -1906,14 +1950,14 @@
         // Remove o "Buscando..."
         if (loadingEl) loadingEl.remove();
         
-        // Mapeia os resultados da API
+        // Mapeia os resultados da API (E TRADUZ DE VOLTA)
         apiResults.forEach(f => {
-          // A API 1.0 retorna nomes em INGLÊS.
-          // O ideal era traduzir de volta, mas por agora, vamos apenas mostrar.
+          const translatedName = translateResult(f.name); // Traduz o nome
+          
           html += `
             <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" 
                  onclick='selectFood(${JSON.stringify(f)})'>
-              <p class="font-medium text-gray-800">${f.name}</p> 
+              <p class="font-medium text-gray-800">${translatedName}</p> 
               <p class="text-xs"><span class="text-orange-600 font-medium">${f.cals.toFixed(0)} kcal</span> <span class="text-gray-600">por ${f.serving_desc}</span></p>
             </div>
           `;
@@ -1948,8 +1992,8 @@
 
     selectedFoodKey = foodObject; 
     
-    // Mostra o nome (em inglês ou PT) no campo de busca
-    document.getElementById('foodSearch').value = foodObject.name;
+    // Mostra o nome traduzido no campo de busca
+    document.getElementById('foodSearch').value = translateResult(foodObject.name);
     
     const unit = foodObject.unit || foodObject.serving_desc;
     document.getElementById('foodQuantity').placeholder = `Qtd. (x ${unit})`;
@@ -1957,68 +2001,6 @@
     hideElement(document.getElementById('searchDropdown'));
     document.getElementById('foodQuantity').value = '1'; 
     document.getElementById('foodQuantity').focus();
-  }
-
-  // COMPARTILHAR WHATSAPP (Atualizado)
-  function shareToWhatsApp(){
-    if (currentDateString !== todayDateString) {
-        alert("Apenas é possível compartilhar o resumo do dia atual. Selecione a data de hoje.");
-        return;
-    }
-
-    let totalCals=0,totalProtein=0,totalCarbs=0;
-    const itemsByMeal = getItemsByMeal();
-
-    Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ totalCals+=i.cals; totalProtein+=i.protein; totalCarbs+=i.carbs; });
-    
-    const userName=document.getElementById('userNameDisplay').textContent;
-    const goalType=document.getElementById('goalType').value||'ganhar';
-    const goalName=goalDisplayNames[goalType];
-
-    let msg = `🏋️ FITNESS-PRO 2.0 - Resumo do Dia (${currentDateString})\n\n`;
-    msg += `👤 ${userName}\n`;
-    msg += `🎯 Objetivo: ${goalName}\n`;
-    msg += `📊 Meta Calorias: ${calorieGoal.toFixed(0)} kcal\n`;
-    msg += `💪 Meta Proteínas: ${proteinGoal.toFixed(0)} g\n`;
-    msg += `🍞 Meta Carboidratos: ${carbGoal.toFixed(0)} g\n`;
-    msg += `💧 Meta Água: ${waterGoal.toFixed(0)} ml\n\n`; 
-    msg += `Consumo do Dia:\n`;
-    msg += `🔥 Calorias: ${totalCals.toFixed(0)} kcal\n`;
-    msg += `💧 Água Consumida: ${waterLog} ml\n`; 
-    msg += `💪 Proteínas: ${totalProtein.toFixed(1)}g\n`;
-    msg += `🍞 Carboidratos: ${totalCarbs.toFixed(1)}g\n\n`;
-
-    MEAL_KEYS.forEach(k=>{
-      const items=itemsByMeal[k]||[];
-      if(items.length>0){
-        msg += `${mealDisplayNames[k]}\n`;
-        items.forEach(i=>{
-          const warn = '';
-          const time = i.timeStr ? ` [${i.timeStr}]` : '';
-          msg += `• ${i.name}${warn} (${i.quantity} ${i.unit})${time} - ${i.cals} kcal\n`;
-        });
-        msg += `\n`;
-      }
-    });
-    
-    const waterItems = Object.values(dailyLog).filter(i => i.type === 'water');
-    if (waterItems.length > 0) {
-      msg += `💧 Registros de Água\n`;
-      waterItems.forEach(i => {
-          const time = i.timeStr ? ` [${i.timeStr}]` : '';
-           msg += `• ${i.quantity} ml${time}\n`;
-      });
-      msg += `\n`;
-    }
-
-    const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;
-    window.open(url,'_blank');
-  }
-
-  function shareApp(){
-    const message=`🏋️ FITNESS-PRO 2.0\n\nConheça o app que está me ajudando a alcançar meus objetivos! 💪\n\nAcesse: ${window.location.href}`;
-    const url=`https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(url,'_blank');
   }
 
 
@@ -2129,7 +2111,7 @@
     document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
     document.getElementById('mealTimeSelect').addEventListener('change', updateMealSuggestion);
     
-    // ATUALIZADO: Evento de busca agora é 'input'
+    // Evento de busca agora é 'input'
     document.getElementById('foodSearch').addEventListener('input', searchFood); 
     
     document.getElementById('shareButton').addEventListener('click', shareToWhatsApp);
