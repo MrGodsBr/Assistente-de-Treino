@@ -1,3 +1,4 @@
+// [VERSÃO DE DIAGNÓSTICO]
 // Importa o 'fetch' que o Vercel precisa para rodar no servidor
 import fetch from 'node-fetch';
 
@@ -17,6 +18,8 @@ export default async function handler(request, response) {
   if (!CLIENT_ID || !CLIENT_SECRET) {
     return response.status(500).json({ error: 'Chaves de API não configuradas no Vercel.' });
   }
+
+  let foodData; // Variável para loggar no final
 
   try {
     // 3. Etapa de Autenticação: Pedir um Token de Acesso para o FatSecret
@@ -45,9 +48,17 @@ export default async function handler(request, response) {
       }
     });
 
-    const foodData = await foodResponse.json();
+    foodData = await foodResponse.json();
 
-    // 5. Etapa de Formatação: (Esta é a parte CORRIGIDA)
+    // ####################################################################
+    // ##                        ETAPA DE DEBUG                         ##
+    // ####################################################################
+    // Vamos loggar o que a API do FatSecret REALMENTE enviou.
+    console.log('RESPOSTA CRUA DO FATSECRET:', JSON.stringify(foodData));
+    // ####################################################################
+
+
+    // 5. Etapa de Formatação: (A parte que está falhando)
     let formattedResults = [];
     if (foodData.foods && foodData.foods.food) {
       const foods = Array.isArray(foodData.foods.food) ? foodData.foods.food : [foodData.foods.food];
@@ -59,18 +70,15 @@ export default async function handler(request, response) {
             let servingToParse = null;
             const serving = food.servings.serving;
 
-            // Pega a porção (se for um array, tenta achar 100g, senão pega a primeira)
             if (Array.isArray(serving)) {
                 servingToParse = serving.find(s => s.metric_serving_unit === 'g' && parseFloat(s.metric_serving_amount) === 100);
-                if (!servingToParse) servingToParse = serving.find(s => s.calories || s.calorias); // Pega a primeira que tiver macros
-                if (!servingToParse) servingToParse = serving[0]; // Pega a primeira de todas
+                if (!servingToParse) servingToParse = serving.find(s => s.calories || s.calorias); 
+                if (!servingToParse) servingToParse = serving[0]; 
             } else {
-                servingToParse = serving; // É um objeto único
+                servingToParse = serving; 
             }
 
-            // Agora, extrai os dados com segurança
             if (servingToParse) {
-                // **A MÁGICA ESTÁ AQUI:** Procura "calorias" (PT) OU "calories" (EN)
                 servingData.cals = parseFloat(servingToParse.calorias || servingToParse.calories) || 0;
                 servingData.carbs = parseFloat(servingToParse.carboidrato || servingToParse.carbohydrate) || 0;
                 servingData.protein = parseFloat(servingToParse.proteina || servingToParse.protein) || 0;
@@ -88,7 +96,7 @@ export default async function handler(request, response) {
           protein: servingData.protein,
           fat: servingData.fat
         };
-      }).filter(f => f.cals > 0); // Filtra resultados que não têm calorias (agora deve funcionar)
+      }).filter(f => f.cals > 0); 
     }
 
     // 6. Enviar a resposta de volta para o seu index.html
@@ -96,6 +104,7 @@ export default async function handler(request, response) {
 
   } catch (error) {
     console.error('Erro na Serverless Function:', error);
-    response.status(500).json({ error: error.message });
+    // Logga o foodData mesmo se der erro, para vermos o que causou
+    response.status(500).json({ error: error.message, debug_data: foodData });
   }
 }
