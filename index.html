@@ -12,8 +12,8 @@
   <link rel="shortcut icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
-  
   <meta name="apple-mobile-web-app-title" content="FITNESS-PRO 2.0">
+
   <script src="https://cdn.tailwindcss.com"></script>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -23,20 +23,18 @@
   <style>
     /* DEFINIÇÃO DA COR DAS PROTEÍNAS (ex: Tailwind emerald-500/600) */
     :root {
-        --cor-proteinas-base: #10B981; /* Ex: emerald-500 */
-        --cor-proteinas-dark: #059669; /* Ex: emerald-600 */
-        /* Cores de Referência para o Gradiente do Botão AI Assistant */
-        --ai-grad-start: #ff7e5f; /* Laranja/Rosa */
-        --ai-grad-end: #feb47b;   /* Laranja/Amarelo */
-        --ai-grad-bg: #8e44ad;   /* Roxo Fundo */
+        --cor-proteinas-base: #10B981;
+        --cor-proteinas-dark: #059669;
+        --ai-grad-start: #ff7e5f; 
+        --ai-grad-end: #feb47b;   
+        --ai-grad-bg: #8e44ad;   
     }
     
     /* GRADIENTE CUSTOMIZADO para simular o botão */
     .ai-button-gradient {
-        background-image: linear-gradient(to right, #e74c3c, #f39c12); /* Base */
+        background-image: linear-gradient(to right, #e74c3c, #f39c12);
         position: relative;
         overflow: hidden;
-        /* Simulação do gradiente roxo */
         background: linear-gradient(90deg, #bb74b9 0%, #ff8c00 100%);
     }
 
@@ -47,7 +45,6 @@
     
     /* 2. COR DA BARRA DE META DE PESO IGUAL À DAS PROTEÍNAS */
     #weightProgress {
-        /* A cor será aplicada diretamente na classe do Tailwind, mas aqui garantimos o fallback */
         background-color: var(--cor-proteinas-base) !important; 
     }
     
@@ -56,7 +53,6 @@
     body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
-    /* ATUALIZADO: Usando a cor das proteínas para a barra de peso no JS */
     #calorieProgress, #waterProgress, #weightProgress { transition: width 0.3s ease-in-out; } 
     .modal-transition { transition: opacity 0.3s, transform 0.3s; }
     .spinner { animation: spin 1s linear infinite; }
@@ -646,17 +642,20 @@
   function translateQuery(query) {
       const normalizedQuery = normalizeText(query).toLowerCase().trim();
       
-      // Tenta traduzir a frase inteira ou a palavra-chave
+      // Tenta traduzir a frase inteira
       if (translationDictionaryPTEN[normalizedQuery]) {
           return translationDictionaryPTEN[normalizedQuery];
       }
-      // Se não achar, busca pelo termo original (a API buscará a palavra no nome em inglês)
+      
+      // Se não, retorna o termo original
       return normalizedQuery; 
   }
   
   function translateResult(englishName) {
+      const englishLower = englishName.toLowerCase();
+
       // 1. Tenta traduzir a frase exata (Ex: "Fried Egg" -> "Ovo Frito")
-      const translatedPhrase = translationDictionaryENPT[englishName.toLowerCase()];
+      const translatedPhrase = translationDictionaryENPT[englishLower];
       if (translatedPhrase) {
           return translatedPhrase;
       }
