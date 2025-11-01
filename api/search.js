@@ -135,10 +135,11 @@ export default async function handler(request, response) {
         // ###############################################################
         // ##                      A CORREÇÃO ESTÁ AQUI               ##
         // ###############################################################
-        // Força a busca a retornar APENAS alimentos genéricos E do Brasil
-        food_type: 'generic', 
-        region: 'BR',      // <--- ADICIONADO (O que faltava)
-        language: 'pt',    // <--- ADICIONADO
+        // Força a busca a retornar APENAS do Brasil
+        // Isso deve limpar os resultados em inglês
+        region: 'BR',      
+        language: 'pt',    
+        // food_type: 'generic', // REMOVIDO! Este era o conflito.
         // ###############################################################
 
         format: 'json',
@@ -162,7 +163,7 @@ export default async function handler(request, response) {
     let formattedResults = [];
     
     if (foodData.error || (foodData.foods && foodData.foods.total_results === "0")) {
-       console.log("Nenhum resultado genérico encontrado para:", searchQuery);
+       console.log("Nenhum resultado encontrado para:", searchQuery);
        return response.status(200).json([]); // Retorna lista vazia
     }
     
