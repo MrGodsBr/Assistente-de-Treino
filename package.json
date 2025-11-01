@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "node-fetch": "^3.3.0"
+    "node-fetch": "^3.3.0",
+    "oauth-1.0a": "^2.2.6"
   }
 }
