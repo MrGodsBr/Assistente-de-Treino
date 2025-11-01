@@ -12,8 +12,8 @@
   <link rel="shortcut icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
+  
   <meta name="apple-mobile-web-app-title" content="FITNESS-PRO 2.0">
-
   <script src="https://cdn.tailwindcss.com"></script>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -353,7 +353,7 @@
         <div class="sm:col-span-2">
           <label for="mealTimeSelect" class="block text-sm font-medium text-gray-700 mb-1">2. Escolher Refeição</label>
           <select id="mealTimeSelect" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
-            <option value="cafe_da_manha">Café da Manhã</option>
+            <option value="cafe_da_manha">Café da Manã</option>
             <option value="almoco">Almoço</option>
             <option value="lanche">Lanche</option>
             <option value="jantar">Jantar</option>
@@ -646,8 +646,7 @@
       if (translationDictionaryPTEN[normalizedQuery]) {
           return translationDictionaryPTEN[normalizedQuery];
       }
-      
-      // Se não, retorna o termo original
+      // Se não achar, retorna o termo original
       return normalizedQuery; 
   }
   
@@ -900,7 +899,7 @@
     // 1. Mostrar estado de carregamento
     contentEl.innerHTML = `
         <p class="text-center font-medium text-gray-700">Aguarde, o Gemini está analisando seus dados...</p>
-        <div class="spinner mx-auto h-8 w-8 border-t-4 border-b-4 border-green-600"></div>
+        <div class="spinner mx-auto h-8 w-8 border-t-2 border-b-2 border-green-600"></div>
     `;
 
     // 2. Coletar Dados para o Prompt
