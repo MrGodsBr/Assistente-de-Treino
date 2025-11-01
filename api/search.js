@@ -116,7 +116,7 @@ export default async function handler(request, response) {
   }
 
   try {
-    // 3. Etapa de Autenticação (OAuth 1.0) - AGORA ESTÁ CORRETO
+    // 3. Etapa de Autenticação (OAuth 1.0)
     const oauth = new OAuth({
       consumer: { key: CONSUMER_KEY, secret: CONSUMER_SECRET },
       signature_method: 'HMAC-SHA1',
@@ -157,7 +157,7 @@ export default async function handler(request, response) {
     const foodResponse = await fetch(finalUrl);
     const foodData = await foodResponse.json();
 
-    // 5. Etapa de Formatação (Código "Inteligente")
+    // 5. Etapa de Formatação (Esta é a parte CORRIGIDA)
     let formattedResults = [];
     
     if (foodData.error || (foodData.foods && foodData.foods.total_results === "0")) {
