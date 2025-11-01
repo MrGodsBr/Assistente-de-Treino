@@ -3,7 +3,6 @@ import fetch from 'node-fetch';
 
 // Esta é a função principal que o Vercel vai executar
 export default async function handler(request, response) {
-  // 1. Pega o que o usuário digitou (ex: ?food=Ovo)
   const searchQuery = request.query.food;
 
   if (!searchQuery) {
@@ -13,13 +12,12 @@ export default async function handler(request, response) {
   try {
     
     // ###############################################################
-    // ##              BUSCA NA API OPEN FOOD FACTS                 ##
+    // ##             BUSCA NA OPEN FOOD FACTS (CORRIGIDA)          ##
     // ###############################################################
     
-    // 1. Define a URL da API (usando o subdomínio 'pt' para português)
-    // Nós buscamos o termo, pedimos o nome, os nutrientes e o tamanho da porção.
-    const searchUrl = `https://pt.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(searchQuery)}&fields=product_name,nutriments,serving_size&page_size=10&json=true`;
-
+    // Agora usando a URL de busca mais precisa (search.json)
+    const searchUrl = `https://pt.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchQuery)}&search_simple=1&action=process&json=1`;
+    
     // 2. Faz a busca (não precisa de chaves!)
     const foodResponse = await fetch(searchUrl);
     const foodData = await foodResponse.json();
@@ -33,7 +31,6 @@ export default async function handler(request, response) {
         const nutriments = food.nutriments || {};
         
         // Tenta pegar os macros para 100g (padrão)
-        // A API já nos dá os campos corretos (ex: energy-kcal_100g)
         const cals = nutriments['energy-kcal_100g'] || nutriments['energy-kcal'] || 0;
         const protein = nutriments.proteins_100g || nutriments.proteins || 0;
         const carbs = nutriments.carbohydrates_100g || nutriments.carbohydrates || 0;
@@ -43,8 +40,8 @@ export default async function handler(request, response) {
         const serving_desc = food.serving_size || "100g";
 
         return {
-          id: food.code || food.id, // O Open Food Facts usa 'code'
-          name: food.product_name,    // O nome JÁ VEM em português
+          id: food.code || food.id, 
+          name: food.product_name,    
           serving_desc: serving_desc, 
           cals: parseFloat(cals),         
           carbs: parseFloat(carbs),       
