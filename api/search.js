@@ -4,7 +4,7 @@ import OAuth from 'oauth-1.0a';
 import crypto from 'crypto'; // Biblioteca interna do Node.js
 
 // ####################################################################
-// ##           FUNÇÃO HELPER ATUALIZADA (Calcula 100g)            ##
+// ##           FUNÇÃO 1: Lê o TEXTO (para Marcas)                 ##
 // ####################################################################
 // "Per 100g - Calories: 89kcal | Protein: 1.10g | Carbs: 22.84g"
 function parseFoodDescription(description) {
@@ -17,23 +17,20 @@ function parseFoodDescription(description) {
   };
 
   try {
-    // 1. Pega a porção (Ex: "100g" ou "1 fatia" ou "1129g")
     const servingMatch = description.match(/^Per (.*?) -/);
     let servingText = "1 porção";
     if (servingMatch && servingMatch[1]) {
-      servingText = servingMatch[1]; // Ex: "1129g"
+      servingText = servingMatch[1]; 
       macros.serving_desc = servingText;
     }
 
-    // 2. Pega as Calorias (Ex: "Calories: 89kcal" ou "Calories: 2651k")
-    const calMatch = description.match(/Calories: ([0-9.]+)k?/i); // 'i' ignora maiúscula/minúscula, k? é opcional
+    const calMatch = description.match(/Calories: ([0-9.]+)k?/i); 
     let cals = 0;
     if (calMatch && calMatch[1]) {
       cals = parseFloat(calMatch[1]);
       macros.cals = cals;
     }
 
-    // 3. Pega as Proteínas (Ex: "Protein: 1.10g")
     const protMatch = description.match(/Protein: ([0-9.]+)g/i);
     let protein = 0;
     if (protMatch && protMatch[1]) {
@@ -41,7 +38,6 @@ function parseFoodDescription(description) {
       macros.protein = protein;
     }
 
-    // 4. Pega os Carboidratos (Ex: "Carbs: 22.84g")
     const carbMatch = description.match(/Carbs: ([0-9.]+)g/i);
     let carbs = 0;
     if (carbMatch && carbMatch[1]) {
@@ -49,7 +45,6 @@ function parseFoodDescription(description) {
       macros.carbs = carbs;
     }
     
-    // 5. Pega as Gorduras (Ex: "Fat: 0.33g")
     const fatMatch = description.match(/Fat: ([0-9.]+)g/i);
     let fat = 0;
     if (fatMatch && fatMatch[1]) {
@@ -57,38 +52,50 @@ function parseFoodDescription(description) {
       macros.fat = fat;
     }
 
-    // ###############################################################
-    // ##                 A MÁGICA DO CÁLCULO DE 100g             ##
-    // ###############################################################
-    // Tenta encontrar um peso em gramas na porção (Ex: "1129g")
+    // Cálculo de 100g (se a porção for em 'g')
     const gramMatch = servingText.match(/([0-9.]+)\s*g/);
-    
-    // Se achamos um peso em 'g' (e não é 100g), recalculamos
     if (gramMatch && gramMatch[1]) {
       const gramAmount = parseFloat(gramMatch[1]);
-      
-      // Se a porção for diferente de 100g e maior que 0
       if (gramAmount > 0 && gramAmount !== 100) {
-        // Calcula o fator de normalização
-        const factor = 100 / gramAmount; // Ex: 100 / 1129
-        
-        // Aplica o fator a todos os macros
+        const factor = 100 / gramAmount; 
         macros.cals = macros.cals * factor;
         macros.protein = macros.protein * factor;
         macros.carbs = macros.carbs * factor;
         macros.fat = macros.fat * factor;
-        
-        // Define a porção como 100g
         macros.serving_desc = "100g"; 
       }
     }
-    // Se não achar 'g' (ex: "1 fatia"), ele retorna os macros daquela fatia.
-
   } catch (e) {
-    console.error("Erro ao 'ler' a descrição do alimento:", e);
+    console.error("Erro ao 'ler' a descrição (parseFoodDescription):", e);
   }
-
   return macros;
+}
+
+// ####################################################################
+// ##           FUNÇÃO 2: Lê o OBJETO (para Genéricos)             ##
+// ####################################################################
+// (Lê os dados de 'servings' diretamente)
+function parseGenericServings(serving) {
+    let servingData = { cals: 0, carbs: 0, protein: 0, fat: 0, serving_desc: "Porção" };
+    let servingToParse = null;
+
+    if (Array.isArray(serving)) {
+        servingToParse = serving.find(s => s.metric_serving_unit === 'g' && parseFloat(s.metric_serving_amount) === 100);
+        if (!servingToParse) servingToParse = serving.find(s => s.calories || s.calorias); 
+        if (!servingToParse) servingToParse = serving[0]; 
+    } else {
+        servingToParse = serving; 
+    }
+
+    if (servingToParse) {
+        servingData.cals = parseFloat(servingToParse.calorias || servingToParse.calories) || 0;
+        servingData.carbs = parseFloat(servingToParse.carboidrato || servingToParse.carbohydrate) || 0;
+        servingData.protein = parseFloat(servingToParse.proteina || servingToParse.protein) || 0;
+        servingData.fat = parseFloat(servingToParse.gordura || servingToParse.fat) || 0;
+        servingData.serving_desc = servingToParse.serving_description || "Porção";
+    }
+    
+    return servingData;
 }
 // ####################################################################
 
@@ -126,15 +133,7 @@ export default async function handler(request, response) {
       data: {
         method: 'foods.search',
         search_expression: searchQuery,
-        
-        // ###############################################################
-        // ##                      A CORREÇÃO ESTÁ AQUI               ##
-        // ###############################################################
-        // Força a busca a retornar APENAS alimentos genéricos (Ovo, Arroz)
-        // Isso impede que "Avo Sandwich" apareça na busca por "Ovo"
-        food_type: 'generic', 
-        // ###############################################################
-
+        // Busca TODOS os tipos (Genérico e Marcas)
         format: 'json',
         language: 'pt',
         oauth_consumer_key: CONSUMER_KEY,
@@ -157,7 +156,7 @@ export default async function handler(request, response) {
     let formattedResults = [];
     
     if (foodData.error || (foodData.foods && foodData.foods.total_results === "0")) {
-       console.log("Nenhum resultado genérico encontrado para:", searchQuery);
+       console.log("Nenhum resultado encontrado no FatSecret para:", searchQuery);
        return response.status(200).json([]); // Retorna lista vazia
     }
     
@@ -165,7 +164,28 @@ export default async function handler(request, response) {
       const foods = Array.isArray(foodData.foods.food) ? foodData.foods.food : [foodData.foods.food];
 
       formattedResults = foods.map(food => {
-        const macros = parseFoodDescription(food.food_description);
+        
+        let macros;
+        
+        // ###############################################################
+        // ##                 O CÓDIGO "INTELIGENTE" ESTÁ AQUI        ##
+        // ###############################################################
+        
+        // SE o alimento tem 'food_description' (é uma Marca, como "Nissin"),
+        // nós lemos o texto.
+        if (food.food_description) {
+            macros = parseFoodDescription(food.food_description);
+        } 
+        // SENÃO (é um Genérico, como "Ovo"), nós lemos
+        // os dados de 'servings' diretamente.
+        else if (food.servings && food.servings.serving) { 
+            macros = parseGenericServings(food.servings.serving);
+        } 
+        // Se não tiver nenhum, é um resultado inválido
+        else {
+            macros = { cals: 0 }; // Será filtrado
+        }
+        // ###############################################################
 
         return {
           id: food.food_id,
@@ -176,4 +196,15 @@ export default async function handler(request, response) {
           protein: macros.protein,   
           fat: macros.fat            
         };
-      }).filter(f => f.cals >
+      }).filter(f => f.cals > 0); // Filtra resultados que não têm calorias
+    }
+
+    // 6. Enviar a resposta de volta para o seu index.html
+    response.status(200).json(formattedResults);
+
+  } catch (error) {
+    // Adiciona um log detalhado do erro
+    console.error('ERRO CRÍTICO NA API (search.js):', error.message);
+    response.status(500).json({ error: error.message });
+  }
+}
