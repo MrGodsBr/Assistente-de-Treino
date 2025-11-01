@@ -87,8 +87,7 @@ export default async function handler(request, response) {
       method: 'GET',
       data: {
         method: 'foods.search',
-        search_expression: searchQuery,
-        // Busca no banco de dados padrão (Inglês/US)
+        search_expression: searchQuery, // Busca o termo (em inglês)
         format: 'json',
         oauth_consumer_key: CONSUMER_KEY,
         oauth_nonce: crypto.randomBytes(16).toString('hex'),
@@ -123,7 +122,7 @@ export default async function handler(request, response) {
         }
         return {
           id: food.food_id,
-          name: food.food_name, // (O nome virá em inglês)
+          name: food.food_name, // O nome virá em inglês
           serving_desc: macros.serving_desc, 
           cals: macros.cals,         
           carbs: macros.carbs,       
