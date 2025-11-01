@@ -135,11 +135,10 @@ export default async function handler(request, response) {
         // ###############################################################
         // ##                      A CORREÇÃO ESTÁ AQUI               ##
         // ###############################################################
-        // Força a busca a retornar APENAS do Brasil
-        // Isso deve limpar os resultados em inglês
+        // Agora sim: Buscamos TUDO (genérico e marcas)
+        // MAS filtramos APENAS para a região BRASIL (o que força o 'pt').
         region: 'BR',      
         language: 'pt',    
-        // food_type: 'generic', // REMOVIDO! Este era o conflito.
         // ###############################################################
 
         format: 'json',
@@ -163,7 +162,7 @@ export default async function handler(request, response) {
     let formattedResults = [];
     
     if (foodData.error || (foodData.foods && foodData.foods.total_results === "0")) {
-       console.log("Nenhum resultado encontrado para:", searchQuery);
+       console.log("Nenhum resultado encontrado no FatSecret para:", searchQuery);
        return response.status(200).json([]); // Retorna lista vazia
     }
     
@@ -174,6 +173,7 @@ export default async function handler(request, response) {
         
         let macros;
         
+        // Código "inteligente" (lê os dois formatos)
         if (food.food_description) {
             macros = parseFoodDescription(food.food_description);
         } 
