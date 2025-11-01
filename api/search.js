@@ -133,7 +133,14 @@ export default async function handler(request, response) {
       data: {
         method: 'foods.search',
         search_expression: searchQuery,
-        // Busca TODOS os tipos (Genérico e Marcas)
+        
+        // ###############################################################
+        // ##                      A CORREÇÃO ESTÁ AQUI               ##
+        // ###############################################################
+        // Força a busca a retornar APENAS alimentos genéricos (Ovo, Arroz)
+        food_type: 'generic', 
+        // ###############################################################
+
         format: 'json',
         language: 'pt',
         oauth_consumer_key: CONSUMER_KEY,
@@ -156,7 +163,7 @@ export default async function handler(request, response) {
     let formattedResults = [];
     
     if (foodData.error || (foodData.foods && foodData.foods.total_results === "0")) {
-       console.log("Nenhum resultado encontrado no FatSecret para:", searchQuery);
+       console.log("Nenhum resultado genérico encontrado para:", searchQuery);
        return response.status(200).json([]); // Retorna lista vazia
     }
     
@@ -167,11 +174,7 @@ export default async function handler(request, response) {
         
         let macros;
         
-        // ###############################################################
-        // ##                 O CÓDIGO "INTELIGENTE" ESTÁ AQUI        ##
-        // ###############################################################
-        
-        // SE o alimento tem 'food_description' (é uma Marca, como "Nissin"),
+        // SE o alimento tem 'food_description' (é uma Marca),
         // nós lemos o texto.
         if (food.food_description) {
             macros = parseFoodDescription(food.food_description);
@@ -185,7 +188,6 @@ export default async function handler(request, response) {
         else {
             macros = { cals: 0 }; // Será filtrado
         }
-        // ###############################################################
 
         return {
           id: food.food_id,
@@ -196,7 +198,7 @@ export default async function handler(request, response) {
           protein: macros.protein,   
           fat: macros.fat            
         };
-      }).filter(f => f.cals > 0); // Filtra resultados que não têm calorias
+      }).filter(f => f.cals > 0); 
     }
 
     // 6. Enviar a resposta de volta para o seu index.html
