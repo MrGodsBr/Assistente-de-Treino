@@ -6,6 +6,7 @@ import crypto from 'crypto'; // Biblioteca interna do Node.js
 // ####################################################################
 // ##           FUNÇÃO HELPER ATUALIZADA (Calcula 100g)            ##
 // ####################################################################
+// "Per 100g - Calories: 89kcal | Protein: 1.10g | Carbs: 22.84g"
 function parseFoodDescription(description) {
   const macros = {
     serving_desc: "1 porção",
@@ -24,15 +25,15 @@ function parseFoodDescription(description) {
       macros.serving_desc = servingText;
     }
 
-    // 2. Pega as Calorias
-    const calMatch = description.match(/Calories: ([0-9.]+)k?/i); 
+    // 2. Pega as Calorias (Ex: "Calories: 89kcal" ou "Calories: 2651k")
+    const calMatch = description.match(/Calories: ([0-9.]+)k?/i); // 'i' ignora maiúscula/minúscula, k? é opcional
     let cals = 0;
     if (calMatch && calMatch[1]) {
       cals = parseFloat(calMatch[1]);
       macros.cals = cals;
     }
 
-    // 3. Pega as Proteínas
+    // 3. Pega as Proteínas (Ex: "Protein: 1.10g")
     const protMatch = description.match(/Protein: ([0-9.]+)g/i);
     let protein = 0;
     if (protMatch && protMatch[1]) {
@@ -40,7 +41,7 @@ function parseFoodDescription(description) {
       macros.protein = protein;
     }
 
-    // 4. Pega os Carboidratos
+    // 4. Pega os Carboidratos (Ex: "Carbs: 22.84g")
     const carbMatch = description.match(/Carbs: ([0-9.]+)g/i);
     let carbs = 0;
     if (carbMatch && carbMatch[1]) {
@@ -48,7 +49,7 @@ function parseFoodDescription(description) {
       macros.carbs = carbs;
     }
     
-    // 5. Pega as Gorduras
+    // 5. Pega as Gorduras (Ex: "Fat: 0.33g")
     const fatMatch = description.match(/Fat: ([0-9.]+)g/i);
     let fat = 0;
     if (fatMatch && fatMatch[1]) {
@@ -125,7 +126,15 @@ export default async function handler(request, response) {
       data: {
         method: 'foods.search',
         search_expression: searchQuery,
-        // food_type: 'generic', // REMOVIDO! (Busca TUDO)
+        
+        // ###############################################################
+        // ##                      A CORREÇÃO ESTÁ AQUI               ##
+        // ###############################################################
+        // Força a busca a retornar APENAS alimentos genéricos (Ovo, Arroz)
+        // Isso impede que "Avo Sandwich" apareça na busca por "Ovo"
+        food_type: 'generic', 
+        // ###############################################################
+
         format: 'json',
         language: 'pt',
         oauth_consumer_key: CONSUMER_KEY,
@@ -148,7 +157,7 @@ export default async function handler(request, response) {
     let formattedResults = [];
     
     if (foodData.error || (foodData.foods && foodData.foods.total_results === "0")) {
-       console.log("Nenhum resultado encontrado no FatSecret para:", searchQuery);
+       console.log("Nenhum resultado genérico encontrado para:", searchQuery);
        return response.status(200).json([]); // Retorna lista vazia
     }
     
@@ -156,26 +165,15 @@ export default async function handler(request, response) {
       const foods = Array.isArray(foodData.foods.food) ? foodData.foods.food : [foodData.foods.food];
 
       formattedResults = foods.map(food => {
-        // O "parseFoodDescription" agora faz a mágica de calcular 100g
         const macros = parseFoodDescription(food.food_description);
 
         return {
           id: food.food_id,
           name: food.food_name,
-          serving_desc: macros.serving_desc, // "100g" (ou "1 fatia" se não for 'g')
+          serving_desc: macros.serving_desc, 
           cals: macros.cals,         
           carbs: macros.carbs,       
           protein: macros.protein,   
           fat: macros.fat            
         };
-      }).filter(f => f.cals > 0); // Filtra resultados que não têm calorias
-    }
-
-    // 6. Enviar a resposta de volta para o seu index.html
-    response.status(200).json(formattedResults);
-
-  } catch (error) {
-    console.error('Erro na Serverless Function (OAuth 1.0):', error);
-    response.status(500).json({ error: error.message });
-  }
-}
+      }).filter(f => f.cals >
