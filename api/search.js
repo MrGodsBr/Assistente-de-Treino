@@ -174,6 +174,10 @@ export default async function handler(request, response) {
         
         let macros;
         
+        // ###############################################################
+        // ##                 O CÓDIGO "INTELIGENTE" ESTÁ AQUI        ##
+        // ###############################################################
+        
         // SE o alimento tem 'food_description' (é uma Marca),
         // nós lemos o texto.
         if (food.food_description) {
@@ -188,6 +192,7 @@ export default async function handler(request, response) {
         else {
             macros = { cals: 0 }; // Será filtrado
         }
+        // ###############################################################
 
         return {
           id: food.food_id,
