@@ -22,8 +22,6 @@ export default async function handler(request, response) {
 
   try {
     // 3. Etapa de Autenticação (OAuth 1.0)
-    // O OAuth 1.0 não pede um token, ele "assina" cada requisição.
-    
     const oauth = new OAuth({
       consumer: {
         key: CONSUMER_KEY,
@@ -52,19 +50,23 @@ export default async function handler(request, response) {
       },
     };
 
-    // Gera a assinatura de autenticação
     const authData = oauth.authorize(requestData);
-    
-    // Constrói a URL final com todos os parâmetros de autenticação
     const paramString = new URLSearchParams({ ...requestData.data, ...authData }).toString();
     const finalUrl = `${requestData.url}?${paramString}`;
-
 
     // 4. Etapa de Busca
     const foodResponse = await fetch(finalUrl);
     const foodData = await foodResponse.json();
 
-    // 5. Etapa de Formatação (igual à anterior, que agora deve funcionar)
+    // ####################################################################
+    // ##                        ETAPA DE DEBUG (DE VOLTA)             ##
+    // ####################################################################
+    // Vamos loggar o que a API do FatSecret REALMENTE enviou com o OAuth 1.0
+    console.log('RESPOSTA CRUA (OAUTH 1.0):', JSON.stringify(foodData));
+    // ####################################################################
+
+
+    // 5. Etapa de Formatação
     let formattedResults = [];
     if (foodData.foods && foodData.foods.food) {
       const foods = Array.isArray(foodData.foods.food) ? foodData.foods.food : [foodData.foods.food];
