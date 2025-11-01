@@ -36,13 +36,8 @@ export default async function handler(request, response) {
       throw new Error('Falha ao obter token de acesso do FatSecret.');
     }
 
-    // ####################################################################
-    // ##                        A CORREÇÃO ESTÁ AQUI                   ##
-    // ####################################################################
-    // Adicionamos "&language=pt" para buscar em Português
+    // 4. Etapa de Busca: (Correto, com &language=pt)
     const searchUrl = `https://platform.fatsecret.com/rest/server.api?method=foods.search&search_expression=${encodeURIComponent(searchQuery)}&food_type=generic&format=json&language=pt`;
-    // ####################################################################
-
 
     const foodResponse = await fetch(searchUrl, {
       headers: {
@@ -52,42 +47,48 @@ export default async function handler(request, response) {
 
     const foodData = await foodResponse.json();
 
-    // 5. Etapa de Formatação: Limpar os dados antes de enviar de volta para o app
+    // 5. Etapa de Formatação: (Esta é a parte CORRIGIDA)
     let formattedResults = [];
     if (foodData.foods && foodData.foods.food) {
       const foods = Array.isArray(foodData.foods.food) ? foodData.foods.food : [foodData.foods.food];
 
       formattedResults = foods.map(food => {
-        const serving = food.servings.serving;
-        let standardServing = null;
-        
-        if (Array.isArray(serving)) {
-            // Tenta achar a porção de 100g, que é a melhor para cálculo
-            standardServing = serving.find(s => s.metric_serving_unit === 'g' && parseFloat(s.metric_serving_amount) === 100);
-            // Se não achar 100g, pega a primeira porção que tiver macros
-            if (!standardServing) standardServing = serving.find(s => s.calories);
-            // Se ainda não achar, pega a primeira
-            if (!standardServing) standardServing = serving[0];
-        } else {
-            standardServing = serving;
-        }
+        let servingData = { cals: 0, carbs: 0, protein: 0, fat: 0, serving_desc: "Porção" };
 
-        const cals = parseFloat(standardServing.calories) || 0;
-        const carbs = parseFloat(standardServing.carbohydrate) || 0;
-        const protein = parseFloat(standardServing.protein) || 0;
-        const fat = parseFloat(standardServing.fat) || 0;
-        const servingDesc = standardServing.serving_description || "Porção"; // ex: "100g" ou "1 xícara"
+        if (food.servings && food.servings.serving) {
+            let servingToParse = null;
+            const serving = food.servings.serving;
+
+            // Pega a porção (se for um array, tenta achar 100g, senão pega a primeira)
+            if (Array.isArray(serving)) {
+                servingToParse = serving.find(s => s.metric_serving_unit === 'g' && parseFloat(s.metric_serving_amount) === 100);
+                if (!servingToParse) servingToParse = serving.find(s => s.calories || s.calorias); // Pega a primeira que tiver macros
+                if (!servingToParse) servingToParse = serving[0]; // Pega a primeira de todas
+            } else {
+                servingToParse = serving; // É um objeto único
+            }
+
+            // Agora, extrai os dados com segurança
+            if (servingToParse) {
+                // **A MÁGICA ESTÁ AQUI:** Procura "calorias" (PT) OU "calories" (EN)
+                servingData.cals = parseFloat(servingToParse.calorias || servingToParse.calories) || 0;
+                servingData.carbs = parseFloat(servingToParse.carboidrato || servingToParse.carbohydrate) || 0;
+                servingData.protein = parseFloat(servingToParse.proteina || servingToParse.protein) || 0;
+                servingData.fat = parseFloat(servingToParse.gordura || servingToParse.fat) || 0;
+                servingData.serving_desc = servingToParse.serving_description || "Porção";
+            }
+        }
 
         return {
           id: food.food_id,
           name: food.food_name,
-          serving_desc: servingDesc,
-          cals: cals,
-          carbs: carbs,
-          protein: protein,
-          fat: fat
+          serving_desc: servingData.serving_desc,
+          cals: servingData.cals,
+          carbs: servingData.carbs,
+          protein: servingData.protein,
+          fat: servingData.fat
         };
-      }).filter(f => f.cals > 0); // Filtra resultados que não têm calorias (ex: "Peixe (Alimento)")
+      }).filter(f => f.cals > 0); // Filtra resultados que não têm calorias (agora deve funcionar)
     }
 
     // 6. Enviar a resposta de volta para o seu index.html
