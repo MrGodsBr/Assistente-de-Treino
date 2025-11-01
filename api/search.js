@@ -1,64 +1,70 @@
-// [VERSÃO DE DIAGNÓSTICO]
-// Importa o 'fetch' que o Vercel precisa para rodar no servidor
+// Importa o 'fetch' e as novas bibliotecas de autenticação
 import fetch from 'node-fetch';
+import OAuth from 'oauth-1.0a';
+import crypto from 'crypto'; // Biblioteca interna do Node.js
 
 // Esta é a função principal que o Vercel vai executar
 export default async function handler(request, response) {
-  // 1. Pega o que o usuário digitou (ex: ?food=banana)
+  // 1. Pega o que o usuário digitou
   const searchQuery = request.query.food;
 
   if (!searchQuery) {
     return response.status(400).json({ error: 'Parâmetro "food" é obrigatório.' });
   }
 
-  // 2. Pega as chaves secretas que você salvou no Vercel
-  const CLIENT_ID = process.env.FATSECRET_CLIENT_ID;
-  const CLIENT_SECRET = process.env.FATSECRET_CLIENT_SECRET;
+  // 2. Pega as chaves secretas (Consumer Key/Secret) que você salvou no Vercel
+  const CONSUMER_KEY = process.env.FATSECRET_CLIENT_ID; // (Ainda usa o mesmo nome de variável)
+  const CONSUMER_SECRET = process.env.FATSECRET_CLIENT_SECRET; // (Ainda usa o mesmo nome de variável)
 
-  if (!CLIENT_ID || !CLIENT_SECRET) {
-    return response.status(500).json({ error: 'Chaves de API não configuradas no Vercel.' });
+  if (!CONSUMER_KEY || !CONSUMER_SECRET) {
+    return response.status(500).json({ error: 'Chaves de API (Consumer Key/Secret) não configuradas no Vercel.' });
   }
 
-  let foodData; // Variável para loggar no final
-
   try {
-    // 3. Etapa de Autenticação: Pedir um Token de Acesso para o FatSecret
-    const tokenResponse = await fetch('https://oauth.fatsecret.com/connect/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')}`
+    // 3. Etapa de Autenticação (OAuth 1.0)
+    // O OAuth 1.0 não pede um token, ele "assina" cada requisição.
+    
+    const oauth = new OAuth({
+      consumer: {
+        key: CONSUMER_KEY,
+        secret: CONSUMER_SECRET,
       },
-      body: 'grant_type=client_credentials&scope=basic'
+      signature_method: 'HMAC-SHA1',
+      hash_function(base_string, key) {
+        return crypto.createHmac('sha1', key).update(base_string).digest('base64');
+      },
     });
 
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
+    const requestData = {
+      url: 'https://platform.fatsecret.com/rest/server.api',
+      method: 'GET',
+      data: {
+        method: 'foods.search',
+        search_expression: searchQuery,
+        food_type: 'generic',
+        format: 'json',
+        language: 'pt',
+        oauth_consumer_key: CONSUMER_KEY,
+        oauth_nonce: crypto.randomBytes(16).toString('hex'),
+        oauth_signature_method: 'HMAC-SHA1',
+        oauth_timestamp: Math.floor(Date.now() / 1000),
+        oauth_version: '1.0',
+      },
+    };
 
-    if (!accessToken) {
-      throw new Error('Falha ao obter token de acesso do FatSecret.');
-    }
-
-    // 4. Etapa de Busca: (Correto, com &language=pt)
-    const searchUrl = `https://platform.fatsecret.com/rest/server.api?method=foods.search&search_expression=${encodeURIComponent(searchQuery)}&food_type=generic&format=json&language=pt`;
-
-    const foodResponse = await fetch(searchUrl, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
-      }
-    });
-
-    foodData = await foodResponse.json();
-
-    // ####################################################################
-    // ##                        ETAPA DE DEBUG                         ##
-    // ####################################################################
-    // Vamos loggar o que a API do FatSecret REALMENTE enviou.
-    console.log('RESPOSTA CRUA DO FATSECRET:', JSON.stringify(foodData));
-    // ####################################################################
+    // Gera a assinatura de autenticação
+    const authData = oauth.authorize(requestData);
+    
+    // Constrói a URL final com todos os parâmetros de autenticação
+    const paramString = new URLSearchParams({ ...requestData.data, ...authData }).toString();
+    const finalUrl = `${requestData.url}?${paramString}`;
 
 
-    // 5. Etapa de Formatação: (A parte que está falhando)
+    // 4. Etapa de Busca
+    const foodResponse = await fetch(finalUrl);
+    const foodData = await foodResponse.json();
+
+    // 5. Etapa de Formatação (igual à anterior, que agora deve funcionar)
     let formattedResults = [];
     if (foodData.foods && foodData.foods.food) {
       const foods = Array.isArray(foodData.foods.food) ? foodData.foods.food : [foodData.foods.food];
@@ -103,8 +109,7 @@ export default async function handler(request, response) {
     response.status(200).json(formattedResults);
 
   } catch (error) {
-    console.error('Erro na Serverless Function:', error);
-    // Logga o foodData mesmo se der erro, para vermos o que causou
-    response.status(500).json({ error: error.message, debug_data: foodData });
+    console.error('Erro na Serverless Function (OAuth 1.0):', error);
+    response.status(500).json({ error: error.message });
   }
 }
