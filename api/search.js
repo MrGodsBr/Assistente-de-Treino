@@ -1,102 +1,195 @@
-// [VERSÃO DE DIAGNÓSTICO]
-// Importa o 'fetch' que o Vercel precisa para rodar no servidor
+// Importa o 'fetch' e as novas bibliotecas de autenticação
 import fetch from 'node-fetch';
 import OAuth from 'oauth-1.0a';
 import crypto from 'crypto'; // Biblioteca interna do Node.js
 
+// ####################################################################
+// ##           FUNÇÃO 1: Lê o TEXTO (para Marcas)                 ##
+// ####################################################################
+function parseFoodDescription(description) {
+  const macros = {
+    serving_desc: "1 porção",
+    cals: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0
+  };
+
+  try {
+    const servingMatch = description.match(/^Per (.*?) -/);
+    let servingText = "1 porção";
+    if (servingMatch && servingMatch[1]) {
+      servingText = servingMatch[1]; 
+      macros.serving_desc = servingText;
+    }
+
+    const calMatch = description.match(/Calories: ([0-9.]+)k?/i); 
+    let cals = 0;
+    if (calMatch && calMatch[1]) {
+      cals = parseFloat(calMatch[1]);
+      macros.cals = cals;
+    }
+
+    const protMatch = description.match(/Protein: ([0-9.]+)g/i);
+    let protein = 0;
+    if (protMatch && protMatch[1]) {
+      protein = parseFloat(protMatch[1]);
+      macros.protein = protein;
+    }
+
+    const carbMatch = description.match(/Carbs: ([0-9.]+)g/i);
+    let carbs = 0;
+    if (carbMatch && carbMatch[1]) {
+      carbs = parseFloat(carbMatch[1]);
+      macros.carbs = carbs;
+    }
+    
+    const fatMatch = description.match(/Fat: ([0-9.]+)g/i);
+    let fat = 0;
+    if (fatMatch && fatMatch[1]) {
+      fat = parseFloat(fatMatch[1]);
+      macros.fat = fat;
+    }
+
+    // Cálculo de 100g (se a porção for em 'g')
+    const gramMatch = servingText.match(/([0-9.]+)\s*g/);
+    if (gramMatch && gramMatch[1]) {
+      const gramAmount = parseFloat(gramMatch[1]);
+      if (gramAmount > 0 && gramAmount !== 100) {
+        const factor = 100 / gramAmount; 
+        macros.cals = macros.cals * factor;
+        macros.protein = macros.protein * factor;
+        macros.carbs = macros.carbs * factor;
+        macros.fat = macros.fat * factor;
+        macros.serving_desc = "100g"; 
+      }
+    }
+  } catch (e) {
+    console.error("Erro ao 'ler' a descrição (parseFoodDescription):", e);
+  }
+  return macros;
+}
+
+// ####################################################################
+// ##           FUNÇÃO 2: Lê o OBJETO (para Genéricos)             ##
+// ####################################################################
+function parseGenericServings(serving) {
+    let servingData = { cals: 0, carbs: 0, protein: 0, fat: 0, serving_desc: "Porção" };
+    let servingToParse = null;
+
+    if (Array.isArray(serving)) {
+        servingToParse = serving.find(s => s.metric_serving_unit === 'g' && parseFloat(s.metric_serving_amount) === 100);
+        if (!servingToParse) servingToParse = serving.find(s => s.calories || s.calorias); 
+        if (!servingToParse) servingToParse = serving[0]; 
+    } else {
+        servingToParse = serving; 
+    }
+
+    if (servingToParse) {
+        servingData.cals = parseFloat(servingToParse.calorias || servingToParse.calories) || 0;
+        servingData.carbs = parseFloat(servingToParse.carboidrato || servingToParse.carbohydrate) || 0;
+        servingData.protein = parseFloat(servingToParse.proteina || servingToParse.protein) || 0;
+        servingData.fat = parseFloat(servingToParse.gordura || servingToParse.fat) || 0;
+        servingData.serving_desc = servingToParse.serving_description || "Porção";
+    }
+    
+    return servingData;
+}
+// ####################################################################
+
+
 // Esta é a função principal que o Vercel vai executar
 export default async function handler(request, response) {
-  // 1. Pega o que o usuário digitou (ex: ?food=banana)
+  // 1. Pega o que o usuário digitou
   const searchQuery = request.query.food;
 
   if (!searchQuery) {
     return response.status(400).json({ error: 'Parâmetro "food" é obrigatório.' });
   }
 
-  // 2. Pega as chaves secretas que você salvou no Vercel
-  const CLIENT_ID = process.env.FATSECRET_CLIENT_ID;
-  const CLIENT_SECRET = process.env.FATSECRET_CLIENT_SECRET;
+  // 2. Pega as chaves secretas (Consumer Key/Secret) que você salvou no Vercel
+  const CONSUMER_KEY = process.env.FATSECRET_CLIENT_ID; 
+  const CONSUMER_SECRET = process.env.FATSECRET_CLIENT_SECRET;
 
-  if (!CLIENT_ID || !CLIENT_SECRET) {
-    return response.status(500).json({ error: 'Chaves de API não configuradas no Vercel.' });
+  if (!CONSUMER_KEY || !CONSUMER_SECRET) {
+    return response.status(500).json({ error: 'Chaves de API (Consumer Key/Secret) não configuradas no Vercel.' });
   }
 
-  let foodData; // Variável para loggar no final
-
   try {
-    // 3. Etapa de Autenticação: Pedir um Token de Acesso para o FatSecret
-    const tokenResponse = await fetch('https://oauth.fatsecret.com/connect/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')}`
+    // 3. Etapa de Autenticação (OAuth 1.0) - AGORA ESTÁ CORRETO
+    const oauth = new OAuth({
+      consumer: { key: CONSUMER_KEY, secret: CONSUMER_SECRET },
+      signature_method: 'HMAC-SHA1',
+      hash_function(base_string, key) {
+        return crypto.createHmac('sha1', key).update(base_string).digest('base64');
       },
-      body: 'grant_type=client_credentials&scope=basic'
     });
 
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
+    const requestData = {
+      url: 'https://platform.fatsecret.com/rest/server.api',
+      method: 'GET',
+      data: {
+        method: 'foods.search',
+        search_expression: searchQuery,
+        
+        // ###############################################################
+        // ##              FORÇANDO PORTUGUÊS (COM 'region')          ##
+        // ###############################################################
+        // Busca TUDO (genérico e marcas) da região BRASIL
+        region: 'BR',      
+        language: 'pt',    
+        // ###############################################################
 
-    if (!accessToken) {
-      throw new Error('Falha ao obter token de acesso do FatSecret.');
-    }
+        format: 'json',
+        oauth_consumer_key: CONSUMER_KEY,
+        oauth_nonce: crypto.randomBytes(16).toString('hex'),
+        oauth_signature_method: 'HMAC-SHA1',
+        oauth_timestamp: Math.floor(Date.now() / 1000),
+        oauth_version: '1.0',
+      },
+    };
 
-    // 4. Etapa de Busca: (Correto, com &language=pt)
-    const searchUrl = `https://platform.fatsecret.com/rest/server.api?method=foods.search&search_expression=${encodeURIComponent(searchQuery)}&food_type=generic&format=json&language=pt`;
+    const authData = oauth.authorize(requestData);
+    const paramString = new URLSearchParams({ ...requestData.data, ...authData }).toString();
+    const finalUrl = `${requestData.url}?${paramString}`;
 
-    const foodResponse = await fetch(searchUrl, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
-      }
-    });
+    // 4. Etapa de Busca
+    const foodResponse = await fetch(finalUrl);
+    const foodData = await foodResponse.json();
 
-    foodData = await foodResponse.json();
-
-    // ####################################################################
-    // ##                        ETAPA DE DEBUG                         ##
-    // ####################################################################
-    // Vamos loggar o que a API do FatSecret REALMENTE enviou.
-    console.log('RESPOSTA CRUA DO FATSECRET:', JSON.stringify(foodData));
-    // ####################################################################
-
-
-    // 5. Etapa de Formatação: (A parte que está falhando)
+    // 5. Etapa de Formatação (Código "Inteligente")
     let formattedResults = [];
+    
+    if (foodData.error || (foodData.foods && foodData.foods.total_results === "0")) {
+       console.log("Nenhum resultado encontrado no FatSecret para:", searchQuery);
+       return response.status(200).json([]); // Retorna lista vazia
+    }
+    
     if (foodData.foods && foodData.foods.food) {
       const foods = Array.isArray(foodData.foods.food) ? foodData.foods.food : [foodData.foods.food];
 
       formattedResults = foods.map(food => {
-        let servingData = { cals: 0, carbs: 0, protein: 0, fat: 0, serving_desc: "Porção" };
-
-        if (food.servings && food.servings.serving) {
-            let servingToParse = null;
-            const serving = food.servings.serving;
-
-            if (Array.isArray(serving)) {
-                servingToParse = serving.find(s => s.metric_serving_unit === 'g' && parseFloat(s.metric_serving_amount) === 100);
-                if (!servingToParse) servingToParse = serving.find(s => s.calories || s.calorias); 
-                if (!servingToParse) servingToParse = serving[0]; 
-            } else {
-                servingToParse = serving; 
-            }
-
-            if (servingToParse) {
-                servingData.cals = parseFloat(servingToParse.calorias || servingToParse.calories) || 0;
-                servingData.carbs = parseFloat(servingToParse.carboidrato || servingToParse.carbohydrate) || 0;
-                servingData.protein = parseFloat(servingToParse.proteina || servingToParse.protein) || 0;
-                servingData.fat = parseFloat(servingToParse.gordura || servingToParse.fat) || 0;
-                servingData.serving_desc = servingToParse.serving_description || "Porção";
-            }
+        
+        let macros;
+        
+        if (food.food_description) {
+            macros = parseFoodDescription(food.food_description);
+        } 
+        else if (food.servings && food.servings.serving) { 
+            macros = parseGenericServings(food.servings.serving);
+        } 
+        else {
+            macros = { cals: 0 }; // Será filtrado
         }
 
         return {
           id: food.food_id,
           name: food.food_name,
-          serving_desc: servingData.serving_desc,
-          cals: servingData.cals,
-          carbs: servingData.carbs,
-          protein: servingData.protein,
-          fat: servingData.fat
+          serving_desc: macros.serving_desc, 
+          cals: macros.cals,         
+          carbs: macros.carbs,       
+          protein: macros.protein,   
+          fat: macros.fat            
         };
       }).filter(f => f.cals > 0); 
     }
@@ -105,8 +198,8 @@ export default async function handler(request, response) {
     response.status(200).json(formattedResults);
 
   } catch (error) {
-    console.error('Erro na Serverless Function:', error);
-    // Logga o foodData mesmo se der erro, para vermos o que causou
-    response.status(500).json({ error: error.message, debug_data: foodData });
+    // Adiciona um log detalhado do erro
+    console.error('ERRO CRÍTICO NA API (search.js):', error.message);
+    response.status(500).json({ error: error.message });
   }
 }
