@@ -1,122 +1,97 @@
-// Importa o 'fetch' e as novas bibliotecas de autenticação
+// Importações
 import fetch from 'node-fetch';
 import OAuth from 'oauth-1.0a';
-import crypto from 'crypto'; // Biblioteca interna do Node.js
+import crypto from 'crypto';
 
-// ####################################################################
-// ##           FUNÇÃO 1: Lê o TEXTO (para Marcas)                 ##
-// ####################################################################
-function parseFoodDescription(description) {
-  const macros = {
-    serving_desc: "1 porção",
-    cals: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0
+// ---------------------- Utils de Parsing ----------------------
+function normalizeNumber(x) {
+  if (x === null || x === undefined) return 0;
+  const n = parseFloat(String(x).replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function pickBestServing(servingsArr) {
+  if (!Array.isArray(servingsArr) || servingsArr.length === 0) return null;
+
+  // 1) Preferir 100 g quando disponível
+  let s100g = servingsArr.find(s => (s.metric_serving_unit === 'g' || s.metric_serving_unit === 'gram')
+    && normalizeNumber(s.metric_serving_amount) === 100);
+  if (s100g) return s100g;
+
+  // 2) Servings com métricas em gramas (mais fácil converter)
+  let sGram = servingsArr.find(s => (s.metric_serving_unit === 'g' || s.metric_serving_unit === 'gram'));
+  if (sGram) return sGram;
+
+  // 3) Servings marcados como padrão
+  let sDefault = servingsArr.find(s => String(s.is_default) === '1');
+  if (sDefault) return sDefault;
+
+  // 4) Primeiro disponível
+  return servingsArr[0];
+}
+
+function toPer100g(serving) {
+  // Se tiver métrica em g, converter para 100 g
+  const unit = serving.metric_serving_unit;
+  const amount = normalizeNumber(serving.metric_serving_amount);
+
+  const base = {
+    serving_desc: serving.serving_description || 'Porção',
+    cals: normalizeNumber(serving.calories),
+    carbs: normalizeNumber(serving.carbohydrate),
+    protein: normalizeNumber(serving.protein),
+    fat: normalizeNumber(serving.fat),
   };
 
-  try {
-    const servingMatch = description.match(/^Per (.*?) -/);
-    let servingText = "1 porção";
-    if (servingMatch && servingMatch[1]) {
-      servingText = servingMatch[1]; 
-      macros.serving_desc = servingText;
+  if ((unit === 'g' || unit === 'gram') && amount > 0) {
+    if (amount === 100) {
+      return { ...base, serving_desc: '100g' };
     }
-
-    const calMatch = description.match(/Calories: ([0-9.]+)k?/i); 
-    let cals = 0;
-    if (calMatch && calMatch[1]) {
-      cals = parseFloat(calMatch[1]);
-      macros.cals = cals;
-    }
-
-    const protMatch = description.match(/Protein: ([0-9.]+)g/i);
-    let protein = 0;
-    if (protMatch && protMatch[1]) {
-      protein = parseFloat(protMatch[1]);
-      macros.protein = protein;
-    }
-
-    const carbMatch = description.match(/Carbs: ([0-9.]+)g/i);
-    let carbs = 0;
-    if (carbMatch && carbMatch[1]) {
-      carbs = parseFloat(carbMatch[1]);
-      macros.carbs = carbs;
-    }
-    
-    const fatMatch = description.match(/Fat: ([0-9.]+)g/i);
-    let fat = 0;
-    if (fatMatch && fatMatch[1]) {
-      fat = parseFloat(fatMatch[1]);
-      macros.fat = fat;
-    }
-
-    // Cálculo de 100g (se a porção for em 'g')
-    const gramMatch = servingText.match(/([0-9.]+)\s*g/);
-    if (gramMatch && gramMatch[1]) {
-      const gramAmount = parseFloat(gramMatch[1]);
-      if (gramAmount > 0 && gramAmount !== 100) {
-        const factor = 100 / gramAmount; 
-        macros.cals = macros.cals * factor;
-        macros.protein = macros.protein * factor;
-        macros.carbs = macros.carbs * factor;
-        macros.fat = macros.fat * factor;
-        macros.serving_desc = "100g"; 
-      }
-    }
-  } catch (e) {
-    console.error("Erro ao 'ler' a descrição (parseFoodDescription):", e);
+    const factor = 100 / amount;
+    return {
+      serving_desc: '100g',
+      cals: base.cals * factor,
+      carbs: base.carbs * factor,
+      protein: base.protein * factor,
+      fat: base.fat * factor,
+    };
   }
-  return macros;
+
+  // Sem métrica em gramas: retornar por porção original
+  return base;
 }
 
-// ####################################################################
-// ##           FUNÇÃO 2: Lê o OBJETO (para Genéricos)             ##
-// ####################################################################
-function parseGenericServings(serving) {
-    let servingData = { cals: 0, carbs: 0, protein: 0, fat: 0, serving_desc: "Porção" };
-    let servingToParse = null;
+function extractMacrosFromFood(food) {
+  // v2 sempre traz "servings.serving" com 1..n itens
+  const servings = food?.servings?.serving;
+  const arr = Array.isArray(servings) ? servings : (servings ? [servings] : []);
+  if (arr.length === 0) {
+    return null;
+  }
+  const best = pickBestServing(arr);
+  if (!best) return null;
 
-    if (Array.isArray(serving)) {
-        servingToParse = serving.find(s => s.metric_serving_unit === 'g' && parseFloat(s.metric_serving_amount) === 100);
-        if (!servingToParse) servingToParse = serving.find(s => s.calories || s.calorias); 
-        if (!servingToParse) servingToParse = serving[0]; 
-    } else {
-        servingToParse = serving; 
-    }
-
-    if (servingToParse) {
-        servingData.cals = parseFloat(servingToParse.calorias || servingToParse.calories) || 0;
-        servingData.carbs = parseFloat(servingToParse.carboidrato || servingToParse.carbohydrate) || 0;
-        servingData.protein = parseFloat(servingToParse.proteina || servingToParse.protein) || 0;
-        servingData.fat = parseFloat(servingToParse.gordura || servingToParse.fat) || 0;
-        servingData.serving_desc = servingToParse.serving_description || "Porção";
-    }
-    
-    return servingData;
+  return toPer100g(best);
 }
-// ####################################################################
 
-
-// Esta é a função principal que o Vercel vai executar
+// ---------------------- Handler ----------------------
 export default async function handler(request, response) {
-  // 1. Pega o que o usuário digitou
   const searchQuery = request.query.food;
+  const page = Number(request.query.page ?? 0);
+  const maxResults = Math.min(Number(request.query.max_results ?? 20), 50);
 
-  if (!searchQuery) {
-    return response.status(400).json({ error: 'Parâmetro "food" é obrigatório.' });
+  if (!searchQuery || String(searchQuery).trim() === '') {
+    return response.status(400).json({ error: 'Parâmetro "food" é obrigatório.' }); // [web:1][web:7]
   }
 
-  // 2. Pega as chaves secretas (Consumer Key/Secret) que você salvou no Vercel
-  const CONSUMER_KEY = process.env.FATSECRET_CLIENT_ID; 
+  const CONSUMER_KEY = process.env.FATSECRET_CLIENT_ID;
   const CONSUMER_SECRET = process.env.FATSECRET_CLIENT_SECRET;
 
   if (!CONSUMER_KEY || !CONSUMER_SECRET) {
-    return response.status(500).json({ error: 'Chaves de API (Consumer Key/Secret) não configuradas no Vercel.' });
+    return response.status(500).json({ error: 'Chaves de API (Consumer Key/Secret) não configuradas.' }); // [web:8]
   }
 
   try {
-    // 3. Etapa de Autenticação (OAuth 1.0)
     const oauth = new OAuth({
       consumer: { key: CONSUMER_KEY, secret: CONSUMER_SECRET },
       signature_method: 'HMAC-SHA1',
@@ -125,81 +100,66 @@ export default async function handler(request, response) {
       },
     });
 
-    const requestData = {
-      url: 'https://platform.fatsecret.com/rest/server.api',
-      method: 'GET',
-      data: {
-        method: 'foods.search',
-        search_expression: searchQuery,
-        
-        // ###############################################################
-        // ##              FORÇANDO PORTUGUÊS (COM 'region')          ##
-        // ###############################################################
-        // Busca TUDO (genérico e marcas) da região BRASIL
-        region: 'BR',      
-        language: 'pt',    
-        // ###############################################################
+    // Opção A: manter server.api e usar method=foods.search.v2
+    const url = 'https://platform.fatsecret.com/rest/server.api'; // [web:1][web:7]
 
-        format: 'json',
-        oauth_consumer_key: CONSUMER_KEY,
-        oauth_nonce: crypto.randomBytes(16).toString('hex'),
-        oauth_signature_method: 'HMAC-SHA1',
-        oauth_timestamp: Math.floor(Date.now() / 1000),
-        oauth_version: '1.0',
-      },
+    const baseParams = {
+      method: 'foods.search.v2',      // versão v2 do método
+      search_expression: searchQuery, // termo de busca
+      page_number: page,              // paginação zero-based
+      max_results: maxResults,        // até 50
+      region: 'BR',                   // filtra por Brasil
+      language: 'pt',                 // retorna em pt quando possível
+      format: 'json',                 // JSON
+      oauth_consumer_key: CONSUMER_KEY,
+      oauth_nonce: crypto.randomBytes(16).toString('hex'),
+      oauth_signature_method: 'HMAC-SHA1',
+      oauth_timestamp: Math.floor(Date.now() / 1000),
+      oauth_version: '1.0',
     };
 
-    const authData = oauth.authorize(requestData);
-    const paramString = new URLSearchParams({ ...requestData.data, ...authData }).toString();
-    const finalUrl = `${requestData.url}?${paramString}`;
+    const authData = oauth.authorize({ url, method: 'GET',  baseParams });
+    const qs = new URLSearchParams({ ...baseParams, ...authData }).toString();
+    const finalUrl = `${url}?${qs}`;
 
-    // 4. Etapa de Busca
-    const foodResponse = await fetch(finalUrl);
-    const foodData = await foodResponse.json();
+    const res = await fetch(finalUrl);
+    const data = await res.json();
 
-    // 5. Etapa de Formatação (Esta é a parte CORRIGIDA)
-    let formattedResults = [];
-    
-    if (foodData.error || (foodData.foods && foodData.foods.total_results === "0")) {
-       console.log("Nenhum resultado encontrado no FatSecret para:", searchQuery);
-       return response.status(200).json([]); // Retorna lista vazia
-    }
-    
-    if (foodData.foods && foodData.foods.food) {
-      const foods = Array.isArray(foodData.foods.food) ? foodData.foods.food : [foodData.foods.food];
-
-      formattedResults = foods.map(food => {
-        
-        let macros;
-        
-        if (food.food_description) {
-            macros = parseFoodDescription(food.food_description);
-        } 
-        else if (food.servings && food.servings.serving) { 
-            macros = parseGenericServings(food.servings.serving);
-        } 
-        else {
-            macros = { cals: 0 }; // Será filtrado
-        }
-
-        return {
-          id: food.food_id,
-          name: food.food_name,
-          serving_desc: macros.serving_desc, 
-          cals: macros.cals,         
-          carbs: macros.carbs,       
-          protein: macros.protein,   
-          fat: macros.fat            
-        };
-      }).filter(f => f.cals > 0); 
+    // Tratamento de erro da API (códigos OAuth/param)
+    if (data?.error?.code) {
+      return response.status(502).json({ error: data.error.message || 'Erro da API FatSecret', code: data.error.code }); // [web:7]
     }
 
-    // 6. Enviar a resposta de volta para o seu index.html
-    response.status(200).json(formattedResults);
+    // Estrutura v2: { foods_search: { total_results, page_number, results: { food: [...] } } }
+    const foodsSearch = data?.foods_search;
+    const total = normalizeNumber(foodsSearch?.total_results);
+    const resultsNode = foodsSearch?.results;
+    const foods = resultsNode?.food;
 
-  } catch (error) {
-    // Adiciona um log detalhado do erro
-    console.error('ERRO CRÍTICO NA API (search.js):', error.message);
-    response.status(500).json({ error: error.message });
+    if (!foodsSearch || total === 0 || !foods) {
+      return response.status(200).json([]); // sem resultados // [web:7]
+    }
+
+    const foodsArray = Array.isArray(foods) ? foods : [foods];
+
+    const formatted = foodsArray.map(food => {
+      const macros = extractMacrosFromFood(food);
+      return {
+        id: food.food_id,
+        name: food.food_name,
+        brand: food.brand_name || null,
+        serving_desc: macros?.serving_desc || 'Porção',
+        cals: macros ? Number(macros.cals.toFixed(2)) : 0,
+        carbs: macros ? Number(macros.carbs.toFixed(2)) : 0,
+        protein: macros ? Number(macros.protein.toFixed(2)) : 0,
+        fat: macros ? Number(macros.fat.toFixed(2)) : 0,
+        type: food.food_type,
+      };
+    }).filter(f => f.cals > 0); // manter somente itens com macros válidos
+
+    return response.status(200).json(formatted);
+  } catch (err) {
+    console.error('ERRO CRÍTICO:', err?.message || err);
+    return response.status(500).json({ error: 'Falha interna ao consultar FatSecret.' }); // [web:8]
   }
 }
