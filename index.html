@@ -941,7 +941,7 @@
         let proteinStatus = '';
         if (proteinGoal > 0) {
             if (totalProtein >= proteinGoal) {
-                proteinStatus = `<p class="text-green-700 font-semibold">💪 Proteína: Meta Atingida!</p>`;
+                proteinStatus = `<p class="text-green-700 font-semibold">💪 Proteína: Meta Ati gida!</p>`;
             } else {
                 proteinStatus = `<p class="text-yellow-700 font-semibold">💪 Proteína: Faltam ${(proteinGoal - totalProtein).toFixed(0)}g.</p>`;
             }
@@ -1915,7 +1915,7 @@
       // ###############################################################
       
       try {
-        const response = await fetch(`/api/search?food=${encodeURIComponent(translatedQuery)}`);
+        const response = await fetch(`/api/search?food=${encodeURIComponent(q_raw)}`); // <<-- SEM TRADUÇÃO AQUI, DEVE USAR APENAS O NOME ORIGINAL (para Open Food Facts)
         const loadingEl = document.getElementById('apiLoading');
         
         if (!response.ok) {
