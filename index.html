@@ -450,6 +450,7 @@
 
   <footer class="mt-8 text-sm text-gray-500">Desenvolvido por Thiago</footer>
 
+<script src="food.data.js"></script>
 <script>
   // Config do Firebase (client keys podem ficar públicas; proteja via regras)
   const firebaseConfig = {
@@ -538,11 +539,10 @@
   };
 
   // ####################################################################
-  // ##           MUDANÇA NO foodDatabase (Simplificado)             ##
+  // ##           INÍCIO DA MODIFICAÇÃO: MESCLAGEM DO FOODDATABASE     ##
   // ####################################################################
-  // Esta lista agora serve como "Favoritos" ou "Alimentos Rápidos"
-  // A busca principal agora é na API.
-  const foodDatabase = {
+  // Esta lista é a base/favoritos preexistentes no seu código.
+  const foodDatabaseBase = {
     'whey_protein': { name: 'Whey Protein', protein: 24, carbs: 3, cals: 120, unit: 'scoop 30g', visceralFat: false },
     'creatina': { name: 'Creatina (pura)', protein: 0, carbs: 0, cals: 0, unit: 'scoop 3g', visceralFat: false },
     'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, cals: 77, unit: 'unidade', visceralFat: false },
@@ -555,7 +555,14 @@
     'pao_integral': { name: 'Pão de Forma (Integral)', protein: 3, carbs: 12, cals: 70, unit: 'fatia', visceralFat: false },
     'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false },
   };
-  // (Removemos o restante para manter o app rápido, já que a API é a fonte principal)
+
+  // Mesclagem: Assumimos que 'foodDatabaseCustom' foi declarado no seu food.data.js
+  // Se o seu food.data.js usa outro nome (ex: 'myLocalFoods'), altere aqui.
+  const foodDatabase = (typeof foodDatabaseCustom !== 'undefined') 
+                       ? { ...foodDatabaseBase, ...foodDatabaseCustom } 
+                       : foodDatabaseBase;
+  // ####################################################################
+  // ##           FIM DA MODIFICAÇÃO: MESCLAGEM DO FOODDATABASE        ##
   // ####################################################################
 
 
@@ -1657,7 +1664,7 @@
   }
 
   // ####################################################################
-  // ##           FUNÇÃO searchFood ATUALIZADA P/ API                ##
+  // ##           MODIFICAÇÃO: FUNÇÃO searchFood ATUALIZADA          ##
   // ####################################################################
   // Helper para normalizar texto (remover acentos)
   const normalizeText = (text) => {
@@ -1679,10 +1686,11 @@
     const q = normalizeText(q_raw.toLowerCase());
     
     // 1. Mostrar "Buscando..."
-    dd.innerHTML = `<div class="p-3 text-gray-500 text-sm text-center">Buscando na internet...</div>`;
+    dd.innerHTML = `<div class="p-3 text-gray-500 text-sm text-center">Buscando...</div>`; 
     showElement(dd);
 
-    // 2. Busca RÁPIDA nos favoritos locais (foodDatabase)
+    // 2. Busca RÁPIDA nos FAVORITOS/CUSTOMIZADOS (foodDatabase)
+    // Filtra pelos nomes dos alimentos no banco de dados local
     const localResults = Object.keys(foodDatabase).filter(k => {
       const f = foodDatabase[k];
       const nameNormalized = normalizeText(f.name.toLowerCase());
@@ -1702,26 +1710,26 @@
         cals: f.cals,
         carbs: f.carbs,
         protein: f.protein,
-        fat: 0, // (Nossos favoritos locais não tinham gordura)
+        fat: f.fat || 0, // Garantir a gordura (fat) se existir
         visceralFat: f.visceralFat 
       };
       
       // ATENÇÃO: Usamos JSON.stringify para passar o OBJETO como string no HTML
-      // Usamos ' (aspas simples) para envolver o JSON.stringify
       html += `
         <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" 
              onclick='selectFood(${JSON.stringify(foodObject)})'>
-          <p class="font-medium text-gray-800">⭐ ${f.name}</p>
-          <p class="text-xs"><span class="text-orange-600 font-medium">${f.cals} kcal</span> <span class="text-gray-600">por ${f.unit}</span></p>
+          <p class="font-medium text-gray-800">⭐ ${f.name} (Local)</p> <p class="text-xs"><span class="text-orange-600 font-medium">${f.cals} kcal</span> <span class="text-gray-600">por ${f.unit}</span></p>
         </div>
       `;
     });
     
     if (localResults.length > 0) {
       html += `<hr class="my-1 border-gray-300">`; // Divisor
+      // Atualiza o dropdown para mostrar os locais primeiro
+      dd.innerHTML = html + `<div id="apiLoading" class="p-3 text-gray-500 text-sm text-center">Buscando na internet...</div>`;
+    } else {
+        dd.innerHTML = `<div id="apiLoading" class="p-3 text-gray-500 text-sm text-center">Buscando na internet...</div>`;
     }
-    
-    dd.innerHTML = html + `<div id="apiLoading" class="p-3 text-gray-500 text-sm text-center">Buscando na internet...</div>`;
 
 
     // 3. Busca na API (com "debounce" de 300ms)
@@ -1741,14 +1749,12 @@
 
         if(apiResults.length === 0 && localResults.length === 0){
           dd.innerHTML=`<div class="p-3 text-gray-500 text-sm">Nenhum alimento encontrado.</div>`;
-          // (Aqui adicionaremos o botão "Criar Customizado" na próxima etapa)
           return;
         }
         
         // Mapeia os resultados da API
         apiResults.forEach(f => {
           // O objeto 'f' já vem pronto da nossa API
-          // (name, serving_desc, cals, carbs, protein, fat)
           
           // ATENÇÃO: Usamos JSON.stringify para passar o OBJETO como string no HTML
           html += `
