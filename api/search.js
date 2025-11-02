@@ -3,6 +3,7 @@ import fetch from 'node-fetch';
 
 // Esta é a função principal que o Vercel vai executar
 export default async function handler(request, response) {
+  // 1. Pega o que o usuário digitou (ex: ?food=Ovo)
   const searchQuery = request.query.food;
 
   if (!searchQuery) {
@@ -15,9 +16,9 @@ export default async function handler(request, response) {
     // ##             BUSCA NA OPEN FOOD FACTS (CORRIGIDA)          ##
     // ###############################################################
     
-    // Agora usando a URL de busca mais precisa (search.json)
+    // URL CORRETA: Usa 'cgi/search.pl' para busca por termo exato
     const searchUrl = `https://pt.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchQuery)}&search_simple=1&action=process&json=1`;
-    
+
     // 2. Faz a busca (não precisa de chaves!)
     const foodResponse = await fetch(searchUrl);
     const foodData = await foodResponse.json();
@@ -25,6 +26,7 @@ export default async function handler(request, response) {
     // 3. Etapa de Formatação (Lendo os campos do Open Food Facts)
     let formattedResults = [];
     
+    // A API nova usa foodData.products
     if (foodData && foodData.products) {
       formattedResults = foodData.products.map(food => {
         
@@ -41,7 +43,7 @@ export default async function handler(request, response) {
 
         return {
           id: food.code || food.id, 
-          name: food.product_name,    
+          name: food.product_name,    // O nome JÁ VEM em português
           serving_desc: serving_desc, 
           cals: parseFloat(cals),         
           carbs: parseFloat(carbs),       
