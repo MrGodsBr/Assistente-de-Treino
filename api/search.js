@@ -1,80 +1,54 @@
-// ... (após a declaração de 'foodDatabase') ...
+// ... (aproximadamente na linha 1256 do seu código original) ...
 
-// ESTADO GLOBAL AJUSTADO: Armazena o item completo, independente da origem (Local, FatSecret, etc.)
-let selectedFoodItem = null;
-
-// #############################################
-// ##   SIMULAÇÃO DA INTEGRAÇÃO COM FATSECRET   ##
-// #############################################
-// Nota: Em um ambiente de produção, esta função faria uma requisição segura (fetch) 
-// para um SEU servidor backend, que então faria a chamada real (e segura) para a API do FatSecret.
-async function fetchFatSecretApi(query) {
-    console.log(`Simulando busca no FatSecret para: ${query}`);
+async function addFoodToLog(){
+    if (!userId) { showLoginModal(); return; } 
+       
+    if(currentDateString !== todayDateString) {
+        alert("Você só pode adicionar alimentos no dia de hoje.");
+        return;
+    }
+    
+    const addFoodButton = document.getElementById('addFoodButton');
+    addFoodButton.disabled = true; 
+    
+    // ATENÇÃO: Mudança aqui para usar selectedFoodItem
+    if(!selectedFoodItem){ alert("Por favor, selecione um alimento da lista."); addFoodButton.disabled = false; return; }
     
-    // Simula a lentidão da rede
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const quantity=parseFloat(document.getElementById('foodQuantity').value);
+    const meal=document.getElementById('mealTimeSelect').value;
+    if(isNaN(quantity)||quantity<=0){ alert("Por favor, insira uma quantidade válida."); addFoodButton.disabled = false; return; }
 
-    // Resultados de simulação baseados na query
-    const results = [];
-    const qLower = query.toLowerCase();
+    const f = selectedFoodItem; // <-- Usa o item selecionado
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; 
+    
+    const payload = {
+        type: 'food', 
+        // Garante que a key existe, seja a original (FS) ou uma gerada
+        key: f.key || f.name.toLowerCase().replace(/[^a-z0-9]/g, '_'), 
+        name: f.name,
+        quantity,
+        unit: f.unit,
+        protein: parseFloat((f.protein * quantity).toFixed(1)),
+        carbs: parseFloat((f.carbs * quantity).toFixed(1)),
+        cals: parseFloat((f.cals * quantity).toFixed(0)),
+        visceralFat: f.visceralFat || false, // Adiciona fallback
+        meal,
+        ts: firebase.firestore.FieldValue.serverTimestamp(), 
+        clientTs: Date.now(),
+        timeStr: timeStr 
+    };
 
-    if (qLower.includes('frango')) {
-        results.push({
-            type: 'fatsecret',
-            key: 'fs_frango_grelhado',
-            name: 'Peito de Frango (FS) - 100g',
-            protein: 31,
-            carbs: 0,
-            cals: 165,
-            unit: '100g',
-            visceralFat: false
-        });
+    const itemsRef = getItemsRef(userId, currentDateString);
+    
+    try {
+        await itemsRef.add(payload);
+    } catch (e) {
+        alert("Erro ao adicionar alimento. Verifique sua conexão e as regras do Firebase.");
+        console.error("Erro ao adicionar alimento:", e);
     }
-    if (qLower.includes('hambur')) {
-        results.push({
-            type: 'fatsecret',
-            key: 'fs_hamburguer_fastfood',
-            name: 'Hambúrguer de Fast Food (FS)',
-            protein: 15,
-            carbs: 30,
-            cals: 350,
-            unit: 'unidade',
-            visceralFat: true // Exemplo de item não saudável
-        });
-    }
-    if (qLower.includes('pizza')) {
-        results.push({
-            type: 'fatsecret',
-            key: 'fs_pizza',
-            name: 'Pizza Congelada (FS)',
-            protein: 10,
-            carbs: 40,
-            cals: 300,
-            unit: 'fatia',
-            visceralFat: true
-        });
-    }
-
-    // Se o FatSecret não encontrar nada, ele retorna o array vazio.
-    return results; 
-}
-
-// #############################################
-// ##      FUNÇÃO DE SELEÇÃO DO RESULTADO      ##
-// #############################################
-function selectFoodFromSearchResult(item) {
-    selectedFoodItem = item; // Armazena o objeto completo
-    document.getElementById('foodSearch').value = item.name;
-    hideElement(document.getElementById('searchDropdown'));
-    document.getElementById('foodQuantity').focus();
-}
-
-// Atualiza clearFoodSearch para limpar o novo estado global
-function clearFoodSearch() {
-    document.getElementById('foodSearch').value = '';
-    document.getElementById('foodQuantity').value = '';
-    selectedFoodItem = null; // <--- LIMPA O ITEM SELECIONADO
-    hideElement(document.getElementById('searchDropdown'));
-    document.getElementById('addFoodButton').disabled = false;
-    document.getElementById('foodSearch').focus();
+    
+    // LIMPA A BUSCA APÓS ADICIONAR
+    clearFoodSearch();
+    addFoodButton.disabled = false;
 }
