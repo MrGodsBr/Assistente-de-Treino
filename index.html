@@ -98,13 +98,12 @@
               <button type="button" onclick="togglePasswordVisibility('regPasswordInput')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
                 <svg id="regPasswordInput_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275 4.307 5.065 7.25 9.543 7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
-                </svg>
-                <svg id="regPasswordInput_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
-                </svg>
-              </button>
-            </div>
-          </div>
+            </svg>
+            <svg id="regPasswordInput_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div>
@@ -314,7 +313,7 @@
             <option value="perder">Perder Peso (Cutting)</option>
           </select>
         </div>
-        <button id="calculateButton" class="col-span-2 sm:col-span-3 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+        <button id="calculateButton" class="col-span-2 sm:col-span-3 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors mt-3">
           Calcular e Salvar Meta
         </button>
       </div>
@@ -589,12 +588,89 @@
   };
   
   // ####################################################################
-  // ##             DICIONÁRIO DE TRADUÇÃO REMOVIDO                  ##
-  // ##     (Agora usamos a API 2.0 com region: 'BR')                  ##
+  // ##                 NOVO DICIONÁRIO DE TRADUÇÃO                  ##
   // ####################################################################
-  const normalizeText = (text) => {
-      return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // PT -> EN (Para buscar na API)
+  const translationDictionaryPTEN = {
+      'ovo': 'egg',
+      'ovos': 'eggs',
+      'arroz': 'rice',
+      'feijão': 'beans',
+      'feijao': 'beans',
+      'peixe': 'fish',
+      'tilápia': 'tilapia',
+      'tilapia': 'tilapia',
+      'salmão': 'salmon',
+      'salmao': 'salmon',
+      'frango': 'chicken',
+      'peito de frango': 'chicken breast',
+      'carne': 'beef',
+      'batata': 'potato',
+      'batata doce': 'sweet potato',
+      'pão': 'bread',
+      'pao': 'bread',
+      'leite': 'milk',
+      'queijo': 'cheese',
+      'banana': 'banana',
+      'maçã': 'apple',
+      'maca': 'apple'
+      // Adicione mais traduções simples aqui
   };
+  
+  // EN -> PT (Para mostrar o resultado)
+  const translationDictionaryENPT = {
+      'egg': 'Ovo',
+      'eggs': 'Ovos',
+      'rice': 'Arroz',
+      'beans': 'Feijão',
+      'fish': 'Peixe',
+      'salmon': 'Salmão',
+      'chicken': 'Frango',
+      'beef': 'Carne',
+      'potato': 'Batata',
+      'milk': 'Leite',
+      'cheese': 'Queijo',
+      'banana': 'Banana',
+      'apple': 'Maçã',
+      // Regex para nomes mais complexos (ex: "Fried Egg" -> "Ovo Frito")
+      'fried egg': 'Ovo Frito',
+      'scrambled egg': 'Ovos Mexidos',
+      'chicken breast': 'Peito de Frango'
+  };
+
+  function translateQuery(query) {
+      const normalizedQuery = normalizeText(query).toLowerCase().trim();
+      
+      // Tenta traduzir a frase inteira
+      if (translationDictionaryPTEN[normalizedQuery]) {
+          return translationDictionaryPTEN[normalizedQuery];
+      }
+      // Se não achar, retorna o termo original
+      return normalizedQuery; 
+  }
+  
+  function translateResult(englishName) {
+      const englishLower = englishName.toLowerCase();
+
+      // 1. Tenta traduzir a frase exata (Ex: "Fried Egg" -> "Ovo Frito")
+      const translatedPhrase = translationDictionaryENPT[englishLower];
+      if (translatedPhrase) {
+          return translatedPhrase;
+      }
+      
+      // 2. Se não achar, tenta traduzir a primeira palavra (Ex: "Whole Egg" -> "Ovo inteiro")
+      const parts = englishName.split(' ');
+      if (parts.length > 1) {
+          const firstWord = parts[0].toLowerCase();
+          if (translationDictionaryENPT[firstWord]) {
+              parts[0] = translationDictionaryENPT[firstWord];
+              return parts.join(' ');
+          }
+      }
+      
+      // 3. Se tudo falhar, retorna o nome em inglês mesmo
+      return englishName;
+  }
   // ####################################################################
 
 
@@ -727,7 +803,7 @@
     hideElement(errorEl);
 
     try {
-      // NÃO PRECISA MAIS TRADUZIR (const translatedName = translateQuery(name);)
+      // NÃO PRECISA MAIS TRADUZIR (o backend FatSecret 2.0 faz isso)
       
       const response = await fetch(`/api/search?food=${encodeURIComponent(name)}`);
       if (!response.ok) {
@@ -1500,9 +1576,7 @@
     // ####################################################################
     // ##                 TRADUZINDO O NOME DO ALIMENTO                ##
     // ####################################################################
-    // Se a API 2.0 estiver funcionando, o nome já vem em PT-BR
-    // const displayName = translateResult(item.name);
-    const displayName = item.name; // Usamos o nome direto da API 2.0
+    const displayName = translateResult(item.name);
     // ####################################################################
 
     div.innerHTML = `
@@ -1826,7 +1900,7 @@
       html += `<hr class="my-1 border-gray-300">`; // Divisor
     }
     
-    dd.innerHTML = html + `<div id="apiLoading" class="p-3 text-gray-500 text-sm text-center">Buscando na internet...</div>`;
+    dd.innerHTML = html + `<div id="apiLoading" class="p-3 text-gray-500 text-sm text-center">Buscando no FatSecret...</div>`;
 
 
     // 3. Busca na API (com "debounce")
