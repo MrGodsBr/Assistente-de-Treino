@@ -283,7 +283,7 @@
       <h2 class="text-xl font-semibold text-gray-700 mb-3 titulo-secao-caixa-alta">Adicionar Alimento</h2> 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
         <div class="relative sm:col-span-3">
-          <label for="foodSearch" class="block text-sm font-medium text-gray-700 mb-1">1. Pesquisar Alimento (Busca Local + API)</label>
+          <label for="foodSearch" class="block text-sm font-medium text-gray-700 mb-1">1. Pesquisar Alimento (Busca na Internet)</label>
           
           <div class="relative">
             <input
@@ -450,7 +450,6 @@
 
   <footer class="mt-8 text-sm text-gray-500">Desenvolvido por Thiago</footer>
 
-<script src="food.data.js"></script>
 <script>
   // Config do Firebase (client keys podem ficar públicas; proteja via regras)
   const firebaseConfig = {
@@ -467,17 +466,25 @@
 
   // Estado global
   
+  // --- CORREÇÃO (JS): ADICIONANDO VARIÁVEIS GLOBAIS DE METAS DE MACROS ---
   let calorieGoal = 0;
-  let proteinGoal = 0; 
-  let carbGoal = 0;    
-  let fatGoal = 0;     
+  let proteinGoal = 0; // ADICIONADO
+  let carbGoal = 0;    // ADICIONADO
+  let fatGoal = 0;     // ADICIONADO
   let waterGoal = 0;
+  // --- FIM DA CORREÇÃO ---
 
   let currentWeight = 0;
   let targetWeight = 0;
   
-  // selectedFoodKey é o OBJETO com os dados do alimento (vindo da API ou do foodDatabase)
+  // ####################################################################
+  // ##           MUDANÇA NA LÓGICA DE selectedFoodKey                 ##
+  // ####################################################################
+  // selectedFoodKey não é mais uma string (ex: 'banana').
+  // Agora é um OBJETO com os dados do alimento (vindo da API ou do foodDatabase)
+  // Ex: { name: 'Banana', cals: 105, protein: 1.1, carbs: 27, unit: 'unidade' }
   let selectedFoodKey = null;
+  // ####################################################################
   
   let dailyLog = {};
   let waterLog = 0;
@@ -531,10 +538,11 @@
   };
 
   // ####################################################################
-  // ##           INÍCIO DA MODIFICAÇÃO: MESCLAGEM DO FOODDATABASE     ##
+  // ##           MUDANÇA NO foodDatabase (Simplificado)             ##
   // ####################################################################
-  // Esta lista é a base/favoritos preexistentes no seu código.
-  const foodDatabaseBase = {
+  // Esta lista agora serve como "Favoritos" ou "Alimentos Rápidos"
+  // A busca principal agora é na API.
+  const foodDatabase = {
     'whey_protein': { name: 'Whey Protein', protein: 24, carbs: 3, cals: 120, unit: 'scoop 30g', visceralFat: false },
     'creatina': { name: 'Creatina (pura)', protein: 0, carbs: 0, cals: 0, unit: 'scoop 3g', visceralFat: false },
     'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, cals: 77, unit: 'unidade', visceralFat: false },
@@ -547,13 +555,7 @@
     'pao_integral': { name: 'Pão de Forma (Integral)', protein: 3, carbs: 12, cals: 70, unit: 'fatia', visceralFat: false },
     'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, cals: 2, unit: 'xícara', visceralFat: false },
   };
-
-  // Mesclagem: Assumimos que 'foodDatabaseCustom' foi declarado no seu food.data.js
-  const foodDatabase = (typeof foodDatabaseCustom !== 'undefined') 
-                       ? { ...foodDatabaseBase, ...foodDatabaseCustom } 
-                       : foodDatabaseBase;
-  // ####################################################################
-  // ##           FIM DA MODIFICAÇÃO: MESCLAGEM DO FOODDATABASE        ##
+  // (Removemos o restante para manter o app rápido, já que a API é a fonte principal)
   // ####################################################################
 
 
@@ -691,7 +693,7 @@
         // --- 1. Feedback Geral (Metas Batidas/Não Batidas) ---
         analysisHTML += `<h4 class="font-bold text-xl text-gray-800 border-b pb-1 mb-2">⭐ Resumo do Desempenho</h4>`;
         
-        let calsStatus, waterStatus, proteinStatus;
+        let calsStatus, waterStatus, macroStatus;
         
         if (totalCals >= calorieGoal) {
             calsStatus = `<p class="text-green-700 font-semibold">✅ Meta de Calorias: Atingida!</p>`;
@@ -705,6 +707,8 @@
             waterStatus = `<p class="text-orange-700 font-semibold">💧 Meta de Água: Faltam ${waterRemaining.toFixed(0)} ml.</p>`;
         }
         
+        // --- CORREÇÃO (JS): ANÁLISE DE IA AGORA USA AS METAS DE MACROS ---
+        let proteinStatus = '';
         if (proteinGoal > 0) {
             if (totalProtein >= proteinGoal) {
                 proteinStatus = `<p class="text-green-700 font-semibold">💪 Proteína: Meta Atingida!</p>`;
@@ -752,6 +756,8 @@
             analysisHTML += `<p class="text-green-700 font-medium">Recomendação:</p>`;
             analysisHTML += `<p class="text-sm">Mantenha a consistência! Seu plano para amanhã deve seguir a mesma estrutura de sucesso que você demonstrou hoje.</p>`;
         }
+
+
         
         // Preenche o modal com a análise
         contentEl.innerHTML = analysisHTML;
@@ -858,9 +864,9 @@
             // --- CORREÇÃO (JS): CARREGANDO AS METAS DE MACROS ---
             calorieGoal = parseFloat(mData.calorieGoal)||0;
             waterGoal = parseFloat(mData.waterGoal)||0; 
-            proteinGoal = parseFloat(mData.proteinGoal) || 0; 
-            carbGoal = parseFloat(mData.carbGoal) || 0;     
-            fatGoal = parseFloat(mData.fatGoal) || 0;         
+            proteinGoal = parseFloat(mData.proteinGoal) || 0; // ADICIONADO
+            carbGoal = parseFloat(mData.carbGoal) || 0;     // ADICIONADO
+            fatGoal = parseFloat(mData.fatGoal) || 0;         // ADICIONADO
             // --- FIM DA CORREÇÃO ---
 
             currentGoalType = mData.goalType||'ganhar';
@@ -994,24 +1000,32 @@
     const finalWaterGoal = Math.round(weight * mlPerKg);
 
     // ####################################
-    // ##  CÁLCULO DE MACROS ATUALIZADO  ##
+    // ##  INÍCIO DA CORREÇÃO (CÁLCULO JS) ##
     // ####################################
+    // Aqui calculamos os macronutrientes com base nas calorias
+    
     // 1. Meta de Proteína (g)
+    // Usando 2.0g/kg para Bulking/Cutting (como no seu caso), e 1.8g/kg para Manutenção
     let proteinGoalInGrams = 0;
     if (goalType === 'manter') {
         proteinGoalInGrams = weight * 1.8; 
     } else {
-        proteinGoalInGrams = weight * 2.0; 
+        proteinGoalInGrams = weight * 2.0; // 2.0g/kg para bulking ou cutting
     }
     const caloriesFromProtein = proteinGoalInGrams * 4;
 
     // 2. Meta de Gordura (g)
+    // Usando 25% das calorias totais para saúde hormonal
     const caloriesFromFat = finalCalorieGoal * 0.25;
     const fatGoalInGrams = caloriesFromFat / 9;
 
     // 3. Meta de Carboidratos (g)
+    // O restante das calorias é para carboidratos
     const caloriesFromCarbs = finalCalorieGoal - caloriesFromProtein - caloriesFromFat;
     const carbGoalInGrams = caloriesFromCarbs / 4;
+
+    // ####################################
+    // ##   FIM DA CORREÇÃO (CÁLCULO JS)   ##
     // ####################################
 
 
@@ -1424,7 +1438,7 @@
     document.getElementById('totalProteins').textContent = totalProtein.toFixed(1)+' g';
     document.getElementById('totalCarbs').textContent   = totalCarbs.toFixed(1)+' g';
 
-    // --- ATUALIZA O TEXTO DA META DE MACROS ---
+    // --- CORREÇÃO (JS): ATUALIZA O TEXTO DA META DE MACROS QUANDO ALIMENTOS SÃO ADICIONADOS/REMOVIDOS ---
     if (proteinGoal > 0) {
         document.getElementById('proteinGoalText').textContent = `Meta: ${proteinGoal.toFixed(0)} g`;
     } else {
@@ -1436,6 +1450,7 @@
     } else {
         document.getElementById('carbGoalText').textContent = `Meta: 0 g`;
     }
+    // --- FIM DA CORREÇÃO ---
 
 
     const isToday = currentDateString === todayDateString;
@@ -1561,6 +1576,8 @@
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; 
     
     // 3. CALCULA OS MACROS COM BASE NA QUANTIDADE
+    // (A API retorna macros para a porção 'f.unit'. Ex: 105 cals por 'unidade')
+    // Se o usuário digitar '2' (quantidade), o total é 105 * 2.
     const payload = {
       type: 'food', 
       key: f.id || f.name, // Usa o ID da API ou o nome do favorito
@@ -1573,7 +1590,7 @@
       carbs: parseFloat((f.carbs * quantity).toFixed(1)),
       cals: parseFloat((f.cals * quantity).toFixed(0)),
       
-      visceralFat: f.visceralFat || false, // Flag 'visceralFat'
+      visceralFat: f.visceralFat || false, // Flag 'visceralFat' não vem da API
       meal,
       ts: firebase.firestore.FieldValue.serverTimestamp(), 
       clientTs: Date.now(),
@@ -1640,9 +1657,9 @@
   }
 
   // ####################################################################
-  // ##           MODIFICAÇÃO: FUNÇÃO searchFood ATUALIZADA          ##
+  // ##           FUNÇÃO searchFood ATUALIZADA P/ API                ##
   // ####################################################################
-  // Função para normalizar texto (remover acentos)
+  // Helper para normalizar texto (remover acentos)
   const normalizeText = (text) => {
       return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   };
@@ -1662,10 +1679,10 @@
     const q = normalizeText(q_raw.toLowerCase());
     
     // 1. Mostrar "Buscando..."
-    dd.innerHTML = `<div class="p-3 text-gray-500 text-sm text-center">Buscando...</div>`; 
+    dd.innerHTML = `<div class="p-3 text-gray-500 text-sm text-center">Buscando na internet...</div>`;
     showElement(dd);
 
-    // 2. Busca RÁPIDA nos FAVORITOS/CUSTOMIZADOS (foodDatabase)
+    // 2. Busca RÁPIDA nos favoritos locais (foodDatabase)
     const localResults = Object.keys(foodDatabase).filter(k => {
       const f = foodDatabase[k];
       const nameNormalized = normalizeText(f.name.toLowerCase());
@@ -1685,32 +1702,31 @@
         cals: f.cals,
         carbs: f.carbs,
         protein: f.protein,
-        fat: f.fat || 0, // Garantir a gordura (fat) se existir
+        fat: 0, // (Nossos favoritos locais não tinham gordura)
         visceralFat: f.visceralFat 
       };
       
       // ATENÇÃO: Usamos JSON.stringify para passar o OBJETO como string no HTML
+      // Usamos ' (aspas simples) para envolver o JSON.stringify
       html += `
         <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" 
              onclick='selectFood(${JSON.stringify(foodObject)})'>
-          <p class="font-medium text-gray-800">⭐ ${f.name} (Local)</p> <p class="text-xs"><span class="text-orange-600 font-medium">${f.cals} kcal</span> <span class="text-gray-600">por ${f.unit}</span></p>
+          <p class="font-medium text-gray-800">⭐ ${f.name}</p>
+          <p class="text-xs"><span class="text-orange-600 font-medium">${f.cals} kcal</span> <span class="text-gray-600">por ${f.unit}</span></p>
         </div>
       `;
     });
     
     if (localResults.length > 0) {
       html += `<hr class="my-1 border-gray-300">`; // Divisor
-      // Atualiza o dropdown para mostrar os locais primeiro
-      dd.innerHTML = html + `<div id="apiLoading" class="p-3 text-gray-500 text-sm text-center">Buscando na internet (API 2.0)...</div>`;
-    } else {
-        dd.innerHTML = `<div id="apiLoading" class="p-3 text-gray-500 text-sm text-center">Buscando na internet (API 2.0)...</div>`;
     }
+    
+    dd.innerHTML = html + `<div id="apiLoading" class="p-3 text-gray-500 text-sm text-center">Buscando na internet...</div>`;
 
 
     // 3. Busca na API (com "debounce" de 300ms)
     searchTimeout = setTimeout(async () => {
       try {
-        // Chamada para a API do Vercel (que usa a API 2.0 do FatSecret)
         const response = await fetch(`/api/search?food=${encodeURIComponent(q_raw)}`);
         
         // Remove o "Buscando..."
@@ -1718,20 +1734,23 @@
         if (loadingEl) loadingEl.remove();
         
         if (!response.ok) {
-          // Se o Vercel retornar erro 500 (API falhou)
-          throw new Error(`Erro ${response.status} ao buscar na API. Cheque o log do Vercel.`);
+          throw new Error('Erro ao buscar na API.');
         }
         
         const apiResults = await response.json();
 
         if(apiResults.length === 0 && localResults.length === 0){
-          dd.innerHTML=`<div class="p-3 text-red-500 text-sm">Nenhum alimento encontrado.</div>`;
+          dd.innerHTML=`<div class="p-3 text-gray-500 text-sm">Nenhum alimento encontrado.</div>`;
+          // (Aqui adicionaremos o botão "Criar Customizado" na próxima etapa)
           return;
         }
         
         // Mapeia os resultados da API
         apiResults.forEach(f => {
-          // O objeto 'f' já vem formatado pela nossa API
+          // O objeto 'f' já vem pronto da nossa API
+          // (name, serving_desc, cals, carbs, protein, fat)
+          
+          // ATENÇÃO: Usamos JSON.stringify para passar o OBJETO como string no HTML
           html += `
             <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" 
                  onclick='selectFood(${JSON.stringify(f)})'>
@@ -1747,7 +1766,7 @@
         console.error("Erro ao chamar a API:", error);
         const loadingEl = document.getElementById('apiLoading');
         if (loadingEl) {
-            loadingEl.textContent = `❌ Erro na busca: ${error.message}`;
+            loadingEl.textContent = "Erro ao buscar na internet.";
             loadingEl.classList.remove("text-gray-500");
             loadingEl.classList.add("text-red-500");
         }
@@ -1759,9 +1778,9 @@
 
 
   // ####################################################################
-  // ##           FUNÇÃO selectFood ATUALIZADA P/ OBJETO             ##
+  // ##           FUNÇÃO selectFood ATUALIZADA P/ API                ##
   // ####################################################################
-  // A função espera o OBJETO (que vem do JSON.stringify)
+  // A função agora espera um OBJETO (que vem do JSON.stringify)
   function selectFood(foodObject){
     
     // (Se o 'foodObject' for uma string, é o clique antigo. Fazemos o parse)
