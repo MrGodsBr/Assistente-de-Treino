@@ -1,9 +1,14 @@
 {
-  "name": "fitness-pro-api",
+  "name": "fitness-pro-vercel",
   "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "node-fetch": "^3.3.0"
-  }
+  "description": "Servidor da API para o app Fitness Pro",
+  "main": "index.html",
+  "scripts": {
+    "start": "node"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "author": "Thiago",
+  "license": "ISC"
 }
