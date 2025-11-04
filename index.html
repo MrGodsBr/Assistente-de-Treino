@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FITNESSPRO 2.0</title>
+  <title>FITNESS-PRO 2.0</title>
   <meta name="theme-color" content="#16a34a">
   <meta name="description" content="FITNESS-PRO 2.0 - Assistente de nutrição e fitness">
 
   <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="shortcut" href="/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
   
@@ -21,33 +21,47 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <style>
+    /* DEFINIÇÃO DA COR DAS PROTEÍNAS (ex: Tailwind emerald-500/600) */
     :root {
-        --cor-proteinas-base: #10B981; 
-        --cor-proteinas-dark: #059669; 
-        --ai-grad-start: #ff7e5f; 
-        --ai-grad-end: #feb47b;   
-        --ai-grad-bg: #8e44ad;   
+        --cor-proteinas-base: #10B981; /* Ex: emerald-500 */
+        --cor-proteinas-dark: #059669; /* Ex: emerald-600 */
+        /* Cores de Referência para o Gradiente do Botão AI Assistant */
+        --ai-grad-start: #ff7e5f; /* Laranja/Rosa */
+        --ai-grad-end: #feb47b;   /* Laranja/Amarelo */
+        --ai-grad-bg: #8e44ad;   /* Roxo Fundo */
     }
+    
+    /* GRADIENTE CUSTOMIZADO para simular o botão */
     .ai-button-gradient {
-        background-image: linear-gradient(to right, #e74c3c, #f39c12); 
+        background-image: linear-gradient(to right, #e74c3c, #f39c12); /* Base */
         position: relative;
         overflow: hidden;
+        /* Simulação do gradiente roxo */
         background: linear-gradient(90deg, #bb74b9 0%, #ff8c00 100%);
     }
+
+    /* 1. CAIXA ALTA PARA OS TÍTULOS SOLICITADOS */
     .titulo-secao-caixa-alta {
         text-transform: uppercase;
     }
+    
+    /* 2. COR DA BARRA DE META DE PESO IGUAL À DAS PROTEÍNAS */
     #weightProgress {
+        /* A cor será aplicada diretamente na classe do Tailwind, mas aqui garantimos o fallback */
         background-color: var(--cor-proteinas-base) !important; 
     }
+    
+    /* Títulos do seu código original */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
+    /* ATUALIZADO: Usando a cor das proteínas para a barra de peso no JS */
     #calorieProgress, #waterProgress, #weightProgress { transition: width 0.3s ease-in-out; } 
     .modal-transition { transition: opacity 0.3s, transform 0.3s; }
     .spinner { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    /* Estilos para a nova estrutura de lista */
     .meal-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; }
     .meal-section:first-child { border-top: none; padding-top: 0; }
   </style>
@@ -59,7 +73,6 @@
     <p class="text-xl font-semibold text-green-700 mt-4">Conectando ao app...</p>
   </div>
   
-  <!-- Todos os seus modais existentes (Login, Registro, Aviso, IA) permanecem aqui... -->
   <div id="fullRegistrationModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
   <div id="fullRegistrationModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
     <h3 class="text-2xl font-bold text-gray-800 text-center mb-4" id="regModalTitle">Crie sua Conta</h3>
@@ -71,10 +84,12 @@
         <button type="button" onclick="document.getElementById('regProfilePicInput').click()" class="text-sm text-blue-600 hover:underline">Selecionar Foto</button>
         <input type="file" id="regProfilePicInput" class="hidden" accept="image/*">
       </div>
+
       <div>
         <label for="regUserNameInput" class="block text-sm font-medium text-gray-700">Nome de Usuário *</label>
         <input type="text" id="regUserNameInput" placeholder="Seu nome" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
       </div>
+      
       <div id="registrationFields">
           <div>
             <label for="regEmailInput" class="block text-sm font-medium text-gray-700">Email *</label>
@@ -95,10 +110,12 @@
             </div>
           </div>
       </div>
+
       <div>
         <label for="regPhoneInput" class="block text-sm font-medium text-gray-700">Telefone (opcional)</label>
         <input type="tel" id="regPhoneInput" placeholder="(99) 99999-9999" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
       </div>
+
       <button id="registerAndProfileButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
         Criar Conta e Perfil
       </button>
@@ -107,10 +124,12 @@
       </button>
     </div>
   </div>
+
   <div id="loginModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
   <div id="loginModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
     <h3 class="text-2xl font-bold text-gray-800 text-center mb-4">Fazer Login</h3>
     <p id="loginError" class="text-red-600 text-center font-medium text-sm mb-3 hidden"></p>
+
     <div class="space-y-4">
       <div>
         <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
@@ -138,6 +157,8 @@
       </button>
     </div>
   </div>
+
+
   <div id="warningModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
   <div id="warningModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
     <div class="text-center">
@@ -154,6 +175,7 @@
       </button>
     </div>
   </div>
+    
   <div id="aiModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
   <div id="aiModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-md p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0 max-h-[90vh] overflow-y-auto">
     <div class="flex justify-between items-start mb-4 border-b pb-3">
@@ -162,18 +184,17 @@
         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </div>
+    
     <div id="aiAnalysisContent" class="space-y-4 text-gray-700">
         <p class="text-center font-medium">Analisando dados...</p>
         <div class="spinner mx-auto h-8 w-8 border-t-2 border-b-2 border-green-600"></div>
     </div>
+    
     <button onclick="hideAIModal()" class="mt-6 w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors">
       Fechar Análise
     </button>
   </div>
 
-  <!-- ########################################## -->
-  <!-- ##       NOVO MODAL DE ADIÇÃO MANUAL       ## -->
-  <!-- ########################################## -->
   <div id="manualAddModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
   <div id="manualAddModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-md p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0 max-h-[90vh] overflow-y-auto">
     <div class="flex justify-between items-start mb-4">
@@ -182,24 +203,19 @@
         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </div>
-    
     <div class="space-y-4">
       <div>
         <label for="manualFoodNameInput" class="block text-sm font-medium text-gray-700">Nome do Alimento</label>
         <input type="text" id="manualFoodNameInput" placeholder="Ex: 100g de peito de frango" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
       </div>
-
       <button id="fetchManualDataButton" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
         Buscar Dados (com IA)
       </button>
-
       <div id="manualLoadingSpinner" class="hidden flex justify-center items-center my-2">
         <div class="spinner h-6 w-6 border-t-2 border-b-2 border-blue-600"></div>
         <span class="text-gray-600 ml-2">Buscando...</span>
       </div>
-      
       <p id="manualErrorMessage" class="text-red-600 text-center font-medium text-sm hidden"></p>
-
       <div id="manualResults" class="space-y-3 pt-3 border-t">
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -221,7 +237,6 @@
         </div>
         <input type="text" id="manualUnit" class="mt-1 w-full p-2 border border-gray-200 rounded-lg bg-gray-100" placeholder="Unidade (ex: porção)" readonly>
       </div>
-
       <div class="flex space-x-3 mt-6">
         <button onclick="hideManualAddModal()" class="w-1/2 bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
           Cancelar
@@ -232,9 +247,6 @@
       </div>
     </div>
   </div>
-  <!-- ########################################## -->
-  <!-- ##     FIM DO NOVO MODAL DE ADIÇÃO MANUAL   ## -->
-  <!-- ########################################## -->
 
 
   <div id="mainApp" class="bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 hidden">
@@ -321,6 +333,7 @@
       </div>
       <p id="goalText" class="text-center text-lg font-semibold text-green-700 mt-4 hidden"></p>
     </details>
+    
     <div id="addFoodSection">
       <h2 class="text-xl font-semibold text-gray-700 mb-3 titulo-secao-caixa-alta">Adicionar Alimento</h2> 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
@@ -383,11 +396,13 @@
         </button>
       </div>
     </div>
+    
     <div class="border-t border-gray-200 pt-4">
         <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2 titulo-secao-caixa-alta">Histórico:</label> 
         <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
         <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
     </div>
+    
     <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
         <h2 class="text-xl font-semibold text-blue-600 mb-3 titulo-secao-caixa-alta">💧 Adicionar Hidratação</h2> 
         <div class="flex items-end space-x-3 mb-4">
@@ -408,6 +423,7 @@
             </button>
         </div>
     </div>
+    
     <div class="border-b border-gray-200 py-4">
       <h3 class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
         <span class="titulo-secao-caixa-alta">Refeições do Dia:</span> 
@@ -426,6 +442,7 @@
       </div>
       <p class="text-xs text-gray-500 mt-2">⚠️ indica alimentos que podem aumentar a gordura visceral.</p>
     </div>
+    
     <div class="space-y-4">
         
         <div class="relative flex justify-between items-center pr-2"> 
@@ -446,60 +463,56 @@
                  <span>AI Assistant</span>
             </button>
         </div>
+        
         <div id="weightProgressSection">
-        <div class="flex justify-between items-center mb-1">
-          <span class="text-base font-medium text-emerald-600">Meta de Peso</span> 
-          <span id="weightGoalText" class="text-sm font-semibold text-emerald-600">0 kg / 0 kg</span> 
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-base font-medium text-emerald-600">Meta de Peso</span> 
+            <span id="weightGoalText" class="text-sm font-semibold text-emerald-600">0 kg / 0 kg</span> 
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+            <div id="weightProgress" class="bg-emerald-500 h-4 rounded-full" style="width: 0%"></div> 
+          </div>
         </div>
-        <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-          <div id="weightProgress" class="bg-emerald-500 h-4 rounded-full" style="width: 0%"></div> 
+        
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-base font-medium text-blue-600">Água</span>
+            <span id="waterGoalText" class="text-sm font-semibold text-blue-600">Consumo: 0 ml / Meta: 0 ml</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+            <div id="waterProgress" class="bg-blue-500 h-4 rounded-full" style="width: 0%"></div>
+          </div>
         </div>
-      </div>
-      <div>
-        <div class="flex justify-between items-center mb-1">
-          <span class="text-base font-medium text-blue-600">Água</span>
-          <span id="waterGoalText" class="text-sm font-semibold text-blue-600">Consumo: 0 ml / Meta: 0 ml</span>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-          <div id="waterProgress" class="bg-blue-500 h-4 rounded-full" style="width: 0%"></div>
-        </div>
-      </div>
 
-      <div>
-        <div class="flex justify-between items-center mb-1">
-          <span class="text-base font-medium text-orange-600">Calorias</span>
-          <span id="totalCalsGoalText" class="text-sm font-semibold text-orange-600">0 / 0 kcal</span>
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-base font-medium text-orange-600">Calorias</span>
+            <span id="totalCalsGoalText" class="text-sm font-semibold text-orange-600">0 / 0 kcal</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+            <div id="calorieProgress" class="bg-orange-500 h-4 rounded-full" style="width: 0%"></div>
+          </div>
         </div>
-        <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-          <div id="calorieProgress" class="bg-orange-500 h-4 rounded-full" style="width: 0%"></div>
-        </div>
-      </div>
 
-      <!-- ########################################## -->
-      <!-- ##  ATUALIZAÇÃO DE UI - MACROS (3 COLS) ## -->
-      <!-- ########################################## -->
-      <div class="grid grid-cols-3 gap-3 text-center">
-        <div>
-          <p class="text-base font-medium text-emerald-600 mb-1">Proteínas</p>
-          <p id="totalProteins" class="text-2xl sm:text-3xl font-bold text-emerald-600">0 g</p>
-          <p id="proteinGoalText" class="text-sm font-medium text-gray-500">Meta: 0 g</p>
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <p class="text-base font-medium text-emerald-600 mb-1">Proteínas</p>
+            <p id="totalProteins" class="text-2xl sm:text-3xl font-bold text-emerald-600">0 g</p>
+            <p id="proteinGoalText" class="text-sm font-medium text-gray-500">Meta: 0 g</p>
+          </div>
+          <div>
+            <p class="text-base font-medium text-blue-600 mb-1">Carboidratos</p>
+            <p id="totalCarbs" class="text-2xl sm:text-3xl font-bold text-blue-600">0 g</p>
+            <p id="carbGoalText" class="text-sm font-medium text-gray-500">Meta: 0 g</p>
+          </div>
+           <div>
+            <p class="text-base font-medium text-red-600 mb-1">Gorduras</p>
+            <p id="totalFats" class="text-2xl sm:text-3xl font-bold text-red-600">0 g</p>
+            <p id="fatGoalText" class="text-sm font-medium text-gray-500">Meta: 0 g</p>
+          </div>
         </div>
-        <div>
-          <p class="text-base font-medium text-blue-600 mb-1">Carboidratos</p>
-          <p id="totalCarbs" class="text-2xl sm:text-3xl font-bold text-blue-600">0 g</p>
-          <p id="carbGoalText" class="text-sm font-medium text-gray-500">Meta: 0 g</p>
-        </div>
-        <div>
-          <p class="text-base font-medium text-red-600 mb-1">Gorduras</p>
-          <p id="totalFats" class="text-2xl sm:text-3xl font-bold text-red-600">0 g</p>
-          <p id="fatGoalText" class="text-sm font-medium text-gray-500">Meta: 0 g</p>
-        </div>
-      </div>
-      <!-- ########################################## -->
-      <!-- ##         FIM DA ATUALIZAÇÃO DE UI       ## -->
-      <!-- ########################################## -->
-      </div>
     </div>
+  </div>
 
   <footer class="mt-8 text-sm text-gray-500">Desenvolvido por Thiago</footer>
 
@@ -516,19 +529,16 @@
   };
   
   // ##########################################
-  // ##     INÍCIO - ADIÇÕES PARA API GEMINI     ##
+  // ##     INÍCIO - ATUALIZAÇÃO API GEMINI     ##
   // ##########################################
   
-  const geminiApiKey = ""; // Deixe em branco
-  const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`;
+  // URL da nossa própria API (Função Serverless)
+  const localApiUrl = '/api/buscar-alimento'; 
 
   let apiDebounceTimer;
   let currentApiQuery = '';
   // Variável para armazenar os dados do modal manual
   let currentManualFoodData = null; 
-
-  // Prompt do sistema para a API, agora solicitando GORDURAS
-  const geminiSystemPrompt = `Você é um assistente de nutrição. Sua tarefa é encontrar informações nutricionais para o alimento solicitado. Responda *apenas* com um objeto JSON no seguinte formato: {"name": "Nome do Alimento (ex: 100g de Arroz)", "protein": NÚMERO, "carbs": NÚMERO, "fats": NÚMERO, "cals": NÚMERO, "unit": "porção", "visceralFat": false}. 'visceralFat' deve ser true apenas para alimentos processados, fritos ou com muito açúcar (ex: refrigerante, batata frita, biscoito recheado). Se não encontrar, retorne {"erro": "Alimento não encontrado"}. Os números devem ser apenas NÚMEROS.`;
 
   /**
    * Função de backoff exponencial para retentativas de API.
@@ -540,23 +550,25 @@
               attempt++;
               if (attempt < maxRetries) {
                   const backoffTime = delay * Math.pow(2, attempt) + Math.random() * 1000;
+                  console.warn(`Retentativa ${attempt} da API em ${backoffTime.toFixed(0)}ms...`);
                   setTimeout(tryFetch, backoffTime);
               } else {
                   console.error('Falha na chamada da API após múltiplas tentativas:', err);
-                  // Erro genérico para o dropdown
                   const dd = document.getElementById('searchDropdown');
                   if (dd) dd.innerHTML = `<div class="p-3 text-red-500 text-sm">Erro de rede. Tente novamente.</div>`;
-                  // Erro para o modal manual
                   const manualError = document.getElementById('manualErrorMessage');
                   if(manualError) manualError.textContent = 'Erro de rede. Tente novamente.';
+                  hideElement(document.getElementById('manualLoadingSpinner'));
               }
           });
       };
       tryFetch();
   }
 
+
   /**
    * Dispara a busca online (usada pelo dropdown)
+   * ATUALIZADO: Agora chama o localApiUrl
    */
   async function searchFoodOnline() {
     const query = currentApiQuery;
@@ -565,40 +577,27 @@
     const dd = document.getElementById('searchDropdown');
     
     if (dd.offsetParent === null || !dd.innerHTML.includes("Buscando")) {
-        return;
+        return; 
     }
 
     exponentialBackoff(async () => {
-        const payload = {
-            contents: [{ parts: [{ text: query }] }],
-            tools: [{ "google_search": {} }],
-            systemInstruction: { parts: [{ text: geminiSystemPrompt }] },
-        };
-
         try {
-            const response = await fetch(geminiApiUrl, {
+            const response = await fetch(localApiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ query: query }) 
             });
 
-            if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
-
-            const result = await response.json();
-            
-            if (!result.candidates || !result.candidates[0].content || !result.candidates[0].content.parts[0].text) {
-                throw new Error("Resposta da API inválida ou vazia.");
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.erro || `Erro na API: ${response.statusText}`);
             }
 
-            const textResponse = result.candidates[0].content.parts[0].text;
-            const jsonMatch = textResponse.match(/\{.*\}/s);
-            if (!jsonMatch) throw new Error("Nenhum JSON encontrado na resposta.");
-
-            const foodData = JSON.parse(jsonMatch[0]);
-            handleApiResponse(foodData); // Manipula a resposta
+            const foodData = await response.json();
+            handleApiResponse(foodData); 
 
         } catch (error) {
-            console.error('Erro ao buscar alimento online:', error);
+            console.error('Erro ao buscar alimento online:', error.message);
             handleApiResponse({ erro: "Erro na busca. Tente ser mais específico." });
         }
     });
@@ -617,7 +616,9 @@
       `;
 
       if (foodData.erro) {
-          dd.innerHTML = `<div class="p-3 text-gray-500 text-sm">Não encontrado (internet). Tente ser mais específico.</div>` + manualAddButtonHtml;
+          if(dd.offsetParent !== null) {
+            dd.innerHTML = `<div class="p-3 text-gray-500 text-sm">${foodData.erro} (internet).</div>` + manualAddButtonHtml;
+          }
           return;
       }
 
@@ -636,15 +637,16 @@
         </div>
       `;
       
-      dd.innerHTML = html + manualAddButtonHtml;
-      showElement(dd);
+      if(dd.offsetParent !== null) {
+        dd.innerHTML = html + manualAddButtonHtml;
+        showElement(dd);
+      }
   }
 
   /**
    * Funções do Novo Modal Manual
    */
   function showManualAddModal() {
-      // Limpa o modal antes de exibir
       document.getElementById('manualFoodNameInput').value = '';
       document.getElementById('manualCals').value = '';
       document.getElementById('manualProtein').value = '';
@@ -655,11 +657,7 @@
       hideElement(document.getElementById('manualErrorMessage'));
       document.getElementById('addManualFoodButton').disabled = true;
       currentManualFoodData = null;
-      
-      // Oculta o dropdown de busca principal
       hideElement(document.getElementById('searchDropdown'));
-      
-      // Mostra o modal
       showModal(document.getElementById('manualAddModal'), document.getElementById('manualAddModalOverlay'));
   }
 
@@ -669,6 +667,7 @@
 
   /**
    * Busca dados da API para o modal manual
+   * ATUALIZADO: Agora chama o localApiUrl
    */
   function fetchManualFoodData() {
       const query = document.getElementById('manualFoodNameInput').value.trim();
@@ -684,50 +683,36 @@
       currentManualFoodData = null;
 
       exponentialBackoff(async () => {
-          const payload = {
-              contents: [{ parts: [{ text: query }] }],
-              tools: [{ "google_search": {} }],
-              systemInstruction: { parts: [{ text: geminiSystemPrompt }] },
-          };
-
           try {
-              const response = await fetch(geminiApiUrl, {
+              const response = await fetch(localApiUrl, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(payload)
+                  body: JSON.stringify({ query: query }) 
               });
-              if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
 
-              const result = await response.json();
-              if (!result.candidates || !result.candidates[0].content || !result.candidates[0].content.parts[0].text) {
-                  throw new Error("Resposta da API inválida.");
+              if (!response.ok) {
+                 const errorData = await response.json();
+                 throw new Error(errorData.erro || `Erro na API: ${response.statusText}`);
               }
 
-              const textResponse = result.candidates[0].content.parts[0].text;
-              const jsonMatch = textResponse.match(/\{.*\}/s);
-              if (!jsonMatch) throw new Error("Nenhum JSON na resposta.");
-
-              const foodData = JSON.parse(jsonMatch[0]);
+              const foodData = await response.json();
 
               if (foodData.erro) {
                   document.getElementById('manualErrorMessage').textContent = foodData.erro;
                   showElement(document.getElementById('manualErrorMessage'));
               } else {
-                  // Preenche os campos
                   document.getElementById('manualFoodNameInput').value = foodData.name;
                   document.getElementById('manualCals').value = foodData.cals;
                   document.getElementById('manualProtein').value = foodData.protein;
                   document.getElementById('manualCarbs').value = foodData.carbs;
                   document.getElementById('manualFats').value = foodData.fats || 0;
                   document.getElementById('manualUnit').value = foodData.unit;
-                  
-                  // Armazena os dados e habilita o botão de adicionar
                   currentManualFoodData = foodData;
                   document.getElementById('addManualFoodButton').disabled = false;
               }
 
           } catch (error) {
-              console.error('Erro ao buscar dados manuais:', error);
+              console.error('Erro ao buscar dados manuais:', error.message);
               document.getElementById('manualErrorMessage').textContent = 'Não foi possível buscar os dados. Tente novamente.';
               showElement(document.getElementById('manualErrorMessage'));
           } finally {
@@ -754,16 +739,15 @@
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; 
     
-    // Como os dados da API já são calculados (ex: 100g de...), a quantidade é 1
     const payload = {
       type: 'food', 
-      key: `manual_${Date.now()}`, // Chave única
+      key: `manual_${Date.now()}`, 
       name: f.name,
-      quantity: 1, // A quantidade é 1 da "porção" retornada
+      quantity: 1, 
       unit: f.unit,
       protein: f.protein,
       carbs: f.carbs,
-      fats: f.fats || 0, // Usa o dado de gordura
+      fats: f.fats || 0, 
       cals: f.cals,
       visceralFat: f.visceralFat,
       meal,
@@ -776,8 +760,8 @@
     
     try {
       await itemsRef.add(payload);
-      clearFoodSearch(); // Limpa a busca principal
-      hideManualAddModal(); // Fecha o modal
+      clearFoodSearch(); 
+      hideManualAddModal(); 
     } catch (e) {
       alert("Erro ao adicionar alimento. Verifique sua conexão.");
       console.error("Erro ao adicionar alimento manual:", e);
@@ -786,19 +770,17 @@
   }
 
   // ##########################################
-  // ##      FIM - ADIÇÕES PARA API GEMINI       ##
+  // ##      FIM - ATUALIZAÇÃO API GEMINI        ##
   // ##########################################
   
 
   let firebaseApp, firebaseAuth, firebaseDb, userId = null;
 
   // Estado global
-  
-  // ATUALIZADO: Variáveis globais de metas
   let calorieGoal = 0;
   let proteinGoal = 0; 
   let carbGoal = 0;    
-  let fatGoal = 0;     // ADICIONADO
+  let fatGoal = 0;
   let waterGoal = 0;
 
   let currentWeight = 0;
@@ -852,9 +834,6 @@
     }
   };
 
-  // ##########################################
-  // ##  ATUALIZAÇÃO: foodDatabase com GORDURAS  ##
-  // ##########################################
   const foodDatabase = {
     // --- FRUTAS (FRUITS) ---
     'banana': { name: 'Banana', protein: 1.1, carbs: 27, fats: 0.3, cals: 105, unit: 'unidade', visceralFat: false },
@@ -956,10 +935,6 @@
     'pudim': { name: 'Pudim de Leite', protein: 5, carbs: 30, fats: 7, cals: 200, unit: '100g (fatia)', visceralFat: true },
     'paçoca': { name: 'Paçoca (rolha)', protein: 5, carbs: 12, fats: 5, cals: 100, unit: 'unidade 20g', visceralFat: false },
   };
-  // ##########################################
-  // ##           FIM DA ATUALIZAÇÃO DO DB       ##
-  // ##########################################
-
 
   // Helpers Firebase (com guardas)
   function getDayRef(uid, date) {
@@ -1030,7 +1005,7 @@
     }
   }
   
-  // NOVAS FUNÇÕES PARA O MODAL DA IA
+  // Funções do Modal da IA
   function showAIModal(){
     const modal = document.getElementById('aiModal');
     const overlay = document.getElementById('aiModalOverlay');
@@ -1040,7 +1015,7 @@
     hideModal(document.getElementById('aiModal'), document.getElementById('aiModalOverlay'));
   }
   
-  // FUNÇÃO DE ANÁLISE DA IA MELHORADA (AGORA INCLUI GORDURAS)
+  // Análise da IA
   function analyzeDailySummary() {
     if (!userId) { 
         showLoginModal();
@@ -1061,7 +1036,7 @@
         totalCals += i.cals; 
         totalProtein += i.protein; 
         totalCarbs += i.carbs; 
-        totalFats += i.fats || 0; // Inclui gorduras
+        totalFats += i.fats || 0;
     });
     
     const waterConsumed = waterLog;
@@ -1071,7 +1046,6 @@
     const unhealthyItemsCount = foodItems.filter(i => i.visceralFat).length;
     const mealsLogged = MEAL_KEYS.filter(meal => foodItems.some(item => item.meal === meal));
     
-    // ... (Simulação da Análise da IA - atualizada) ...
     setTimeout(() => {
         let analysisHTML = "";
         
@@ -1097,7 +1071,6 @@
             }
         }
         
-        // ADICIONADO: Análise de Gordura
         if (fatGoal > 0) {
             if (totalFats >= fatGoal) {
                 analysisHTML += `<p class="text-green-700 font-semibold">🥑 Gordura: Meta Atingida!</p>`;
@@ -1122,7 +1095,6 @@
         analysisHTML += `<hr class="my-4 border-gray-200">`;
         analysisHTML += `<h4 class="font-bold text-xl text-gray-800 border-b pb-1 mb-2">💡 Plano de Ação</h4>`;
         
-        // ... (Lógica de plano de ação mantida) ...
         if (calsRemaining > 500 && goalType === 'ganhar') {
             analysisHTML += `<p class="text-yellow-600 font-medium">Estratégia para Bulking:</p>`;
             analysisHTML += `<p class="text-sm">Para bater sua meta de Ganho de Massa, adicione lanches líquidos (shakes) ou fontes de gorduras boas (pasta de amendoim, abacate) para aumentar as calorias.</p>`;
@@ -1136,22 +1108,19 @@
         
         contentEl.innerHTML = analysisHTML;
 
-    }, 1500); // Atraso simulado
+    }, 1500);
   }
 
-  // AUTENTICAÇÃO E PERFIL (Sem alterações)
+  // AUTENTICAÇÃO E PERFIL
   function showRegistrationModal(isEdit = false) {
     isEditingProfile = isEdit;
     const modal = document.getElementById('fullRegistrationModal');
     const overlay = document.getElementById('fullRegistrationModalOverlay');
-
     clearRegError();
     document.getElementById('regModalTitle').textContent = isEdit ? 'Editar Perfil' : 'Crie sua Conta';
-
     const regFields = document.getElementById('registrationFields');
     const saveButton = document.getElementById('registerAndProfileButton');
     const showLoginBtn = document.getElementById('showLoginButton');
-
     if (isEdit) {
       regFields.classList.add('hidden');
       saveButton.textContent = 'Salvar Perfil';
@@ -1169,7 +1138,6 @@
       document.getElementById('regUserNameInput').value = '';
       document.getElementById('regPhoneInput').value = '';
     }
-
     showModal(modal, overlay);
   }
   function hideRegistrationModal(){
@@ -1183,7 +1151,7 @@
     hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
   }
 
-  // Firebase init (compat)
+  // Firebase init
   function initFirebase() {
     firebaseApp = firebase.initializeApp(firebaseConfig);
     firebaseAuth = firebase.auth();
@@ -1204,19 +1172,16 @@
     }
   }
   
-  // ATUALIZADO: loadProfileAndMetas (para carregar fatGoal)
+  // Carregar Perfil e Metas
   async function loadProfileAndMetas(){
       try{
         if (!userId) return false;
-        
         const pSnap = await getProfileDocRef().get();
-        
         if(pSnap.exists){
           const d=pSnap.data();
           document.getElementById('userNameDisplay').textContent=d.userName||firebaseAuth.currentUser.displayName||'Usuário';
           localStorage.setItem(`phone_${userId}`, d.phone || ''); 
           loadProfilePicLocally();
-          
           const mSnap = await getMetasDocRef().get();
           if(mSnap.exists){
             const mData=mSnap.data();
@@ -1228,13 +1193,11 @@
             document.getElementById('activity').value=mData.activity||'1.55';
             document.getElementById('goalType').value=mData.goalType||'ganhar';
             
-            // --- ATUALIZADO: Carregando metas de macros ---
             calorieGoal = parseFloat(mData.calorieGoal)||0;
             waterGoal = parseFloat(mData.waterGoal)||0; 
             proteinGoal = parseFloat(mData.proteinGoal) || 0; 
             carbGoal = parseFloat(mData.carbGoal) || 0;     
-            fatGoal = parseFloat(mData.fatGoal) || 0; // ADICIONADO
-            // --- FIM DA ATUALIZAÇÃO ---
+            fatGoal = parseFloat(mData.fatGoal) || 0;
 
             currentGoalType = mData.goalType||'ganhar';
             currentWeight = parseFloat(mData.weight)||0; 
@@ -1247,7 +1210,6 @@
              showRegistrationModal(false); 
              return false;
         }
-
       }catch(e){
         console.error("Erro ao carregar perfil/metas:", e); 
         if(userId) showRegistrationModal(false); 
@@ -1255,58 +1217,47 @@
       }
     }
   
-  // Auth state (sem alterações)
+  // Auth state listener
   function attachAuthListener() {
     firebaseAuth.onAuthStateChanged(async (user) => {
       if (isInitialLoad) {
           hideElement(document.getElementById('loadingScreen'));
           isInitialLoad = false;
       }
-
       if (user) {
         userId = user.uid;
         document.getElementById('authControlButton').textContent = 'Fazer Logout';
         document.getElementById('authControlButton').onclick = () => firebaseAuth.signOut();
-        
         const profileLoaded = await loadProfileAndMetas();
-        
         if (profileLoaded) {
             hideElement(document.getElementById('fullRegistrationModalOverlay'));
             hideElement(document.getElementById('fullRegistrationModal'));
             hideElement(document.getElementById('loginModalOverlay'));
             hideElement(document.getElementById('loginModal'));
-
             showElement(document.getElementById('mainApp'));
             loadDayData(currentDateString); 
-            
             document.getElementById('goalsDetails').classList.remove('opacity-50');
             document.getElementById('addFoodSection').classList.remove('opacity-50');
             document.getElementById('hydrationTracker').classList.remove('opacity-50');
-
         } else {
             hideElement(document.getElementById('mainApp'));
             document.getElementById('goalsDetails').classList.add('opacity-50');
             document.getElementById('addFoodSection').classList.add('opacity-50');
             document.getElementById('hydrationTracker').classList.add('opacity-50');
         }
-
       } else {
         userId = null;
         if (unsubscribeListener) { unsubscribeListener(); unsubscribeListener = null; } 
-        
         hideElement(document.getElementById('mainApp'));
         document.getElementById('authControlButton').textContent = 'Fazer Login / Criar Conta';
         document.getElementById('authControlButton').onclick = () => showLoginModal();
         document.getElementById('userNameDisplay').textContent = 'Visitante';
-        
         const hasEverLoggedIn = localStorage.getItem('hasEverLoggedIn') === 'true';
-
         if (hasEverLoggedIn) {
              showLoginModal();
         } else {
              showRegistrationModal(false); 
         }
-
         document.getElementById('goalsDetails').classList.add('opacity-50');
         document.getElementById('addFoodSection').classList.add('opacity-50');
         document.getElementById('hydrationTracker').classList.add('opacity-50');
@@ -1314,12 +1265,9 @@
     });
   }
 
-  // Lógica de Metas e UI
-  
-  // ATUALIZADO: saveMetas (para calcular e salvar fatGoal)
+  // Lógica de Metas
   async function saveMetas(){
     if (!userId) { showLoginModal(); return; } 
-      
     const weight=parseFloat(document.getElementById('weight').value);
     const targetWeightInput=document.getElementById('targetWeight'); 
     const targetWeightValue=parseFloat(targetWeightInput.value); 
@@ -1336,7 +1284,6 @@
       goalText.classList.add('text-red-600');
       return;
     }
-    
     if(goalType !== 'manter' && (isNaN(targetWeightValue) || targetWeightValue <= 0 || targetWeightValue === weight)){
       goalText.textContent="Por favor, insira uma Meta de Peso válida, diferente do peso atual, para o seu objetivo.";
       goalText.classList.remove('hidden','text-green-700');
@@ -1347,64 +1294,36 @@
     let bmr = (10*weight)+(6.25*height)-(5*age)+(gender==='male'?5:-161);
     const tdee = bmr*activity;
     let finalCalorieGoal = goalType==='perder'? tdee-400 : goalType==='manter'? tdee : tdee+400;
-
     let mlPerKg = 35;
-    if (age >= 56 && age <= 65) {
-        mlPerKg = 30;
-    } else if (age > 65) {
-        mlPerKg = 25;
-    }
+    if (age >= 56 && age <= 65) mlPerKg = 30;
+    else if (age > 65) mlPerKg = 25;
     const finalWaterGoal = Math.round(weight * mlPerKg);
-
-    // ####################################
-    // ##  INÍCIO DA ATUALIZAÇÃO (CÁLCULO JS) ##
-    // ####################################
     
-    let proteinGoalInGrams = 0;
-    if (goalType === 'manter') {
-        proteinGoalInGrams = weight * 1.8; 
-    } else {
-        proteinGoalInGrams = weight * 2.0; 
-    }
+    let proteinGoalInGrams = (goalType === 'manter') ? weight * 1.8 : weight * 2.0;
     const caloriesFromProtein = proteinGoalInGrams * 4;
-
-    // Meta de Gordura (g) - 25% das calorias totais
     const caloriesFromFat = finalCalorieGoal * 0.25;
     const fatGoalInGrams = caloriesFromFat / 9;
-
-    // Meta de Carboidratos (g) - Restante
     const caloriesFromCarbs = finalCalorieGoal - caloriesFromProtein - caloriesFromFat;
     const carbGoalInGrams = caloriesFromCarbs / 4;
 
-    // ####################################
-    // ##   FIM DA ATUALIZAÇÃO (CÁLCULO JS)   ##
-    // ####################################
-
     calorieGoal=finalCalorieGoal;
     waterGoal=finalWaterGoal;
-    
-    // --- ATUALIZADO: Metas globais de macros ---
     proteinGoal = proteinGoalInGrams;
     carbGoal = carbGoalInGrams;
     fatGoal = fatGoalInGrams;
-    // --- FIM DA ATUALIZAÇÃO ---
-    
     currentGoalType=goalType;
     currentWeight = weight; 
     targetWeight = targetWeightValue; 
 
     try{
-      // --- ATUALIZADO: Salvando os novos macros no Firebase ---
       await getMetasDocRef().set({ 
           weight, targetWeight: targetWeightValue, height, age, gender, activity, goalType, 
           calorieGoal: parseFloat(finalCalorieGoal.toFixed(0)), 
           waterGoal: parseFloat(finalWaterGoal.toFixed(0)),   
-          
           proteinGoal: parseFloat(proteinGoalInGrams.toFixed(0)),
           carbGoal: parseFloat(carbGoalInGrams.toFixed(0)),
-          fatGoal: parseFloat(fatGoalInGrams.toFixed(0)) // ADICIONADO
+          fatGoal: parseFloat(fatGoalInGrams.toFixed(0))
       }, { merge: true }); 
-
       updateGoalDisplay();
       updateTotals(false);
       updateWaterTracker(true); 
@@ -1420,7 +1339,7 @@
     }
   }
 
-  // ATUALIZADO: updateGoalDisplay (para mostrar fatGoalText)
+  // Atualização da UI de Metas
   function updateGoalDisplay(){
     const goalText=document.getElementById('goalText');
     if(calorieGoal>0){
@@ -1438,34 +1357,28 @@
       hideElement(document.getElementById('goalTag'));
     }
     
-    // --- ATUALIZADO: Texto da meta de macros ---
     document.getElementById('proteinGoalText').textContent = `Meta: ${proteinGoal.toFixed(0)} g`;
     document.getElementById('carbGoalText').textContent = `Meta: ${carbGoal.toFixed(0)} g`;
-    document.getElementById('fatGoalText').textContent = `Meta: ${fatGoal.toFixed(0)} g`; // ADICIONADO
-    // --- FIM DA ATUALIZAÇÃO ---
+    document.getElementById('fatGoalText').textContent = `Meta: ${fatGoal.toFixed(0)} g`;
 
     updateWaterTracker(true); 
     updateWeightProgress(); 
   }
   
-  // updateWeightProgress (Sem alterações)
+  // Progresso do Peso
   function updateWeightProgress() {
       const goalText = document.getElementById('weightGoalText');
       const progressEl = document.getElementById('weightProgress');
       const progressSection = document.getElementById('weightProgressSection');
-
       if (currentWeight === 0 || targetWeight === 0 || currentGoalType === 'manter') {
           hideElement(progressSection);
           return;
       }
-      
       showElement(progressSection); 
-
       const startWeight = parseFloat(document.getElementById('weight').value) || 0; 
       const current = currentWeight;
       const target = targetWeight;
       const initial = startWeight > 0 ? startWeight : current;
-
       if (target === initial) {
           progressEl.style.width = '0%';
           progressEl.classList.remove('bg-green-500', 'bg-red-500', 'bg-gray-400', 'bg-indigo-500'); 
@@ -1473,10 +1386,8 @@
           goalText.textContent = `${current.toFixed(1)} kg / ${target.toFixed(1)} kg`;
           return;
       }
-
       let progress = 0;
       let totalChange = Math.abs(target - initial);
-      
       if (totalChange > 0) {
           if (target < initial) { 
               progress = ((initial - current) / totalChange) * 100;
@@ -1488,14 +1399,12 @@
               progressEl.classList.add('bg-green-500'); 
           }
       }
-      
       progress = Math.min(Math.max(progress, 0), 100); 
-
       progressEl.style.width = progress + '%';
       goalText.textContent = `${current.toFixed(1)} kg / ${target.toFixed(1)} kg (${progress.toFixed(0)}%)`;
   }
 
-  // updateMealSuggestion (Sem alterações)
+  // Sugestão de Refeição
   function updateMealSuggestion(){
     const el=document.getElementById('mealSuggestion');
     if(calorieGoal===0){ el.innerHTML='Preencha e salve suas metas acima para ver sugestões de refeições.'; return; }
@@ -1519,23 +1428,19 @@
   async function loadDayData(dateStr){
     if (!userId) return;
     if (unsubscribeListener) { unsubscribeListener(); unsubscribeListener = null; }
-    
     currentDateString = dateStr;
     dailyLog = {}; 
     waterLog = 0; 
     clearFoodListUI();
     updateTotals(false);
     updateWaterTracker(false); 
-
     const itemsRef = getItemsRef(userId, dateStr);
-    
     const isToday = currentDateString === todayDateString;
     const addFoodSection = document.getElementById('addFoodSection');
     const shareButton = document.getElementById('shareButton');
     const dateStatus = document.getElementById('dateStatus');
     const addWaterButton = document.getElementById('addWaterButton'); 
     const waterInput = document.getElementById('waterQuantityInput');
-
     if (isToday) {
         addFoodSection.classList.remove('opacity-50');
         addFoodSection.querySelectorAll('input, select, button').forEach(el => el.disabled = false);
@@ -1551,42 +1456,34 @@
         waterInput.disabled = true;
         dateStatus.textContent = `Visualizando Histórico (Somente Leitura) em ${dateStr}`;
     }
-
     let initialLoad = true;
     unsubscribeListener = itemsRef.orderBy('clientTs','asc').onSnapshot(
       { includeMetadataChanges: true },
       (snap)=>{
         let shouldUpdateTotals = false;
-        
         if (initialLoad) {
           dailyLog = {};
           clearFoodListUI();
         }
-
         snap.docChanges().forEach(change => {
           const item = { ...change.doc.data(), id: change.doc.id };
           shouldUpdateTotals = true;
-          
           if (change.type === "added" || change.type === "modified") {
               dailyLog[item.id] = item;
               updateFoodItemElement(item); 
           }
-          
           if (change.type === "removed") {
               delete dailyLog[item.id];
               removeFoodItemElement(item.id); 
           }
         });
-        
         waterLog = Object.values(dailyLog)
                      .filter(i => i.type === 'water')
                      .reduce((total, item) => total + item.quantity, 0);
-
         if(shouldUpdateTotals) {
           updateTotals(true);
           updateWaterTracker(true);
         }
-        
         manageEmptyListText();
         initialLoad = false;
       },
@@ -1596,22 +1493,18 @@
     );
   }
 
-  // updateFoodItemElement (Sem alterações)
+  // Criar/Remover Elementos da Lista de UI
   function updateFoodItemElement(item){
       const existingElement = document.getElementById(`food-item-${item.id}`);
-      
       let newItemElement;
       let listContainer;
-
       if (item.type === 'water') {
           newItemElement = createWaterItemElement(item);
           listContainer = document.getElementById('list-water');
       } else {
           newItemElement = createFoodItemElement(item);
-          
           const mealContainer = document.getElementById(`${item.meal}_container`);
           let mealSection = document.getElementById(`section-${item.meal}`);
-
           if (!mealSection) {
               mealSection = document.createElement('div');
               mealSection.id = `section-${item.meal}`;
@@ -1621,39 +1514,25 @@
           }
           listContainer = document.getElementById(`list-${item.meal}`);
       }
-      
-      if (existingElement) {
-          existingElement.remove();
-      }
-
+      if (existingElement) existingElement.remove();
       if (listContainer) {
           const itemIds = Object.keys(dailyLog).filter(id => {
               const logItem = dailyLog[id];
-              return logItem.type === item.type && 
-                     (item.type === 'water' || logItem.meal === item.meal);
+              return logItem.type === item.type && (item.type === 'water' || logItem.meal === item.meal);
           }).sort((a, b) => dailyLog[a].clientTs - dailyLog[b].clientTs);
-
           const itemIndex = itemIds.indexOf(item.id);
-          
           if (itemIndex > 0) {
               const prevItemId = itemIds[itemIndex - 1];
               const prevElement = document.getElementById(`food-item-${prevItemId}`);
-              if (prevElement) {
-                  prevElement.after(newItemElement);
-              } else {
-                  listContainer.appendChild(newItemElement);
-              }
+              if (prevElement) prevElement.after(newItemElement);
+              else listContainer.appendChild(newItemElement);
           } else if (itemIndex === 0) {
                const firstElement = listContainer.firstChild;
-               if(firstElement) {
-                   listContainer.insertBefore(newItemElement, firstElement);
-               } else {
-                   listContainer.appendChild(newItemElement);
-               }
+               if(firstElement) listContainer.insertBefore(newItemElement, firstElement);
+               else listContainer.appendChild(newItemElement);
           } else {
               listContainer.appendChild(newItemElement);
           }
-          
           if (item.type !== 'water') {
               const mealSection = listContainer.closest('.meal-section');
               if (mealSection && !mealSection.id.startsWith('section-')) {
@@ -1662,8 +1541,6 @@
           }
       }
   }
-
-  // removeFoodItemElement (Sem alterações)
   function removeFoodItemElement(itemId){
       const element = document.getElementById(`food-item-${itemId}`);
       if(element){
@@ -1677,22 +1554,15 @@
           }
       }
   }
-
-  // createWaterItemElement (Sem alterações)
   function createWaterItemElement(item){
       const div = document.createElement('div');
       div.id = `food-item-${item.id}`;
       div.className = "flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-gray-200";
-      
       const isToday = currentDateString === todayDateString;
       const deleteButtonHtml = isToday ? `
           <button onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-          </button>
-      ` : `<div class="w-7 h-7"></div>`;
-
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          </button>` : `<div class="w-7 h-7"></div>`;
       div.innerHTML = `
           <div class="flex-grow">
               <p class="font-medium text-blue-800">${item.name}</p>
@@ -1701,27 +1571,19 @@
                   ${item.timeStr ? `<span class="text-gray-400 mx-1">|</span> <span class="text-gray-500 font-medium">${item.timeStr}</span>` : ''}
               </p>
           </div>
-          ${deleteButtonHtml}
-      `;
+          ${deleteButtonHtml}`;
       return div;
   }
-
-  // ATUALIZADO: createFoodItemElement (para mostrar Gorduras)
   function createFoodItemElement(item){
     const warn=item.visceralFat?' ⚠️':'';
     const div = document.createElement('div');
     div.id = `food-item-${item.id}`;
     div.className = "flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-gray-200";
-    
     const isToday = currentDateString === todayDateString;
     const deleteButtonHtml = isToday ? `
       <button onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-        </svg>
-      </button>
-    ` : `<div class="w-7 h-7"></div>`; 
-
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+      </button>` : `<div class="w-7 h-7"></div>`; 
     div.innerHTML = `
       <div class="flex-grow">
         <p class="font-medium text-gray-800">${item.name}${warn}</p>
@@ -1738,60 +1600,44 @@
           <span class="text-red-600 font-medium">G: ${item.fats || 0}g</span>
         </p>
       </div>
-      ${deleteButtonHtml}
-    `;
+      ${deleteButtonHtml}`;
     return div;
   }
-
-  // manageEmptyListText (Sem alterações)
   function manageEmptyListText(){
       const empty = document.getElementById('emptyListText');
       const hasItems = Object.keys(dailyLog).length > 0;
-      
-      if (hasItems) {
-          hideElement(empty);
-      } else {
-          showElement(empty);
-      }
-      
+      if (hasItems) hideElement(empty);
+      else showElement(empty);
       const waterContainer = document.getElementById('water_container');
       const hasWaterItems = Object.values(dailyLog).some(i => i.type === 'water');
       if (waterContainer) {
-          if (hasWaterItems) {
-              showElement(waterContainer);
-          } else {
-              hideElement(waterContainer);
-          }
+          if (hasWaterItems) showElement(waterContainer);
+          else hideElement(waterContainer);
       }
   }
 
-  // ATUALIZADO: updateTotals (para calcular e mostrar Gorduras)
+  // Atualizar Totais
   function updateTotals(checkGoal=true){
     let totalCals=0, totalProtein=0, totalCarbs=0, totalFats=0;
     Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ 
         totalCals+=i.cals; 
         totalProtein+=i.protein; 
         totalCarbs+=i.carbs; 
-        totalFats += i.fats || 0; // ADICIONADO
+        totalFats += i.fats || 0;
     });
     
     document.getElementById('totalProteins').textContent = totalProtein.toFixed(1)+' g';
     document.getElementById('totalCarbs').textContent   = totalCarbs.toFixed(1)+' g';
-    document.getElementById('totalFats').textContent    = totalFats.toFixed(1)+' g'; // ADICIONADO
-
-    // --- ATUALIZADO: Texto da meta de macros ---
+    document.getElementById('totalFats').textContent    = totalFats.toFixed(1)+' g';
     document.getElementById('proteinGoalText').textContent = `Meta: ${proteinGoal.toFixed(0)} g`;
     document.getElementById('carbGoalText').textContent = `Meta: ${carbGoal.toFixed(0)} g`;
-    document.getElementById('fatGoalText').textContent = `Meta: ${fatGoal.toFixed(0)} g`; // ADICIONADO
-    // --- FIM DA ATUALIZAÇÃO ---
-
+    document.getElementById('fatGoalText').textContent = `Meta: ${fatGoal.toFixed(0)} g`;
     const isToday = currentDateString === todayDateString;
 
     if(calorieGoal>0){
       document.getElementById('totalCalsGoalText').textContent = `${totalCals.toFixed(0)} / ${calorieGoal.toFixed(0)} kcal`;
       const pct=Math.min((totalCals/calorieGoal)*100, 100);
       document.getElementById('calorieProgress').style.width=pct+'%';
-      
       if(isToday && checkGoal && !goalExceededNotified && totalCals>=calorieGoal){
         goalExceededNotified=true;
         showGoalExceededModal();
@@ -1803,15 +1649,13 @@
       document.getElementById('calorieProgress').style.width='0%';
     }
   }
-
-  // showGoalExceededModal (Sem alterações)
   function showGoalExceededModal(){
     const goalType=document.getElementById('goalType').value||'ganhar';
     document.getElementById('modalGoalText').textContent = `Meta de ${goalDisplayNames[goalType]}: ${calorieGoal.toFixed(0)} kcal atingida!`;
     showModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay'));
   }
   
-  // addWater (Sem alterações)
+  // Adicionar Água
   async function addWater() {
     if (!userId) { showLoginModal(); return; } 
     if (currentDateString !== todayDateString) {
@@ -1832,13 +1676,9 @@
         const now = new Date();
         const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; 
         const payload = {
-            type: 'water', 
-            name: 'Água Pura',
-            quantity: quantity,
-            unit: 'ml',
+            type: 'water', name: 'Água Pura', quantity: quantity, unit: 'ml',
             ts: firebase.firestore.FieldValue.serverTimestamp(), 
-            clientTs: Date.now(),
-            timeStr: timeStr 
+            clientTs: Date.now(), timeStr: timeStr 
         };
         await itemsRef.add(payload);
         input.value = '250'; 
@@ -1850,7 +1690,7 @@
     }
   }
 
-  // updateWaterTracker (Sem alterações)
+  // Atualizar UI da Água
   function updateWaterTracker(checkGoal = true) {
       const goalText = document.getElementById('waterGoalText');
       const progressEl = document.getElementById('waterProgress');
@@ -1863,17 +1703,15 @@
       }
   }
 
-  // ATUALIZADO: addFoodToLog (para incluir Gorduras)
+  // Adicionar Alimento ao Log
   async function addFoodToLog(){
     if (!userId) { showLoginModal(); return; } 
     if(currentDateString !== todayDateString) {
       alert("Você só pode adicionar alimentos no dia de hoje.");
       return;
     }
-    
     const addFoodButton = document.getElementById('addFoodButton');
     addFoodButton.disabled = true; 
-    
     if(!selectedFoodKey){ alert("Por favor, selecione um alimento da lista."); addFoodButton.disabled = false; return; }
     const quantity=parseFloat(document.getElementById('foodQuantity').value);
     const meal=document.getElementById('mealTimeSelect').value;
@@ -1882,39 +1720,29 @@
     const f=foodDatabase[selectedFoodKey];
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; 
-    
     const payload = {
-      type: 'food', 
-      key: selectedFoodKey,
-      name: f.name,
-      quantity,
-      unit: f.unit,
+      type: 'food', key: selectedFoodKey, name: f.name, quantity, unit: f.unit,
       protein: parseFloat((f.protein*quantity).toFixed(1)),
       carbs: parseFloat((f.carbs*quantity).toFixed(1)),
-      fats: parseFloat((f.fats*quantity).toFixed(1)), // ADICIONADO
+      fats: parseFloat(((f.fats || 0)*quantity).toFixed(1)),
       cals: parseFloat((f.cals*quantity).toFixed(0)),
-      visceralFat: f.visceralFat,
-      meal,
+      visceralFat: f.visceralFat, meal,
       ts: firebase.firestore.FieldValue.serverTimestamp(), 
-      clientTs: Date.now(),
-      timeStr: timeStr 
+      clientTs: Date.now(), timeStr: timeStr 
     };
-
     const itemsRef = getItemsRef(userId, currentDateString);
-    
     try {
       await itemsRef.add(payload);
     } catch (e) {
       alert("Erro ao adicionar alimento. Verifique sua conexão e as regras do Firebase.");
       console.error("Erro ao adicionar alimento:", e);
     }
-    
     clearFoodSearch();
     document.getElementById('foodQuantity').value='';
     addFoodButton.disabled = false;
   }
   
-  // ATUALIZADO: clearFoodSearch (para limpar item da API)
+  // Limpar Busca
   function clearFoodSearch() {
     document.getElementById('foodSearch').value = '';
     document.getElementById('foodQuantity').value = '';
@@ -1922,14 +1750,12 @@
     hideElement(document.getElementById('searchDropdown'));
     document.getElementById('addFoodButton').disabled = false;
     document.getElementById('foodSearch').focus();
-    
-    // Limpa o resultado temporário da API
     if (foodDatabase['api_result']) {
         delete foodDatabase['api_result'];
     }
   }
 
-  // removeFoodFromLog (Sem alterações)
+  // Remover Alimento do Log
   async function removeFoodFromLog(itemId){
     if (!userId) { showLoginModal(); return; } 
     if(currentDateString !== todayDateString) {
@@ -1948,7 +1774,7 @@
     }
   }
 
-  // getItemsByMeal (Sem alterações)
+  // Agrupar Itens por Refeição
   function getItemsByMeal() {
       return Object.values(dailyLog)
           .filter(i => i.type === 'food')
@@ -1960,7 +1786,7 @@
           }, {});
   }
 
-  // ATUALIZADO: searchFood (para incluir busca online e botão manual)
+  // Buscar Alimento (com API)
   function searchFood(){
     const normalizeText = (text) => {
         return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -2016,64 +1842,49 @@
       `;
     }).join('');
 
-    dd.innerHTML = html + manualAddButtonHtml; // Adiciona o botão manual mesmo se houver resultados
+    dd.innerHTML = html + manualAddButtonHtml;
     showElement(dd);
   }
 
-  // ATUALIZADO: selectFood (para lidar com 'api_result')
+  // Selecionar Alimento
   function selectFood(key){
     selectedFoodKey=key;
     document.getElementById('foodSearch').value=foodDatabase[key].name;
     hideElement(document.getElementById('searchDropdown'));
-    
-    // Se for o resultado da API, define a quantidade como 1
     if (key === 'api_result') {
         document.getElementById('foodQuantity').value = 1;
     }
-    
     document.getElementById('foodQuantity').focus();
   }
 
-  // ATUALIZADO: shareToWhatsApp (para incluir Gorduras)
+  // Compartilhar no WhatsApp
   function shareToWhatsApp(){
     if (currentDateString !== todayDateString) {
         alert("Apenas é possível compartilhar o resumo do dia atual. Selecione a data de hoje.");
         return;
     }
-
     let totalCals=0,totalProtein=0,totalCarbs=0, totalFats=0;
     const itemsByMeal = getItemsByMeal();
-
     Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ 
-        totalCals+=i.cals; 
-        totalProtein+=i.protein; 
-        totalCarbs+=i.carbs;
-        totalFats += i.fats || 0;
+        totalCals+=i.cals; totalProtein+=i.protein; totalCarbs+=i.carbs; totalFats += i.fats || 0;
     });
-    
     const userName=document.getElementById('userNameDisplay').textContent;
     const goalType=document.getElementById('goalType').value||'ganhar';
     const goalName=goalDisplayNames[goalType];
-
     let msg = `🏋️ FITNESS-PRO 2.0 - Resumo do Dia (${currentDateString})\n\n`;
     msg += `👤 ${userName}\n`;
     msg += `🎯 Objetivo: ${goalName}\n`;
     msg += `📊 Meta Calorias: ${calorieGoal.toFixed(0)} kcal\n`;
-    
-    // --- ATUALIZADO: Metas de macros ---
     msg += `💪 Meta Proteínas: ${proteinGoal.toFixed(0)} g\n`;
     msg += `🍞 Meta Carboidratos: ${carbGoal.toFixed(0)} g\n`;
     msg += `🥑 Meta Gorduras: ${fatGoal.toFixed(0)} g\n`;
-    // --- FIM DA ATUALIZAÇÃO ---
-
     msg += `💧 Meta Água: ${waterGoal.toFixed(0)} ml\n\n`; 
     msg += `Consumo do Dia:\n`;
     msg += `🔥 Calorias: ${totalCals.toFixed(0)} kcal\n`;
     msg += `💧 Água Consumida: ${waterLog} ml\n`; 
     msg += `💪 Proteínas: ${totalProtein.toFixed(1)}g\n`;
     msg += `🍞 Carboidratos: ${totalCarbs.toFixed(1)}g\n`;
-    msg += `🥑 Gorduras: ${totalFats.toFixed(1)}g\n\n`; // ADICIONADO
-
+    msg += `🥑 Gorduras: ${totalFats.toFixed(1)}g\n\n`;
     MEAL_KEYS.forEach(k=>{
       const items=itemsByMeal[k]||[];
       if(items.length>0){
@@ -2086,7 +1897,6 @@
         msg += `\n`;
       }
     });
-    
     const waterItems = Object.values(dailyLog).filter(i => i.type === 'water');
     if (waterItems.length > 0) {
       msg += `💧 Registros de Água\n`;
@@ -2096,12 +1906,11 @@
       });
       msg += `\n`;
     }
-
     const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;
     window.open(url,'_blank');
   }
 
-  // shareApp (Sem alterações)
+  // Compartilhar App
   function shareApp(){
     const message=`🏋️ FITNESS-PRO 2.0\n\nConheça o app que está me ajudando a alcançar meus objetivos! 💪\n\nAcesse: ${window.location.href}`;
     const url=`https://wa.me/?text=${encodeURIComponent(message)}`;
@@ -2111,13 +1920,10 @@
 
   // Eventos de UI
   function wireUI(){
-    // Botões de auth
+    // Auth
     document.getElementById('authControlButton').addEventListener('click', ()=>{
-      if (userId) {
-        firebaseAuth.signOut();
-      } else {
-        showLoginModal();
-      }
+      if (userId) firebaseAuth.signOut();
+      else showLoginModal();
     });
     document.getElementById('showLoginButton').addEventListener('click', (e)=>{
       e.preventDefault();
@@ -2132,35 +1938,27 @@
     document.getElementById('registerAndProfileButton').addEventListener('click', async ()=>{
       try{
         if (isEditingProfile) {
-          // Salvar apenas perfil
           const name = document.getElementById('regUserNameInput').value.trim();
           const phone = document.getElementById('regPhoneInput').value.trim();
           if (!userId) throw new Error('Necessário login para salvar perfil.');
-          
           await getProfileDocRef().set({ userName: name, phone, updatedAt: new Date().toISOString() }, { merge: true });
           if (firebaseAuth.currentUser && name) {
             await firebaseAuth.currentUser.updateProfile({ displayName: name });
-            localStorage.setItem(`phone_${userId}`, phone || ''); // Salvar localmente
+            localStorage.setItem(`phone_${userId}`, phone || '');
             document.getElementById('userNameDisplay').textContent = name;
           }
           saveProfilePicLocally();
           hideRegistrationModal();
         } else {
-          // Criar conta
           const email = document.getElementById('regEmailInput').value.trim();
           const pass = document.getElementById('regPasswordInput').value;
           const name = document.getElementById('regUserNameInput').value.trim();
           const phone = document.getElementById('regPhoneInput').value.trim();
-
           if (!email || !pass || pass.length < 6 || !name) throw new Error('Preencha nome, email e senha (mín. 6).');
-          
           const cred = await firebaseAuth.createUserWithEmailAndPassword(email, pass);
           await cred.user.updateProfile({ displayName: name });
-          
           userId = cred.user.uid;
-          
           await getProfileDocRef().set({ userName: name, phone: phone || null, createdAt: new Date().toISOString() });
-          
           saveProfilePicLocally();
           localStorage.setItem('hasEverLoggedIn', 'true'); 
           hideRegistrationModal();
@@ -2187,13 +1985,10 @@
         console.error("Erro no login:", e);
       }
     });
-
-    // Editar perfil
+    // Perfil
     document.getElementById('editProfileButton').addEventListener('click', ()=>{
       if (!userId) { showLoginModal(); } else { showRegistrationModal(true); }
     });
-
-    // Upload da foto
     const picInput = document.getElementById('regProfilePicInput');
     picInput.addEventListener('change', async (e)=>{
       const f = e.target.files?.[0];
@@ -2201,8 +1996,7 @@
       profilePicBase64 = await fileToBase64(f);
       document.getElementById('regProfileImage').src = profilePicBase64;
     });
-
-    // Date selector
+    // Data
     const dateInput = document.getElementById('dateSelector');
     dateInput.value = currentDateString;
     dateInput.max = todayDateString;
@@ -2210,8 +2004,7 @@
       currentDateString = dateInput.value;
       loadDayData(currentDateString);
     });
-
-    // Outros botões
+    // Ações Principais
     document.getElementById('calculateButton').addEventListener('click', saveMetas);
     document.getElementById('addFoodButton').addEventListener('click', addFoodToLog);
     document.getElementById('addWaterButton').addEventListener('click', addWater); 
@@ -2223,12 +2016,10 @@
     document.getElementById('closeWarningModalButton').addEventListener('click', ()=>{
       hideModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay'));
     });
-    
-    // Botões do Novo Modal Manual
+    // Modal Manual
     document.getElementById('fetchManualDataButton').addEventListener('click', fetchManualFoodData);
     document.getElementById('addManualFoodButton').addEventListener('click', addManualFoodToLog);
-
-
+    // Fechar dropdown
     document.addEventListener('click', (e)=>{
       if(!e.target.closest('#foodSearch') && !e.target.closest('#searchDropdown')){
         hideElement(document.getElementById('searchDropdown'));
@@ -2236,12 +2027,24 @@
     });
   }
 
+  // ##########################################
+  // ##             INÍCIO DA CORREÇÃO             ##
+  // ##########################################
+
   // Boot
-  (function boot(){
+  function boot(){
     initFirebase();
     wireUI();
     attachAuthListener();
-  })();
+  }
+
+  // Garante que o script só rode após o HTML ser carregado
+  // (Esta é a correção para o erro 'TypeError: null is not an object')
+  document.addEventListener('DOMContentLoaded', boot);
+
+  // ##########################################
+  // ##              FIM DA CORREÇÃO              ##
+  // ##########################################
 </script>
 </body>
 </html>
