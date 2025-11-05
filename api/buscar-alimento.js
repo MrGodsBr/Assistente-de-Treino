@@ -1,12 +1,11 @@
 /**
  * ARQUIVO: api/buscar-alimento.js
- * * Esta é uma Função Serverless (Node.js) que rodará no Vercel.
+ * Esta é uma Função Serverless (Node.js) que rodará no Vercel.
  * Ela age como um "intermediário" seguro entre seu app (index.html) 
  * e a API do Gemini (Google).
  */
 
 // O prompt do sistema que define a tarefa da IA
-// (Este prompt é o mesmo que estava no seu index.html)
 const geminiSystemPrompt = `Você é um assistente de nutrição. Sua tarefa é encontrar informações nutricionais para o alimento solicitado. Responda *apenas* com um objeto JSON no seguinte formato: {"name": "Nome do Alimento (ex: 100g de Arroz)", "protein": NÚMERO, "carbs": NÚMERO, "fats": NÚMERO, "cals": NÚMERO, "unit": "porção", "visceralFat": false}. 'visceralFat' deve ser true apenas para alimentos processados, fritos ou com muito açúcar (ex: refrigerante, batata frita, biscoito recheado). Se não encontrar, retorne {"erro": "Alimento não encontrado"}. Os números devem ser apenas NÚMEROS.`;
 
 // A URL da API do Google.
@@ -86,4 +85,3 @@ export default async function handler(req, res) {
     res.status(500).json({ erro: 'Falha ao buscar dados na API externa.' });
   }
 }
-
