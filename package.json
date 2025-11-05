@@ -1,14 +1,14 @@
 {
-  "name": "fitness-pro-vercel",
+  "name": "fitness-pro-serverless",
   "version": "1.0.0",
-  "description": "Servidor da API para o app Fitness Pro",
+  "description": "Backend serverless para Fitness Pro no Vercel",
   "main": "index.html",
   "scripts": {
-    "start": "node"
-  },
-  "engines": {
-    "node": "18.x"
+    "start": "echo 'Iniciando em modo de desenvolvimento (estático)'"
   },
   "author": "Thiago",
-  "license": "ISC"
+  "license": "ISC",
+  "engines": {
+    "node": "22.x"
+  }
 }
