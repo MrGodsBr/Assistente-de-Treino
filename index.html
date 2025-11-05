@@ -576,8 +576,9 @@
 
     const dd = document.getElementById('searchDropdown');
     
+    // Verifica se o dropdown está visível e se o texto "Buscando" está lá
     if (dd.offsetParent === null || !dd.innerHTML.includes("Buscando")) {
-        return; 
+        return; // Impede a chamada se o usuário já fechou o dropdown
     }
 
     exponentialBackoff(async () => {
@@ -594,7 +595,7 @@
             }
 
             const foodData = await response.json();
-            handleApiResponse(foodData); 
+            handleApiResponse(foodData); // Manipula a resposta da API
 
         } catch (error) {
             console.error('Erro ao buscar alimento online:', error.message);
@@ -616,12 +617,14 @@
       `;
 
       if (foodData.erro) {
+          // Só atualiza se o dropdown ainda estiver aberto
           if(dd.offsetParent !== null) {
             dd.innerHTML = `<div class="p-3 text-gray-500 text-sm">${foodData.erro} (internet).</div>` + manualAddButtonHtml;
           }
           return;
       }
 
+      // Adiciona o resultado da API ao banco de dados temporário
       foodDatabase['api_result'] = foodData;
       
       const f = foodData;
@@ -637,6 +640,7 @@
         </div>
       `;
       
+      // Só atualiza se o dropdown ainda estiver aberto
       if(dd.offsetParent !== null) {
         dd.innerHTML = html + manualAddButtonHtml;
         showElement(dd);
@@ -647,6 +651,7 @@
    * Funções do Novo Modal Manual
    */
   function showManualAddModal() {
+      // Limpa campos do modal
       document.getElementById('manualFoodNameInput').value = '';
       document.getElementById('manualCals').value = '';
       document.getElementById('manualProtein').value = '';
@@ -657,7 +662,7 @@
       hideElement(document.getElementById('manualErrorMessage'));
       document.getElementById('addManualFoodButton').disabled = true;
       currentManualFoodData = null;
-      hideElement(document.getElementById('searchDropdown'));
+      hideElement(document.getElementById('searchDropdown')); // Fecha o dropdown de busca
       showModal(document.getElementById('manualAddModal'), document.getElementById('manualAddModalOverlay'));
   }
 
@@ -701,14 +706,15 @@
                   document.getElementById('manualErrorMessage').textContent = foodData.erro;
                   showElement(document.getElementById('manualErrorMessage'));
               } else {
+                  // Preenche os campos com os dados da API
                   document.getElementById('manualFoodNameInput').value = foodData.name;
                   document.getElementById('manualCals').value = foodData.cals;
                   document.getElementById('manualProtein').value = foodData.protein;
                   document.getElementById('manualCarbs').value = foodData.carbs;
                   document.getElementById('manualFats').value = foodData.fats || 0;
                   document.getElementById('manualUnit').value = foodData.unit;
-                  currentManualFoodData = foodData;
-                  document.getElementById('addManualFoodButton').disabled = false;
+                  currentManualFoodData = foodData; // Armazena os dados
+                  document.getElementById('addManualFoodButton').disabled = false; // Ativa o botão
               }
 
           } catch (error) {
@@ -741,13 +747,13 @@
     
     const payload = {
       type: 'food', 
-      key: `manual_${Date.now()}`, 
+      key: `manual_${Date.now()}`, // Chave única para item manual
       name: f.name,
-      quantity: 1, 
+      quantity: 1, // Quantidade é 1 pois os dados são para a "porção"
       unit: f.unit,
       protein: f.protein,
       carbs: f.carbs,
-      fats: f.fats || 0, 
+      fats: f.fats || 0, // Garante que gordura exista
       cals: f.cals,
       visceralFat: f.visceralFat,
       meal,
@@ -760,8 +766,8 @@
     
     try {
       await itemsRef.add(payload);
-      clearFoodSearch(); 
-      hideManualAddModal(); 
+      clearFoodSearch(); // Limpa a barra de busca principal
+      hideManualAddModal(); // Fecha o modal
     } catch (e) {
       alert("Erro ao adicionar alimento. Verifique sua conexão.");
       console.error("Erro ao adicionar alimento manual:", e);
@@ -1389,11 +1395,11 @@
       let progress = 0;
       let totalChange = Math.abs(target - initial);
       if (totalChange > 0) {
-          if (target < initial) { 
+          if (target < initial) { // Perda de peso
               progress = ((initial - current) / totalChange) * 100;
               progressEl.classList.remove('bg-green-500', 'bg-gray-400', 'bg-indigo-500');
               progressEl.classList.add('bg-red-500'); 
-          } else { 
+          } else { // Ganho de peso
               progress = ((current - initial) / totalChange) * 100;
               progressEl.classList.remove('bg-red-500', 'bg-gray-400', 'bg-indigo-500');
               progressEl.classList.add('bg-green-500'); 
@@ -1750,6 +1756,7 @@
     hideElement(document.getElementById('searchDropdown'));
     document.getElementById('addFoodButton').disabled = false;
     document.getElementById('foodSearch').focus();
+    // Limpa o resultado da API do banco de dados temporário
     if (foodDatabase['api_result']) {
         delete foodDatabase['api_result'];
     }
@@ -1788,6 +1795,7 @@
 
   // Buscar Alimento (com API)
   function searchFood(){
+    // Helper para remover acentos (ex: "Maçã" vira "Maca")
     const normalizeText = (text) => {
         return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     };
@@ -1795,8 +1803,8 @@
     const q_raw = document.getElementById('foodSearch').value.trim();
     const dd = document.getElementById('searchDropdown');
 
-    currentApiQuery = q_raw;
-    clearTimeout(apiDebounceTimer);
+    currentApiQuery = q_raw; // Armazena a query atual para o debounce
+    clearTimeout(apiDebounceTimer); // Cancela buscas anteriores
 
     const manualAddButtonHtml = `
       <div class="p-3 hover:bg-green-100 cursor-pointer border-t border-gray-200 text-green-700 font-semibold" onclick="showManualAddModal()">
@@ -1804,33 +1812,41 @@
       </div>
     `;
 
+    // 1. Se a busca está vazia, esconde o dropdown
     if(q_raw.length < 1){ 
       hideElement(dd); 
       return; 
     }
     
+    // Normaliza a busca (minúsculas, sem acentos)
     const q = normalizeText(q_raw.toLowerCase());
 
+    // 2. Busca no banco de dados local
     const results = Object.keys(foodDatabase).filter(k => {
-      if (k === 'api_result') return false; 
+      if (k === 'api_result') return false; // Ignora o resultado da API anterior
       const f = foodDatabase[k];
       const keyNormalized = normalizeText(k);
       const nameNormalized = normalizeText(f.name.toLowerCase());
       return nameNormalized.includes(q) || keyNormalized.includes(q);
     });
 
+    // 3. Se o banco local não achar NADA
     if (results.length === 0) {
+        // ... e a busca for longa o suficiente
         if (q.length > 3) {
+            // Mostra "Buscando..." e agenda a busca na API
             dd.innerHTML = '<div class="p-3 text-gray-500 text-sm">Buscando na internet...</div>';
             showElement(dd);
-            apiDebounceTimer = setTimeout(searchFoodOnline, 500); 
+            apiDebounceTimer = setTimeout(searchFoodOnline, 500); // Espera 500ms
         } else {
+            // Se for muito curta (ex: "a"), mostra "Não encontrado"
             dd.innerHTML = '<div class="p-3 text-gray-500 text-sm">Nenhum alimento encontrado.</div>' + manualAddButtonHtml;
             showElement(dd);
         }
         return;
     }
     
+    // 4. Se o banco local ACHAR resultados, exibe
     const html = results.map(key => { 
       const f = foodDatabase[key];
       const warn=f.visceralFat?' ⚠️':'';
@@ -1851,6 +1867,7 @@
     selectedFoodKey=key;
     document.getElementById('foodSearch').value=foodDatabase[key].name;
     hideElement(document.getElementById('searchDropdown'));
+    // Se for o resultado da API, pré-preenche a quantidade como 1
     if (key === 'api_result') {
         document.getElementById('foodQuantity').value = 1;
     }
