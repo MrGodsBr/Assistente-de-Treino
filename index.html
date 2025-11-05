@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FITNESS-PRO 2.0</title>
+  <title>FITNESSPRO</title>
   <meta name="theme-color" content="#16a34a">
-  <meta name="description" content="FITNESS-PRO 2.0 - Assistente de nutrição e fitness">
+  <meta name="description" content="FITNESSPRO - Assistente de nutrição e fitness">
 
   <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
   
-  <meta name="apple-mobile-web-app-title" content="FITNESS-PRO 2.0">
+  <meta name="apple-mobile-web-app-title" content="FITNESSPRO">
   <script src="https://cdn.tailwindcss.com"></script>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -253,9 +253,7 @@
 
     <header class="flex justify-between items-center border-b pb-4">
       <h1 class="text-3xl font-bold">
-        <span class="text-green-600">FITNESS</span>
-        <span class="text-white">-</span>
-        <span class="text-blue-600">PRO 2.0</span>
+        <span class="text-green-600">FITNESS</span><span class="text-blue-600">PRO</span>
       </h1>
       <button id="shareAppButton" class="text-blue-600 p-2 rounded-full hover:bg-gray-100 transition-colors" title="Compartilhar o App">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1888,7 +1886,7 @@
     const userName=document.getElementById('userNameDisplay').textContent;
     const goalType=document.getElementById('goalType').value||'ganhar';
     const goalName=goalDisplayNames[goalType];
-    let msg = `🏋️ FITNESS-PRO 2.0 - Resumo do Dia (${currentDateString})\n\n`;
+    let msg = `🏋️ FITNESSPRO - Resumo do Dia (${currentDateString})\n\n`;
     msg += `👤 ${userName}\n`;
     msg += `🎯 Objetivo: ${goalName}\n`;
     msg += `📊 Meta Calorias: ${calorieGoal.toFixed(0)} kcal\n`;
@@ -1929,7 +1927,7 @@
 
   // Compartilhar App
   function shareApp(){
-    const message=`🏋️ FITNESS-PRO 2.0\n\nConheça o app que está me ajudando a alcançar meus objetivos! 💪\n\nAcesse: ${window.location.href}`;
+    const message=`🏋️ FITNESSPRO\n\nConheça o app que está me ajudando a alcançar meus objetivos! 💪\n\nAcesse: ${window.location.href}`;
     const url=`https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url,'_blank');
   }
