@@ -1,2065 +1,340 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FITNESSPRO</title>
-  <meta name="theme-color" content="#16a34a">
-  <meta name="description" content="FITNESSPRO - Assistente de nutrição e fitness">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="shortcut" href="/favicon.ico" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-  <link rel="manifest" href="/site.webmanifest" />
-  
-  <meta name="apple-mobile-web-app-title" content="FITNESSPRO">
-  <script src="https://cdn.tailwindcss.com"></script>
+<title>BT Dashboard</title>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
 
-  <style>
-    /* DEFINIÇÃO DA COR DAS PROTEÍNAS (ex: Tailwind emerald-500/600) */
-    :root {
-        --cor-proteinas-base: #10B981; /* Ex: emerald-500 */
-        --cor-proteinas-dark: #059669; /* Ex: emerald-600 */
-        /* Cores de Referência para o Gradiente do Botão AI Assistant */
-        --ai-grad-start: #ff7e5f; /* Laranja/Rosa */
-        --ai-grad-end: #feb47b;   /* Laranja/Amarelo */
-        --ai-grad-bg: #8e44ad;   /* Roxo Fundo */
-    }
-    
-    /* GRADIENTE CUSTOMIZADO para simular o botão */
-    .ai-button-gradient {
-        background-image: linear-gradient(to right, #e74c3c, #f39c12); /* Base */
-        position: relative;
-        overflow: hidden;
-        /* Simulação do gradiente roxo */
-        background: linear-gradient(90deg, #bb74b9 0%, #ff8c00 100%);
-    }
+body{
+margin:0;
+font-family:Arial;
+background:#0b1020;
+color:white;
+}
 
-    /* 1. CAIXA ALTA PARA OS TÍTULOS SOLICITADOS */
-    .titulo-secao-caixa-alta {
-        text-transform: uppercase;
-    }
-    
-    /* 2. COR DA BARRA DE META DE PESO IGUAL À DAS PROTEÍNAS */
-    #weightProgress {
-        /* A cor será aplicada diretamente na classe do Tailwind, mas aqui garantimos o fallback */
-        background-color: var(--cor-proteinas-base) !important; 
-    }
-    
-    /* Títulos do seu código original */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; }
-    /* ATUALIZADO: Usando a cor das proteínas para a barra de peso no JS */
-    #calorieProgress, #waterProgress, #weightProgress { transition: width 0.3s ease-in-out; } 
-    .modal-transition { transition: opacity 0.3s, transform 0.3s; }
-    .spinner { animation: spin 1s linear infinite; }
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    /* Estilos para a nova estrutura de lista */
-    .meal-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; }
-    .meal-section:first-child { border-top: none; padding-top: 0; }
-  </style>
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:16px;
+border-bottom:1px solid #24304f;
+}
+
+.wrap{
+max-width:1100px;
+margin:auto;
+padding:20px;
+}
+
+.hero{
+background:#11182b;
+border:1px solid #24304f;
+border-radius:20px;
+padding:20px;
+}
+
+button{
+height:46px;
+border:0;
+border-radius:12px;
+background:#5d66ff;
+color:white;
+font-weight:700;
+cursor:pointer;
+padding:0 16px;
+}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:12px;
+margin-top:16px;
+}
+
+.stat{
+background:#11182b;
+border:1px solid #24304f;
+border-radius:20px;
+padding:20px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:16px;
+margin-top:16px;
+}
+
+.panel{
+background:#11182b;
+border:1px solid #24304f;
+border-radius:20px;
+padding:20px;
+}
+
+.item{
+display:flex;
+justify-content:space-between;
+background:#0b1020;
+border:1px solid #24304f;
+border-radius:14px;
+padding:12px;
+margin-top:10px;
+}
+
+.muted{
+color:#aab4d6;
+}
+
+.modalBg{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.6);
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+.modal{
+background:#11182b;
+border:1px solid #24304f;
+border-radius:20px;
+padding:20px;
+width:400px;
+}
+
+.types{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:10px;
+}
+
+.type{
+padding:10px;
+background:#0b1020;
+border:1px solid #24304f;
+border-radius:10px;
+cursor:pointer;
+}
+
+.type.active{
+border-color:#5d66ff;
+background:#171f39;
+}
+
+input{
+width:100%;
+height:40px;
+margin-top:10px;
+background:#0b1020;
+border:1px solid #24304f;
+border-radius:10px;
+color:white;
+padding:0 10px;
+}
+
+.actions{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.secondary{
+background:none;
+border:1px solid #24304f;
+}
+
+</style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-teal-50 min-h-screen flex flex-col items-center justify-start p-4 py-8">
 
-  <div id="loadingScreen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center transition-opacity duration-500">
-    <div class="spinner rounded-full h-16 w-16 border-t-4 border-b-4 border-green-600"></div>
-    <p class="text-xl font-semibold text-green-700 mt-4">Conectando ao app...</p>
-  </div>
-  
-  <div id="fullRegistrationModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
-  <div id="fullRegistrationModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
-    <h3 class="text-2xl font-bold text-gray-800 text-center mb-4" id="regModalTitle">Crie sua Conta</h3>
-    <p id="regError" class="text-red-600 text-center font-medium text-sm mb-3 hidden"></p>
+<body>
 
-    <div class="space-y-4">
-      <div class="flex flex-col items-center">
-        <img id="regProfileImage" src="https://placehold.co/96x96/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-24 h-24 rounded-full object-cover shadow-lg mb-2 cursor-pointer" onclick="document.getElementById('regProfilePicInput').click()">
-        <button type="button" onclick="document.getElementById('regProfilePicInput').click()" class="text-sm text-blue-600 hover:underline">Selecionar Foto</button>
-        <input type="file" id="regProfilePicInput" class="hidden" accept="image/*">
-      </div>
+<div class="top">
+<strong>BT Dashboard</strong>
+</div>
 
-      <div>
-        <label for="regUserNameInput" class="block text-sm font-medium text-gray-700">Nome de Usuário *</label>
-        <input type="text" id="regUserNameInput" placeholder="Seu nome" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-      </div>
-      
-      <div id="registrationFields">
-          <div>
-            <label for="regEmailInput" class="block text-sm font-medium text-gray-700">Email *</label>
-            <input type="email" id="regEmailInput" placeholder="seu.email@exemplo.com" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-          </div>
-          <div>
-            <label for="regPasswordInput" class="block text-sm font-medium text-gray-700">Senha * (Mín. 6 caracteres)</label>
-            <div class="relative mt-1">
-              <input type="password" id="regPasswordInput" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-              <button type="button" onclick="togglePasswordVisibility('regPasswordInput')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
-                <svg id="regPasswordInput_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275 4.307 5.065 7.25 9.543 7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
-                </svg>
-                <svg id="regPasswordInput_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
-                </svg>
-              </button>
-            </div>
-          </div>
-      </div>
+<div class="wrap">
 
-      <div>
-        <label for="regPhoneInput" class="block text-sm font-medium text-gray-700">Telefone (opcional)</label>
-        <input type="tel" id="regPhoneInput" placeholder="(99) 99999-9999" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-      </div>
+<div class="hero">
+<h2>Painel</h2>
+<p class="muted">Sistema de contas.</p>
 
-      <button id="registerAndProfileButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
-        Criar Conta e Perfil
-      </button>
-      <button id="showLoginButton" class="w-full text-sm text-gray-600 font-medium py-2 mt-4 hover:text-gray-900">
-        Já tenho conta. Fazer Login
-      </button>
-    </div>
-  </div>
+<button onclick="abrirModal()">+ Nova Conta</button>
+</div>
 
-  <div id="loginModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
-  <div id="loginModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
-    <h3 class="text-2xl font-bold text-gray-800 text-center mb-4">Fazer Login</h3>
-    <p id="loginError" class="text-red-600 text-center font-medium text-sm mb-3 hidden"></p>
+<div class="stats">
 
-    <div class="space-y-4">
-      <div>
-        <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
-        <input type="email" id="loginEmail" placeholder="seu.email@exemplo.com" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-      </div>
-      <div>
-        <label for="loginPassword" class="block text-sm font-medium text-gray-700">Senha</label>
-        <div class="relative mt-1">
-          <input type="password" id="loginPassword" placeholder="Sua senha" class="w-full p-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-          <button type="button" onclick="togglePasswordVisibility('loginPassword')" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
-            <svg id="loginPassword_eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7.25M17.5 14.5c.89 0 1.611-.72 1.611-1.611s-.72-1.611-1.61-1.611-1.61.72-1.61 1.611.72 1.611 1.611 1.611zM12 5c4.478 0 8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25-4.478 0-8.268-2.943-9.543-7.25 1.275 4.307 5.065 7.25 9.543 7.25zm0 0a3 3 0 100 6 3 3 0 000-6z" />
-            </svg>
-            <svg id="loginPassword_eye_open" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 19c-4.478 0-8.268-2.943-9.543-7.25C3.732 7.943 7.522 5 12 5s8.268 2.943 9.543 7.25c-1.275 4.307-5.065 7.25-9.543 7.25z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <button id="loginSubmitButton" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-4">
-        Entrar
-      </button>
-      <button id="showRegistrationButton" class="w-full text-sm text-gray-600 font-medium py-2 mt-4 hover:text-gray-900">
-        Não tenho conta. Criar Perfil
-      </button>
-    </div>
-  </div>
+<div class="stat">
+Contas
+<h2 id="count">0</h2>
+</div>
 
+<div class="stat">
+Meta
+<h2>100</h2>
+</div>
 
-  <div id="warningModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
-  <div id="warningModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-sm p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0">
-    <div class="text-center">
-      <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100">
-        <svg class="h-10 w-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-        </svg>
-      </div>
-      <h3 class="text-2xl font-bold text-gray-800 mt-4">Meta Atingida!</h3>
-      <p class="text-base text-gray-600 mt-2">Você ultrapassou sua meta de calorias do dia.</p>
-      <p id="modalGoalText" class="text-sm text-gray-500 mt-1"></p>
-      <button id="closeWarningModalButton" class="mt-6 w-full bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
-        Entendi
-      </button>
-    </div>
-  </div>
-    
-  <div id="aiModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
-  <div id="aiModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-md p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0 max-h-[90vh] overflow-y-auto">
-    <div class="flex justify-between items-start mb-4 border-b pb-3">
-      <h3 class="text-2xl font-bold text-green-700">🧠 Análise de IA (Gemini)</h3>
-      <button onclick="hideAIModal()" class="text-gray-400 hover:text-gray-600">
-        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-      </button>
-    </div>
-    
-    <div id="aiAnalysisContent" class="space-y-4 text-gray-700">
-        <p class="text-center font-medium">Analisando dados...</p>
-        <div class="spinner mx-auto h-8 w-8 border-t-2 border-b-2 border-green-600"></div>
-    </div>
-    
-    <button onclick="hideAIModal()" class="mt-6 w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors">
-      Fechar Análise
-    </button>
-  </div>
+<div class="stat">
+Progresso
+<h2 id="progress">0%</h2>
+</div>
 
-  <div id="manualAddModalOverlay" class="modal-transition fixed inset-0 bg-black bg-opacity-70 z-40 hidden"></div>
-  <div id="manualAddModal" class="modal-transition fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-md p-6 rounded-2xl shadow-xl z-50 hidden scale-90 opacity-0 max-h-[90vh] overflow-y-auto">
-    <div class="flex justify-between items-start mb-4">
-      <h3 class="text-2xl font-bold text-gray-800">Adicionar Novo Alimento</h3>
-      <button onclick="hideManualAddModal()" class="text-gray-400 hover:text-gray-600">
-        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-      </button>
-    </div>
-    <div class="space-y-4">
-      <div>
-        <label for="manualFoodNameInput" class="block text-sm font-medium text-gray-700">Nome do Alimento</label>
-        <input type="text" id="manualFoodNameInput" placeholder="Ex: 100g de peito de frango" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-      </div>
-      <button id="fetchManualDataButton" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
-        Buscar Dados (com IA)
-      </button>
-      <div id="manualLoadingSpinner" class="hidden flex justify-center items-center my-2">
-        <div class="spinner h-6 w-6 border-t-2 border-b-2 border-blue-600"></div>
-        <span class="text-gray-600 ml-2">Buscando...</span>
-      </div>
-      <p id="manualErrorMessage" class="text-red-600 text-center font-medium text-sm hidden"></p>
-      <div id="manualResults" class="space-y-3 pt-3 border-t">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label for="manualCals" class="block text-sm font-medium text-gray-500">Calorias (kcal)</label>
-            <input type="number" id="manualCals" class="mt-1 w-full p-2 border border-gray-200 rounded-lg bg-gray-100" readonly>
-          </div>
-          <div>
-            <label for="manualProtein" class="block text-sm font-medium text-gray-500">Proteínas (g)</label>
-            <input type="number" id="manualProtein" class="mt-1 w-full p-2 border border-gray-200 rounded-lg bg-gray-100" readonly>
-          </div>
-          <div>
-            <label for="manualCarbs" class="block text-sm font-medium text-gray-500">Carboidratos (g)</label>
-            <input type="number" id="manualCarbs" class="mt-1 w-full p-2 border border-gray-200 rounded-lg bg-gray-100" readonly>
-          </div>
-          <div>
-            <label for="manualFats" class="block text-sm font-medium text-gray-500">Gorduras (g)</label>
-            <input type="number" id="manualFats" class="mt-1 w-full p-2 border border-gray-200 rounded-lg bg-gray-100" readonly>
-          </div>
-        </div>
-        <input type="text" id="manualUnit" class="mt-1 w-full p-2 border border-gray-200 rounded-lg bg-gray-100" placeholder="Unidade (ex: porção)" readonly>
-      </div>
-      <div class="flex space-x-3 mt-6">
-        <button onclick="hideManualAddModal()" class="w-1/2 bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
-          Cancelar
-        </button>
-        <button id="addManualFoodButton" class="w-1/2 bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-          Adicionar ao Diário
-        </button>
-      </div>
-    </div>
-  </div>
+<div class="stat">
+Status
+<h2 id="status">Iniciando</h2>
+</div>
 
+</div>
 
-  <div id="mainApp" class="bg-white w-full max-w-lg p-6 sm:p-8 rounded-2xl shadow-xl space-y-6 hidden">
+<div class="grid">
 
-    <header class="flex justify-between items-center border-b pb-4">
-      <h1 class="text-3xl font-bold">
-        <span class="text-green-600">FITNESS</span><span class="text-blue-600">PRO</span>
-      </h1>
-      <button id="shareAppButton" class="text-blue-600 p-2 rounded-full hover:bg-gray-100 transition-colors" title="Compartilhar o App">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.42" y1="6.51" x2="8.59" y2="10.49"></line>
-        </svg>
-      </button>
-    </header>
+<div class="panel">
+<h3>Resumo</h3>
+<div id="summary"></div>
+</div>
 
-    <div id="userProfileDisplay" class="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-      <img id="profileImageDisplay" src="https://placehold.co/64x64/E0F2F1/065F46?text=FP" alt="Foto de Perfil" class="w-16 h-16 rounded-full object-cover shadow-md">
-      <div class="flex-grow">
-        <span id="userNameDisplay" class="block text-xl font-semibold text-gray-800">Usuário</span>
-        <button id="authControlButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors mt-1">
-          Fazer Login / Criar Conta
-        </button>
-      </div>
-      <button id="editProfileButton" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">Editar</button>
-    </div>
-    
-    <details id="goalsDetails" class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-      <summary class="text-xl font-semibold text-gray-700 cursor-pointer list-none">
-        <div class="flex justify-between items-center text-green-600">
-          <span class="titulo-secao-caixa-alta">Minhas Metas</span>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-          </svg>
-        </div>
-      </summary>
-      <div id="profileForm" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <div>
-          <label for="weight" class="block text-sm font-medium text-gray-700">Peso Atual (kg)</label>
-          <input type="number" id="weight" placeholder="70" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label for="targetWeight" class="block text-sm font-medium text-gray-700">Meta Peso (kg)</label>
-          <input type="number" id="targetWeight" placeholder="75" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label for="height" class="block text-sm font-medium text-gray-700">Altura (cm)</label>
-          <input type="number" id="height" placeholder="175" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div>
-          <label for="age" class="block text-sm font-medium text-gray-700">Idade</label>
-          <input type="number" id="age" placeholder="25" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div class="col-span-2 sm:col-span-3">
-          <label for="gender" class="block text-sm font-medium text-gray-700">Gênero</label>
-          <select id="gender" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="male">Masculino</option>
-            <option value="female">Feminino</option>
-          </select>
-        </div>
-        <div class="col-span-2 sm:col-span-3">
-          <label for="activity" class="block text-sm font-medium text-gray-700">Nível de Atividade</label>
-          <select id="activity" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="1.2">Sedentário (pouco ou nenhum)</option>
-            <option value="1.375">Leve (1-3 dias/semana)</option>
-            <option value="1.55" selected>Moderado (3-5 dias/semana)</option>
-            <option value="1.725">Ativo (6-7 dias/semana)</option>
-            <option value="1.9">Muito Ativo (trabalho físico + treino)</option>
-          </select>
-        </div>
-        <div class="col-span-2 sm:col-span-3">
-          <label for="goalType" class="block text-sm font-medium text-gray-700">Meu Objetivo</label>
-          <select id="goalType" class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="ganhar">Ganhar Massa (Bulking)</option>
-            <option value="manter">Manter Peso (Manutenção)</option>
-            <option value="perder">Perder Peso (Cutting)</option>
-          </select>
-        </div>
-        <button id="calculateButton" class="col-span-2 sm:col-span-3 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
-          Calcular e Salvar Meta
-        </button>
-      </div>
-      <p id="goalText" class="text-center text-lg font-semibold text-green-700 mt-4 hidden"></p>
-    </details>
-    
-    <div id="addFoodSection">
-      <h2 class="text-xl font-semibold text-gray-700 mb-3 titulo-secao-caixa-alta">Adicionar Alimento</h2> 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
-        <div class="relative sm:col-span-3">
-          <label for="foodSearch" class="block text-sm font-medium text-gray-700 mb-1">1. Pesquisar Alimento</label>
-          
-          <div class="relative">
-            <input
-              type="text"
-              id="foodSearch"
-              placeholder="Digite o nome do alimento..."
-              class="w-full p-3 pr-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              autocomplete="off"
-            >
-            <button 
-              type="button" 
-              id="clearSearchButton"
-              onclick="clearFoodSearch()" 
-              class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-              title="Limpar Busca"
-            >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
-          </div>
-          
-          <div id="searchDropdown" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-b-lg shadow-lg max-h-56 overflow-y-auto"></div>
-        </div>
+<div class="panel">
+<h3>Contas</h3>
+<div id="list"></div>
+</div>
 
-        <div class="sm:col-span-2">
-          <label for="mealTimeSelect" class="block text-sm font-medium text-gray-700 mb-1">2. Escolher Refeição</label>
-          <select id="mealTimeSelect" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
-            <option value="cafe_da_manha">Café da Manhã</option>
-            <option value="almoco">Almoço</option>
-            <option value="lanche">Lanche</option>
-            <option value="jantar">Jantar</option>
-          </select>
-        </div>
+</div>
 
-        <div class="sm:col-span-1">
-          <label for="foodQuantity" class="block text-sm font-medium text-gray-700 mb-1">3. Qtd.</label>
-          <input
-            type="number"
-            id="foodQuantity"
-            placeholder="Qtd."
-            min="0"
-            step="0.1"
-            class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-        </div>
+</div>
 
-        <div id="mealSuggestion" class="text-sm text-gray-600 mt-1 sm:col-span-3 px-1"></div>
+<div id="modalBg" class="modalBg">
 
-        <button id="addFoodButton" class="sm:col-span-3 w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors mt-3">
-          Adicionar Alimento
-        </button>
-        <button id="shareButton" class="sm:col-span-3 w-full bg-cyan-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors mt-3">
-          Compartilhar Resumo no WhatsApp
-        </button>
-      </div>
-    </div>
-    
-    <div class="border-t border-gray-200 pt-4">
-        <label for="dateSelector" class="block text-lg font-semibold text-gray-700 mb-2 titulo-secao-caixa-alta">Histórico:</label> 
-        <input type="date" id="dateSelector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-        <p id="dateStatus" class="text-sm text-gray-500 mt-1 text-center"></p>
-    </div>
-    
-    <div id="hydrationTracker" class="border-t border-gray-200 pt-4 pb-4">
-        <h2 class="text-xl font-semibold text-blue-600 mb-3 titulo-secao-caixa-alta">💧 Adicionar Hidratação</h2> 
-        <div class="flex items-end space-x-3 mb-4">
-            <div class="flex-grow">
-                <label for="waterQuantityInput" class="block text-sm font-medium text-gray-700">Qtd. de Água (ml)</label>
-                <input
-                    type="number"
-                    id="waterQuantityInput"
-                    placeholder="250"
-                    min="50"
-                    step="50"
-                    value="250"
-                    class="mt-1 w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-            </div>
-            <button id="addWaterButton" class="h-10 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
-                Adicionar
-            </button>
-        </div>
-    </div>
-    
-    <div class="border-b border-gray-200 py-4">
-      <h3 class="text-xl font-semibold text-gray-700 mb-3 flex items-center justify-between space-x-2">
-        <span class="titulo-secao-caixa-alta">Refeições do Dia:</span> 
-        <span id="goalTag" class="text-xs font-medium text-blue-700 bg-blue-100 py-0.5 px-2 rounded-full flex-shrink-0 hidden"></span>
-      </h3>
-      <div id="foodList" class="overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 bg-gray-50 min-h-48">
-        <p id="emptyListText" class="text-gray-400 text-center mt-4">Nenhum alimento adicionado ainda.</p>
-        <div id="water_container" class="mb-2 meal-section"> 
-            <h4 class="font-semibold text-gray-700 mb-2 text-lg titulo-secao-caixa-alta">💧 Registros de Água</h4> 
-            <div class="space-y-2" id="list-water"></div>
-        </div>
-        <div id="cafe_da_manha_container"></div>
-        <div id="almoco_container"></div>
-        <div id="lanche_container"></div>
-        <div id="jantar_container"></div>
-      </div>
-      <p class="text-xs text-gray-500 mt-2">⚠️ indica alimentos que podem aumentar a gordura visceral.</p>
-    </div>
-    
-    <div class="space-y-4">
-        
-        <div class="relative flex justify-between items-center pr-2"> 
-            <h2 class="text-xl font-semibold text-gray-800 titulo-secao-caixa-alta my-0">RESUMO DO DIA</h2> 
-            
-            <button 
-                id="openAIModalButton" 
-                onclick="analyzeDailySummary()" 
-                class="ai-button-gradient flex items-center justify-center space-x-1 px-3 py-1.5 rounded-full text-white font-bold text-sm shadow-md transform hover:scale-[1.05] transition duration-150 ease-in-out"
-                title="Análise Avançada de IA"
-                style="max-width: 150px;"
-            >
-                 <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.188C2.697 14.01 2 13.042 2 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                    <path fill="white" d="M17.485 10.999l1.414 1.414-1.414 1.414-1.414-1.414zM16 8l.5.5.5-.5H16zM20 4l1 1-1 1h-2z"/>
-                 </svg>
-                
-                 <span>AI Assistant</span>
-            </button>
-        </div>
-        
-        <div id="weightProgressSection">
-          <div class="flex justify-between items-center mb-1">
-            <span class="text-base font-medium text-emerald-600">Meta de Peso</span> 
-            <span id="weightGoalText" class="text-sm font-semibold text-emerald-600">0 kg / 0 kg</span> 
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-            <div id="weightProgress" class="bg-emerald-500 h-4 rounded-full" style="width: 0%"></div> 
-          </div>
-        </div>
-        
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <span class="text-base font-medium text-blue-600">Água</span>
-            <span id="waterGoalText" class="text-sm font-semibold text-blue-600">Consumo: 0 ml / Meta: 0 ml</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-            <div id="waterProgress" class="bg-blue-500 h-4 rounded-full" style="width: 0%"></div>
-          </div>
-        </div>
+<div class="modal">
 
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <span class="text-base font-medium text-orange-600">Calorias</span>
-            <span id="totalCalsGoalText" class="text-sm font-semibold text-orange-600">0 / 0 kcal</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-            <div id="calorieProgress" class="bg-orange-500 h-4 rounded-full" style="width: 0%"></div>
-          </div>
-        </div>
+<h3>Criar Conta</h3>
 
-        <div class="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p class="text-base font-medium text-emerald-600 mb-1">Proteínas</p>
-            <p id="totalProteins" class="text-2xl sm:text-3xl font-bold text-emerald-600">0 g</p>
-            <p id="proteinGoalText" class="text-sm font-medium text-gray-500">Meta: 0 g</p>
-          </div>
-          <div>
-            <p class="text-base font-medium text-blue-600 mb-1">Carboidratos</p>
-            <p id="totalCarbs" class="text-2xl sm:text-3xl font-bold text-blue-600">0 g</p>
-            <p id="carbGoalText" class="text-sm font-medium text-gray-500">Meta: 0 g</p>
-          </div>
-           <div>
-            <p class="text-base font-medium text-red-600 mb-1">Gorduras</p>
-            <p id="totalFats" class="text-2xl sm:text-3xl font-bold text-red-600">0 g</p>
-            <p id="fatGoalText" class="text-sm font-medium text-gray-500">Meta: 0 g</p>
-          </div>
-        </div>
-    </div>
-  </div>
+<input id="nomeConta" placeholder="Nome da conta">
 
-  <footer class="mt-8 text-sm text-gray-500">Desenvolvido por Thiago</footer>
+<div class="types" id="types"></div>
+
+<div class="actions">
+<button onclick="criarConta()">Criar</button>
+<button onclick="fecharModal()" class="secondary">Cancelar</button>
+</div>
+
+</div>
+
+</div>
 
 <script>
-  // Config do Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyC9WSxM9GA64fq9lkLhsTyvMbD1AlO1MM4",
-    authDomain: "assistente-de-treino-668ce.firebaseapp.com",
-    projectId: "assistente-de-treino-668ce",
-    storageBucket: "assistente-de-treino-668ce.firebasestorage.app",
-    messagingSenderId: "878456748339",
-    appId: "1:878456748339:web:5b310b5e91a7b23d0ba646",
-    measurementId: "G-FCQ5CQT1WY"
-  };
-  
-  // ##########################################
-  // ##     INÍCIO - ATUALIZAÇÃO API GEMINI     ##
-  // ##########################################
-  
-  // URL da nossa própria API (Função Serverless)
-  const localApiUrl = '/api/buscar-alimento'; 
-
-  let apiDebounceTimer;
-  let currentApiQuery = '';
-  // Variável para armazenar os dados do modal manual
-  let currentManualFoodData = null; 
-
-  /**
-   * Função de backoff exponencial para retentativas de API.
-   */
-  function exponentialBackoff(fn, maxRetries = 3, delay = 1000) {
-      let attempt = 0;
-      const tryFetch = () => {
-          fn().catch(err => {
-              attempt++;
-              if (attempt < maxRetries) {
-                  const backoffTime = delay * Math.pow(2, attempt) + Math.random() * 1000;
-                  console.warn(`Retentativa ${attempt} da API em ${backoffTime.toFixed(0)}ms...`);
-                  setTimeout(tryFetch, backoffTime);
-              } else {
-                  console.error('Falha na chamada da API após múltiplas tentativas:', err);
-                  const dd = document.getElementById('searchDropdown');
-                  if (dd) dd.innerHTML = `<div class="p-3 text-red-500 text-sm">Erro de rede. Tente novamente.</div>`;
-                  const manualError = document.getElementById('manualErrorMessage');
-                  if(manualError) manualError.textContent = 'Erro de rede. Tente novamente.';
-                  hideElement(document.getElementById('manualLoadingSpinner'));
-              }
-          });
-      };
-      tryFetch();
-  }
-
-
-  /**
-   * Dispara a busca online (usada pelo dropdown)
-   * ATUALIZADO: Agora chama o localApiUrl
-   */
-  async function searchFoodOnline() {
-    const query = currentApiQuery;
-    if (query.length <= 3) return;
-
-    const dd = document.getElementById('searchDropdown');
-    
-    // Verifica se o dropdown está visível e se o texto "Buscando" está lá
-    if (dd.offsetParent === null || !dd.innerHTML.includes("Buscando")) {
-        return; // Impede a chamada se o usuário já fechou o dropdown
-    }
-
-    exponentialBackoff(async () => {
-        try {
-            const response = await fetch(localApiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: query }) 
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.erro || `Erro na API: ${response.statusText}`);
-            }
-
-            const foodData = await response.json();
-            handleApiResponse(foodData); // Manipula a resposta da API
-
-        } catch (error) {
-            console.error('Erro ao buscar alimento online:', error.message);
-            handleApiResponse({ erro: "Erro na busca. Tente ser mais específico." });
-        }
-    });
-  }
-
-  /**
-   * Manipula a resposta da API e a exibe no dropdown
-   */
-  function handleApiResponse(foodData) {
-      const dd = document.getElementById('searchDropdown');
-      
-      const manualAddButtonHtml = `
-        <div class="p-3 hover:bg-green-100 cursor-pointer border-t border-gray-200 text-green-700 font-semibold" onclick="showManualAddModal()">
-          + Adicionar Alimento Manualmente
-        </div>
-      `;
-
-      if (foodData.erro) {
-          // Só atualiza se o dropdown ainda estiver aberto
-          if(dd.offsetParent !== null) {
-            dd.innerHTML = `<div class="p-3 text-gray-500 text-sm">${foodData.erro} (internet).</div>` + manualAddButtonHtml;
-          }
-          return;
-      }
-
-      // Adiciona o resultado da API ao banco de dados temporário
-      foodDatabase['api_result'] = foodData;
-      
-      const f = foodData;
-      const warn = f.visceralFat ? ' ⚠️' : '';
-      
-      const html = `
-        <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" onclick="selectFood('api_result')">
-          <p class="font-medium text-gray-800">${f.name}${warn} (Internet) 🌎</p>
-          <p class="text-xs">
-            <span class="text-orange-600 font-medium">${f.cals} kcal</span> 
-            <span class="text-gray-600">por ${f.unit}</span>
-          </p>
-        </div>
-      `;
-      
-      // Só atualiza se o dropdown ainda estiver aberto
-      if(dd.offsetParent !== null) {
-        dd.innerHTML = html + manualAddButtonHtml;
-        showElement(dd);
-      }
-  }
-
-  /**
-   * Funções do Novo Modal Manual
-   */
-  function showManualAddModal() {
-      // Limpa campos do modal
-      document.getElementById('manualFoodNameInput').value = '';
-      document.getElementById('manualCals').value = '';
-      document.getElementById('manualProtein').value = '';
-      document.getElementById('manualCarbs').value = '';
-      document.getElementById('manualFats').value = '';
-      document.getElementById('manualUnit').value = '';
-      hideElement(document.getElementById('manualLoadingSpinner'));
-      hideElement(document.getElementById('manualErrorMessage'));
-      document.getElementById('addManualFoodButton').disabled = true;
-      currentManualFoodData = null;
-      hideElement(document.getElementById('searchDropdown')); // Fecha o dropdown de busca
-      showModal(document.getElementById('manualAddModal'), document.getElementById('manualAddModalOverlay'));
-  }
-
-  function hideManualAddModal() {
-      hideModal(document.getElementById('manualAddModal'), document.getElementById('manualAddModalOverlay'));
-  }
-
-  /**
-   * Busca dados da API para o modal manual
-   * ATUALIZADO: Agora chama o localApiUrl
-   */
-  function fetchManualFoodData() {
-      const query = document.getElementById('manualFoodNameInput').value.trim();
-      if (query.length < 3) {
-          document.getElementById('manualErrorMessage').textContent = 'Por favor, digite um nome de alimento válido.';
-          showElement(document.getElementById('manualErrorMessage'));
-          return;
-      }
-
-      showElement(document.getElementById('manualLoadingSpinner'));
-      hideElement(document.getElementById('manualErrorMessage'));
-      document.getElementById('addManualFoodButton').disabled = true;
-      currentManualFoodData = null;
-
-      exponentialBackoff(async () => {
-          try {
-              const response = await fetch(localApiUrl, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ query: query }) 
-              });
-
-              if (!response.ok) {
-                 const errorData = await response.json();
-                 throw new Error(errorData.erro || `Erro na API: ${response.statusText}`);
-              }
-
-              const foodData = await response.json();
-
-              if (foodData.erro) {
-                  document.getElementById('manualErrorMessage').textContent = foodData.erro;
-                  showElement(document.getElementById('manualErrorMessage'));
-              } else {
-                  // Preenche os campos com os dados da API
-                  document.getElementById('manualFoodNameInput').value = foodData.name;
-                  document.getElementById('manualCals').value = foodData.cals;
-                  document.getElementById('manualProtein').value = foodData.protein;
-                  document.getElementById('manualCarbs').value = foodData.carbs;
-                  document.getElementById('manualFats').value = foodData.fats || 0;
-                  document.getElementById('manualUnit').value = foodData.unit;
-                  currentManualFoodData = foodData; // Armazena os dados
-                  document.getElementById('addManualFoodButton').disabled = false; // Ativa o botão
-              }
-
-          } catch (error) {
-              console.error('Erro ao buscar dados manuais:', error.message);
-              document.getElementById('manualErrorMessage').textContent = 'Não foi possível buscar os dados. Tente novamente.';
-              showElement(document.getElementById('manualErrorMessage'));
-          } finally {
-              hideElement(document.getElementById('manualLoadingSpinner'));
-          }
-      });
-  }
-
-  /**
-   * Adiciona o alimento do modal manual ao log
-   */
-  async function addManualFoodToLog() {
-    if (!userId) { showLoginModal(); return; } 
-    if (!currentManualFoodData) {
-        alert("Dados do alimento inválidos.");
-        return;
-    }
-    
-    const addFoodButton = document.getElementById('addManualFoodButton');
-    addFoodButton.disabled = true; 
-    
-    const meal = document.getElementById('mealTimeSelect').value;
-    const f = currentManualFoodData;
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; 
-    
-    const payload = {
-      type: 'food', 
-      key: `manual_${Date.now()}`, // Chave única para item manual
-      name: f.name,
-      quantity: 1, // Quantidade é 1 pois os dados são para a "porção"
-      unit: f.unit,
-      protein: f.protein,
-      carbs: f.carbs,
-      fats: f.fats || 0, // Garante que gordura exista
-      cals: f.cals,
-      visceralFat: f.visceralFat,
-      meal,
-      ts: firebase.firestore.FieldValue.serverTimestamp(), 
-      clientTs: Date.now(),
-      timeStr: timeStr 
-    };
-
-    const itemsRef = getItemsRef(userId, currentDateString);
-    
-    try {
-      await itemsRef.add(payload);
-      clearFoodSearch(); // Limpa a barra de busca principal
-      hideManualAddModal(); // Fecha o modal
-    } catch (e) {
-      alert("Erro ao adicionar alimento. Verifique sua conexão.");
-      console.error("Erro ao adicionar alimento manual:", e);
-      addFoodButton.disabled = false;
-    }
-  }
-
-  // ##########################################
-  // ##      FIM - ATUALIZAÇÃO API GEMINI        ##
-  // ##########################################
-  
-
-  let firebaseApp, firebaseAuth, firebaseDb, userId = null;
-
-  // Estado global
-  let calorieGoal = 0;
-  let proteinGoal = 0; 
-  let carbGoal = 0;    
-  let fatGoal = 0;
-  let waterGoal = 0;
-
-  let currentWeight = 0;
-  let targetWeight = 0;
-  let selectedFoodKey = null;
-  let dailyLog = {};
-  let waterLog = 0;
-  const TODAY = new Date(); TODAY.setHours(0,0,0,0);
-  const todayDateString = TODAY.toISOString().split('T')[0];
-  let currentDateString = todayDateString;
-  let goalExceededNotified = false;
-  let profilePicBase64 = null;
-  let isEditingProfile = false;
-  let currentGoalType = 'ganhar';
-  let unsubscribeListener = null;
-  let isInitialLoad = true; 
-
-  const MEAL_KEYS = ['cafe_da_manha', 'almoco', 'lanche', 'jantar'];
-  const mealDisplayNames = {
-    cafe_da_manha: "☕ Café da Manã",
-    almoco: "🍽️ Almoço",
-    lanche: "🍎 Lanche",
-    jantar: "🍲 Jantar",
-  };
-  const ALL_LOG_KEYS = ['water', ...MEAL_KEYS];
-
-  const goalDisplayNames = {
-    ganhar: 'Ganho de Massa',
-    manter: 'Manutenção',
-    perder: 'Perda de Peso'
-  };
-
-  const mealSuggestions = {
-    ganhar: {
-      cafe_da_manha: "Ex: Ovos, Aveia, Banana, Whey Protein.",
-      almoco: "Ex: Arroz, Peito de Frango, Feijão, Batata Doce.",
-      lanche: "Ex: Pão Integral, Pasta de Amendoim, Iogurte Grego.",
-      jantar: "Ex: Macarrão, Carne Moída, Salada com Azeite.",
-    },
-    perder: {
-      cafe_da_manha: "Ex: Ovos, Morangos, Café Preto, Iogurte Natural.",
-      almoco: "Ex: Salada, Tilápia, Brócolis, Pouco Arroz Integral.",
-      lanche: "Ex: Maçã, Queijo Minas, Castanhas (pouco).",
-      jantar: "Ex: Sopa de legumes, Peito de Frango, Alface.",
-    },
-    manter: {
-      cafe_da_manha: "Refeição balanceada. Ex: Pão Integral, Ovos, Mamão.",
-      almoco: "Equilibre prato. Ex: Arroz, Feijão, Bife, Salada.",
-      lanche: "Ex: Uvas, Iogurte, Aveia.",
-      jantar: "Refeição leve. Ex: Batata Doce, Frango, Brócolis.",
-    }
-  };
-
-  const foodDatabase = {
-    // --- FRUTAS (FRUITS) ---
-    'banana': { name: 'Banana', protein: 1.1, carbs: 27, fats: 0.3, cals: 105, unit: 'unidade', visceralFat: false },
-    'maca': { name: 'Maçã', protein: 0.3, carbs: 25, fats: 0.2, cals: 95, unit: 'unidade', visceralFat: false },
-    'abacate': { name: 'Abacate', protein: 2, carbs: 9, fats: 15, cals: 160, unit: '100g', visceralFat: false },
-    'mamao': { name: 'Mamão Formosa', protein: 0.5, carbs: 11, fats: 0.1, cals: 43, unit: '100g', visceralFat: false },
-    'melancia': { name: 'Melancia', protein: 0.6, carbs: 8, fats: 0.2, cals: 30, unit: '100g', visceralFat: false },
-    'uva': { name: 'Uva', protein: 0.7, carbs: 18, fats: 0.2, cals: 69, unit: '100g', visceralFat: false },
-    'laranja': { name: 'Laranja', protein: 1, carbs: 12, fats: 0.1, cals: 47, unit: 'unidade', visceralFat: false },
-    'morango': { name: 'Morango', protein: 0.7, carbs: 8, fats: 0.3, cals: 32, unit: '100g', visceralFat: false },
-    'amora': { name: 'Amora', protein: 1.4, carbs: 9.6, fats: 0.5, cals: 43, unit: '100g', visceralFat: false },
-    'framboesa': { name: 'Framboesa', protein: 1.2, carbs: 12, fats: 0.7, cals: 52, unit: '100g', visceralFat: false },
-    'kiwi': { name: 'Kiwi', protein: 1.1, carbs: 15, fats: 0.5, cals: 61, unit: 'unidade', visceralFat: false },
-    'abacaxi': { name: 'Abacaxi', protein: 0.5, carbs: 13, fats: 0.1, cals: 50, unit: '100g', visceralFat: false },
-    'limao': { name: 'Limão (suco)', protein: 0.4, carbs: 9.3, fats: 0.3, cals: 29, unit: 'unidade', visceralFat: false },
-    
-    // --- VEGETAIS / LEGUMES (VEGETABLES) ---
-    'brocolis': { name: 'Brócolis (cozido)', protein: 2.4, carbs: 7, fats: 0.4, cals: 35, unit: '100g', visceralFat: false },
-    'alface': { name: 'Alface Crespa', protein: 1.4, carbs: 2.9, fats: 0.1, cals: 15, unit: '100g', visceralFat: false },
-    'tomate': { name: 'Tomate', protein: 0.9, carbs: 3.9, fats: 0.2, cals: 18, unit: '100g', visceralFat: false },
-    'cenoura': { name: 'Cenoura (crua)', protein: 0.9, carbs: 10, fats: 0.2, cals: 41, unit: '100g', visceralFat: false },
-    'couve_flor': { name: 'Couve-Flor (cozida)', protein: 1.9, carbs: 5, fats: 0.3, cals: 25, unit: '100g', visceralFat: false },
-    'abobrinha': { name: 'Abobrinha (cozida)', protein: 1.2, carbs: 3, fats: 0.3, cals: 17, unit: '100g', visceralFat: false },
-    
-    // --- PROTEÍNAS (PROTEINS) ---
-    'peito_frango': { name: 'Peito de Frango (grelhado)', protein: 31, carbs: 0, fats: 3.6, cals: 165, unit: '100g', visceralFat: false },
-    'coxa_frango': { name: 'Coxa de Frango (cozida/sem pele)', protein: 25, carbs: 0, fats: 8, cals: 185, unit: '100g', visceralFat: false }, 
-    'ovo': { name: 'Ovo Cozido', protein: 6.3, carbs: 0.6, fats: 5.3, cals: 77, unit: 'unidade', visceralFat: false },
-    'ovo_frito': { name: 'Ovo Frito (em óleo)', protein: 6.2, carbs: 0.6, fats: 7.5, cals: 95, unit: 'unidade', visceralFat: false },
-    'ovos_mexidos': { name: 'Ovos Mexidos (c/ manteiga)', protein: 6.5, carbs: 1.5, fats: 8, cals: 105, unit: 'unidade (1 ovo)', visceralFat: true },
-    'ovo_mexido_oleo': { name: 'Ovo Mexido (c/ óleo)', protein: 6.5, carbs: 1.5, fats: 7.5, cals: 95, unit: 'unidade (1 ovo)', visceralFat: true }, 
-    'carne_moida': { name: 'Carne Moída (patinho, cozida)', protein: 26, carbs: 0, fats: 8, cals: 180, unit: '100g', visceralFat: false },
-    'bife_alcatra': { name: 'Bife (Alcatra, grelhado)', protein: 28, carbs: 0, fats: 5, cals: 165, unit: '100g', visceralFat: false },
-    'tilapia': { name: 'Tilápia (grelhada)', protein: 26, carbs: 0, fats: 2.7, cals: 128, unit: '100g', visceralFat: false },
-    'salmao': { name: 'Salmão (grelhado)', protein: 20, carbs: 0, fats: 13, cals: 208, unit: '100g', visceralFat: false },
-    'atum_lata': { name: 'Atum em Lata (em óleo)', protein: 29, carbs: 0, fats: 8, cals: 186, unit: '100g', visceralFat: false },
-    
-    // --- LÁCTEOS E SIMILARES (DAIRY) ---
-    'leite_integral': { name: 'Leite Integral', protein: 3.2, carbs: 5, fats: 3.3, cals: 61, unit: '100ml', visceralFat: true },
-    'leite_desnatado': { name: 'Leite Desnatado', protein: 3.4, carbs: 5, fats: 0.1, cals: 35, unit: '100ml', visceralFat: false },
-    'queijo_mussarela': { name: 'Queijo Mussarela', protein: 22, carbs: 3.1, fats: 22, cals: 300, unit: '100g (fatia 30g)', visceralFat: true },
-    'queijo_minas': { name: 'Queijo Minas Frescal', protein: 17, carbs: 3, fats: 20, cals: 264, unit: '100g', visceralFat: false },
-    'queijo_cottage': { name: 'Queijo Cottage', protein: 11, carbs: 3, fats: 4.3, cals: 98, unit: '100g', visceralFat: false },
-    'iogurte_grego': { name: 'Iogurte Grego (natural)', protein: 10, carbs: 3.6, fats: 0.4, cals: 59, unit: '100g', visceralFat: false },
-    'iogurte_natural': { name: 'Iogurte Natural Desnatado', protein: 4.1, carbs: 7, fats: 0.9, cals: 57, unit: '100g', visceralFat: false },
-    'iogurte_sabor': { name: 'Iogurte Desn. (Sabor)', protein: 3.5, carbs: 15, fats: 1, cals: 85, unit: '100g', visceralFat: true }, 
-
-    // --- CARBOIDRATOS (CARBS) ---
-    'arroz_branco': { name: 'Arroz Branco (cozido)', protein: 2.7, carbs: 28, fats: 0.3, cals: 130, unit: '100g', visceralFat: false },
-    'arroz_integral': { name: 'Arroz Integral (cozido)', protein: 2.6, carbs: 23, fats: 0.9, cals: 111, unit: '100g', visceralFat: false },
-    'batata_doce': { name: 'Batata Doce (cozida)', protein: 1.6, carbs: 20, fats: 0.1, cals: 86, unit: '100g', visceralFat: false },
-    'batata_inglesa': { name: 'Batata Inglesa (cozida)', protein: 2, carbs: 20, fats: 0.1, cals: 87, unit: '100g', visceralFat: false },
-    'mandioca': { name: 'Mandioca (Aipim cozido)', protein: 1.4, carbs: 30, fats: 0.3, cals: 139, unit: '100g', visceralFat: false }, 
-    'feijao_preto': { name: 'Feijão Preto (cozido)', protein: 9, carbs: 24, fats: 0.5, cals: 131, unit: '100g', visceralFat: false },
-    'feijao_carioca': { name: 'Feijão Carioca (cozido)', protein: 4.8, carbs: 14, fats: 0.5, cals: 76, unit: '100g', visceralFat: false },
-    'lentilha': { name: 'Lentilha (cozida)', protein: 9, carbs: 20, fats: 0.4, cals: 116, unit: '100g', visceralFat: false },
-    'grao_bico': { name: 'Grão de Bico (cozido)', protein: 9, carbs: 27, fats: 2.6, cals: 164, unit: '100g', visceralFat: false },
-    'quinoa': { name: 'Quinoa (cozida)', protein: 4.1, carbs: 21, fats: 1.9, cals: 120, unit: '100g', visceralFat: false },
-    'macarrao': { name: 'Macarrão (cozido)', protein: 5, carbs: 25, fats: 1.1, cals: 131, unit: '100g', visceralFat: false },
-    'cuscuz': { name: 'Cuscuz (hidratado)', protein: 3.8, carbs: 23, fats: 0.2, cals: 112, unit: '100g', visceralFat: false },
-    'tapioca': { name: 'Tapioca (goma)', protein: 0, carbs: 89, fats: 0, cals: 355, unit: '100g', visceralFat: false },
-    'aveia': { name: 'Aveia em Flocos', protein: 17, carbs: 66, fats: 6.9, cals: 389, unit: '100g', visceralFat: false },
-
-    // --- PANIFICAÇÃO / GORDURAS (BREADS / FATS) ---
-    'pao_frances': { name: 'Pão Francês', protein: 7.5, carbs: 55, fats: 3.5, cals: 288, unit: '100g (unid 50g)', visceralFat: false },
-    'pao_centeio': { name: 'Pão de Centeio', protein: 8, carbs: 48, fats: 3.3, cals: 259, unit: '100g (fatia 30g)', visceralFat: false },
-    'pao_forma': { name: 'Pão de Forma (Branco)', protein: 2.5, carbs: 15, fats: 1, cals: 80, unit: 'fatia', visceralFat: true },
-    'pao_integral': { name: 'Pão de Forma (Integral)', protein: 3, carbs: 12, fats: 1.5, cals: 70, unit: 'fatia', visceralFat: false },
-    'pasta_amendoim': { name: 'Pasta de Amendoim (integral)', protein: 25, carbs: 20, fats: 50, cals: 588, unit: '100g (colher 15g)', visceralFat: false },
-    'castanha_caju': { name: 'Castanha de Caju', protein: 18, carbs: 30, fats: 44, cals: 553, unit: '100g', visceralFat: false },
-    'amendoim': { name: 'Amendoim', protein: 26, carbs: 16, fats: 49, cals: 567, unit: '100g', visceralFat: false },
-    'azeite': { name: 'Azeite de Oliva', protein: 0, carbs: 0, fats: 14, cals: 119, unit: 'colher sopa', visceralFat: false },
-    'manteiga': { name: 'Manteiga com sal', protein: 0.9, carbs: 0.1, fats: 81, cals: 717, unit: '100g (colher 5g)', visceralFat: true },
-    'manteiga_amendoim_doce': { name: 'Manteiga de Amendoim (doce)', protein: 21, carbs: 30, fats: 50, cals: 600, unit: '100g (colher 15g)', visceralFat: true }, 
-
-    // --- SUPLEMENTOS (SUPPLEMENTS) ---
-    'whey_protein': { name: 'Whey Protein', protein: 24, carbs: 3, fats: 1.5, cals: 120, unit: 'scoop 30g', visceralFat: false },
-    'creatina': { name: 'Creatina (pura)', protein: 0, carbs: 0, fats: 0, cals: 0, unit: 'scoop 3g', visceralFat: false },
-    
-    // --- BEBIDAS QUENTES / CAFÉS ---
-    'cafe_preto': { name: 'Café Preto (sem açúcar)', protein: 0.1, carbs: 0, fats: 0, cals: 2, unit: 'xícara', visceralFat: false },
-    'cafe_preto_acucar': { name: 'Café Preto (c/ açúcar)', protein: 0.2, carbs: 5, fats: 0, cals: 24, unit: 'xícara', visceralFat: false }, 
-    'cafe_desnatado_acucar': { name: 'Café c/ Leite Desnatado + Açúcar', protein: 6.8, carbs: 20, fats: 0.2, cals: 126, unit: '200ml', visceralFat: false },
-    'cafe_integral_acucar': { name: 'Café c/ Leite Integral + Açúcar', protein: 6.4, carbs: 20, fats: 6.6, cals: 154, unit: '200ml', visceralFat: true }, 
-    
-    // --- DADOS ADICIONAIS ---
-    'salmao_cru': { name: 'Salmão (cru)', protein: 20.4, carbs: 0, fats: 13, cals: 208, unit: '100g', visceralFat: false },
-    'leite_aveia': { name: 'Bebida de Aveia', protein: 1.0, carbs: 10.3, fats: 1.5, cals: 54, unit: '100ml', visceralFat: false },
-    'ovos_cozidos_claras': { name: 'Claras de Ovo (cozidas)', protein: 10.9, carbs: 0.7, fats: 0.2, cals: 52, unit: '100g', visceralFat: false },
-    'paorede': { name: 'Pão de Queijo', protein: 7, carbs: 25, fats: 22, cals: 150, unit: 'unidade média', visceralFat: true },
-    
-    // --- ITENS DE 'LIXO' / DOCES (JUNK / SWEETS) ---
-    'batata_frita': { name: 'Batata Frita', protein: 3.4, carbs: 41, fats: 15, cals: 319, unit: '100g', visceralFat: true },
-    'refrigerante': { name: 'Refrigerante (Cola)', protein: 0, carbs: 26, fats: 0, cals: 105, unit: 'lata 350ml', visceralFat: true },
-    'chocolate_ao_leite': { name: 'Chocolate ao Leite', protein: 8, carbs: 59, fats: 30, cals: 535, unit: '100g (barra 25g)', visceralFat: true },
-    'biscoito_recheado': { name: 'Biscoito Recheado (Chocolate)', protein: 5, carbs: 70, fats: 18, cals: 450, unit: '100g (unid 10g)', visceralFat: true },
-    'pizza_mussarela': { name: 'Pizza Mussarela', protein: 11, carbs: 33, fats: 10, cals: 271, unit: '100g (1 fatia)', visceralFat: true },
-    'mel': { name: 'Mel', protein: 0.3, carbs: 82, fats: 0, cals: 304, unit: '100g', visceralFat: true },
-    'pudim': { name: 'Pudim de Leite', protein: 5, carbs: 30, fats: 7, cals: 200, unit: '100g (fatia)', visceralFat: true },
-    'paçoca': { name: 'Paçoca (rolha)', protein: 5, carbs: 12, fats: 5, cals: 100, unit: 'unidade 20g', visceralFat: false },
-  };
-
-  // Helpers Firebase (com guardas)
-  function getDayRef(uid, date) {
-    if (!uid) throw new Error('Usuário não autenticado');
-    return firebaseDb.collection('users').doc(uid).collection('days').doc(date);
-  }
-  function getItemsRef(uid, date) {
-    return getDayRef(uid, date).collection('items');
-  }
-  function getProfileDocRef() {
-    if (!userId) throw new Error('Usuário não autenticado');
-    return firebaseDb.collection('users').doc(userId).collection('data').doc('profile');
-  }
-  function getMetasDocRef() {
-    if (!userId) throw new Error('Usuário não autenticado');
-    return firebaseDb.collection('users').doc(userId).collection('data').doc('metas');
-  }
-
-  // UI helpers
-  function showElement(el){ el.classList.remove('hidden'); }
-  function hideElement(el){ el.classList.add('hidden'); }
-  function showModal(modal, overlay){
-    showElement(overlay); showElement(modal);
-    requestAnimationFrame(()=>{
-      modal.classList.remove('scale-90','opacity-0');
-      modal.classList.add('scale-100','opacity-100');
-    });
-  }
-  function hideModal(modal, overlay){
-    modal.classList.remove('scale-100','opacity-100');
-    modal.classList.add('scale-90','opacity-0');
-    setTimeout(()=>{ hideElement(modal); hideElement(overlay); clearRegError(); }, 250);
-  }
-  function showRegError(message){ const el=document.getElementById('regError'); el.textContent=message; showElement(el); }
-  function clearRegError(){ const el=document.getElementById('regError'); el.textContent=''; hideElement(el); }
-  function showLoginError(message){ const el=document.getElementById('loginError'); el.textContent=message; showElement(el); }
-  function clearLoginError(){ const el=document.getElementById('loginError'); el.textContent=''; hideElement(el); }
-  function fileToBase64(file){ return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=e=>reject(e); r.readAsDataURL(file); }); }
-  function saveProfilePicLocally(){
-    if(profilePicBase64 && userId){
-      localStorage.setItem(`profilePic_${userId}`, profilePicBase64);
-      document.getElementById('profileImageDisplay').src=profilePicBase64;
-      document.getElementById('regProfileImage').src=profilePicBase64;
-    }
-  }
-  function loadProfilePicLocally(){
-    if(!userId) return;
-    const pic=localStorage.getItem(`profilePic_${userId}`);
-    if(pic){
-      profilePicBase64=pic;
-      document.getElementById('profileImageDisplay').src=pic;
-      document.getElementById('regProfileImage').src=pic;
-    }
-  }
-  function togglePasswordVisibility(fieldId) {
-    const input = document.getElementById(fieldId);
-    const eye = document.getElementById(fieldId + '_eye');
-    const eyeOpen = document.getElementById(fieldId + '_eye_open');
-    if (!input || !eye || !eyeOpen) return;
-    if (input.type === 'password') {
-      input.type = 'text';
-      eye.style.display='none';
-      eyeOpen.style.display='block';
-    } else {
-      input.type = 'password';
-      eye.style.display='block';
-      eyeOpen.style.display='none';
-    }
-  }
-  
-  // Funções do Modal da IA
-  function showAIModal(){
-    const modal = document.getElementById('aiModal');
-    const overlay = document.getElementById('aiModalOverlay');
-    showModal(modal, overlay);
-  }
-  function hideAIModal(){
-    hideModal(document.getElementById('aiModal'), document.getElementById('aiModalOverlay'));
-  }
-  
-  // Análise da IA
-  function analyzeDailySummary() {
-    if (!userId) { 
-        showLoginModal();
-        return; 
-    }
-    
-    showAIModal(); 
-    const contentEl = document.getElementById('aiAnalysisContent');
-    
-    contentEl.innerHTML = `
-        <p class="text-center font-medium text-gray-700">Aguarde, o Gemini está analisando seus dados...</p>
-        <div class="spinner mx-auto h-8 w-8 border-t-4 border-b-4 border-green-600"></div>
-    `;
-
-    let totalCals = 0, totalProtein = 0, totalCarbs = 0, totalFats = 0;
-    const foodItems = Object.values(dailyLog).filter(i => i.type === 'food');
-    foodItems.forEach(i => { 
-        totalCals += i.cals; 
-        totalProtein += i.protein; 
-        totalCarbs += i.carbs; 
-        totalFats += i.fats || 0;
-    });
-    
-    const waterConsumed = waterLog;
-    const goalType = currentGoalType;
-    const calsRemaining = calorieGoal - totalCals;
-    const waterRemaining = waterGoal - waterConsumed;
-    const unhealthyItemsCount = foodItems.filter(i => i.visceralFat).length;
-    const mealsLogged = MEAL_KEYS.filter(meal => foodItems.some(item => item.meal === meal));
-    
-    setTimeout(() => {
-        let analysisHTML = "";
-        
-        analysisHTML += `<h4 class="font-bold text-xl text-gray-800 border-b pb-1 mb-2">⭐ Resumo do Desempenho</h4>`;
-        
-        if (totalCals >= calorieGoal) {
-            analysisHTML += `<p class="text-green-700 font-semibold">✅ Meta de Calorias: Atingida!</p>`;
-        } else {
-            analysisHTML += `<p class="text-yellow-700 font-semibold">⚠️ Meta de Calorias: ${calsRemaining.toFixed(0)} kcal restantes.</p>`;
-        }
-        
-        if (waterConsumed >= waterGoal) {
-            analysisHTML += `<p class="text-blue-700 font-semibold">💧 Meta de Água: Atingida!</p>`;
-        } else {
-            analysisHTML += `<p class="text-orange-700 font-semibold">💧 Meta de Água: Faltam ${waterRemaining.toFixed(0)} ml.</p>`;
-        }
-        
-        if (proteinGoal > 0) {
-            if (totalProtein >= proteinGoal) {
-                analysisHTML += `<p class="text-green-700 font-semibold">💪 Proteína: Meta Atingida!</p>`;
-            } else {
-                analysisHTML += `<p class="text-yellow-700 font-semibold">💪 Proteína: Faltam ${(proteinGoal - totalProtein).toFixed(0)}g.</p>`;
-            }
-        }
-        
-        if (fatGoal > 0) {
-            if (totalFats >= fatGoal) {
-                analysisHTML += `<p class="text-green-700 font-semibold">🥑 Gordura: Meta Atingida!</p>`;
-            } else {
-                analysisHTML += `<p class="text-yellow-700 font-semibold">🥑 Gordura: Faltam ${(fatGoal - totalFats).toFixed(0)}g.</p>`;
-            }
-        }
-        
-        analysisHTML += `<hr class="my-4 border-gray-200">`;
-        analysisHTML += `<h4 class="font-bold text-xl text-gray-800 border-b pb-1 mb-2">🍎 Qualidade da Dieta</h4>`;
-
-        if (unhealthyItemsCount > 0) {
-            analysisHTML += `<p class="text-red-600 font-semibold">🚨 Risco: ${unhealthyItemsCount} itens marcados com "⚠️" (Gordura Visceral).</p>`;
-            analysisHTML += `<p class="text-sm">O Gemini sugere cautela com itens de alta densidade calórica e baixo valor nutricional. **Próximo Passo:** Avalie a substituição desses alimentos por alternativas integrais ou magras.</p>`;
-        } else if (foodItems.length > 3) {
-            analysisHTML += `<p class="text-green-700 font-semibold">🌟 Ótima Escolha!</p>`;
-            analysisHTML += `<p class="text-sm">Sua dieta hoje pareceu focada em alimentos de alta qualidade. Continue assim para melhorar a composição corporal!</p>`;
-        } else {
-             analysisHTML += `<p class="text-gray-500 text-sm">Não há dados suficientes para analisar a qualidade da dieta.</p>`;
-        }
-        
-        analysisHTML += `<hr class="my-4 border-gray-200">`;
-        analysisHTML += `<h4 class="font-bold text-xl text-gray-800 border-b pb-1 mb-2">💡 Plano de Ação</h4>`;
-        
-        if (calsRemaining > 500 && goalType === 'ganhar') {
-            analysisHTML += `<p class="text-yellow-600 font-medium">Estratégia para Bulking:</p>`;
-            analysisHTML += `<p class="text-sm">Para bater sua meta de Ganho de Massa, adicione lanches líquidos (shakes) ou fontes de gorduras boas (pasta de amendoim, abacate) para aumentar as calorias.</p>`;
-        } else if (waterRemaining > 500) {
-            analysisHTML += `<p class="text-blue-600 font-medium">Foco na Hidratação:</p>`;
-            analysisHTML += `<p class="text-sm">Deixe uma garrafa de água à vista ou defina lembretes. Bater a meta de água é crucial para o sucesso da dieta.</p>`;
-        } else {
-            analysisHTML += `<p class="text-green-700 font-medium">Recomendação:</p>`;
-            analysisHTML += `<p class="text-sm">Mantenha a consistência! Seu plano para amanhã deve seguir a mesma estrutura de sucesso que você demonstrou hoje.</p>`;
-        }
-        
-        contentEl.innerHTML = analysisHTML;
-
-    }, 1500);
-  }
-
-  // AUTENTICAÇÃO E PERFIL
-  function showRegistrationModal(isEdit = false) {
-    isEditingProfile = isEdit;
-    const modal = document.getElementById('fullRegistrationModal');
-    const overlay = document.getElementById('fullRegistrationModalOverlay');
-    clearRegError();
-    document.getElementById('regModalTitle').textContent = isEdit ? 'Editar Perfil' : 'Crie sua Conta';
-    const regFields = document.getElementById('registrationFields');
-    const saveButton = document.getElementById('registerAndProfileButton');
-    const showLoginBtn = document.getElementById('showLoginButton');
-    if (isEdit) {
-      regFields.classList.add('hidden');
-      saveButton.textContent = 'Salvar Perfil';
-      showLoginBtn.classList.add('hidden');
-      const nameInput = document.getElementById('regUserNameInput');
-      const phoneInput = document.getElementById('regPhoneInput');
-      nameInput.value = document.getElementById('userNameDisplay')?.textContent || '';
-      phoneInput.value = localStorage.getItem(`phone_${userId}`) || ''; 
-    } else {
-      regFields.classList.remove('hidden');
-      saveButton.textContent = 'Criar Conta e Perfil';
-      showLoginBtn.classList.remove('hidden');
-      document.getElementById('regEmailInput').value = '';
-      document.getElementById('regPasswordInput').value = '';
-      document.getElementById('regUserNameInput').value = '';
-      document.getElementById('regPhoneInput').value = '';
-    }
-    showModal(modal, overlay);
-  }
-  function hideRegistrationModal(){
-    hideModal(document.getElementById('fullRegistrationModal'), document.getElementById('fullRegistrationModalOverlay'));
-  }
-  function showLoginModal(){
-    clearLoginError();
-    showModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
-  }
-  function hideLoginModal(){
-    hideModal(document.getElementById('loginModal'), document.getElementById('loginModalOverlay'));
-  }
-
-  // Firebase init
-  function initFirebase() {
-    firebaseApp = firebase.initializeApp(firebaseConfig);
-    firebaseAuth = firebase.auth();
-    firebaseDb = firebase.firestore();
-    
-    try {
-        firebaseDb.enablePersistence().catch(err => {
-            if (err.code === 'failed-precondition') {
-                console.warn('Persistência não habilitada (Multiplas abas).');
-            } else if (err.code === 'unimplemented') {
-                console.warn('Persistência não suportada neste navegador.');
-            } else {
-                 console.error('Erro ao habilitar persistência:', err);
-            }
-        });
-    } catch (e) {
-        console.warn('Erro ao tentar habilitar persistência.');
-    }
-  }
-  
-  // Carregar Perfil e Metas
-  async function loadProfileAndMetas(){
-      try{
-        if (!userId) return false;
-        const pSnap = await getProfileDocRef().get();
-        if(pSnap.exists){
-          const d=pSnap.data();
-          document.getElementById('userNameDisplay').textContent=d.userName||firebaseAuth.currentUser.displayName||'Usuário';
-          localStorage.setItem(`phone_${userId}`, d.phone || ''); 
-          loadProfilePicLocally();
-          const mSnap = await getMetasDocRef().get();
-          if(mSnap.exists){
-            const mData=mSnap.data();
-            document.getElementById('weight').value=mData.weight||'';
-            document.getElementById('targetWeight').value=mData.targetWeight||''; 
-            document.getElementById('height').value=mData.height||'';
-            document.getElementById('age').value=mData.age||'';
-            document.getElementById('gender').value=mData.gender||'male';
-            document.getElementById('activity').value=mData.activity||'1.55';
-            document.getElementById('goalType').value=mData.goalType||'ganhar';
-            
-            calorieGoal = parseFloat(mData.calorieGoal)||0;
-            waterGoal = parseFloat(mData.waterGoal)||0; 
-            proteinGoal = parseFloat(mData.proteinGoal) || 0; 
-            carbGoal = parseFloat(mData.carbGoal) || 0;     
-            fatGoal = parseFloat(mData.fatGoal) || 0;
-
-            currentGoalType = mData.goalType||'ganhar';
-            currentWeight = parseFloat(mData.weight)||0; 
-            targetWeight = parseFloat(mData.targetWeight)||0; 
-          }
-          updateGoalDisplay();
-          updateMealSuggestion();
-          return true; 
-        } else {
-             showRegistrationModal(false); 
-             return false;
-        }
-      }catch(e){
-        console.error("Erro ao carregar perfil/metas:", e); 
-        if(userId) showRegistrationModal(false); 
-        return false;
-      }
-    }
-  
-  // Auth state listener
-  function attachAuthListener() {
-    firebaseAuth.onAuthStateChanged(async (user) => {
-      if (isInitialLoad) {
-          hideElement(document.getElementById('loadingScreen'));
-          isInitialLoad = false;
-      }
-      if (user) {
-        userId = user.uid;
-        document.getElementById('authControlButton').textContent = 'Fazer Logout';
-        document.getElementById('authControlButton').onclick = () => firebaseAuth.signOut();
-        const profileLoaded = await loadProfileAndMetas();
-        if (profileLoaded) {
-            hideElement(document.getElementById('fullRegistrationModalOverlay'));
-            hideElement(document.getElementById('fullRegistrationModal'));
-            hideElement(document.getElementById('loginModalOverlay'));
-            hideElement(document.getElementById('loginModal'));
-            showElement(document.getElementById('mainApp'));
-            loadDayData(currentDateString); 
-            document.getElementById('goalsDetails').classList.remove('opacity-50');
-            document.getElementById('addFoodSection').classList.remove('opacity-50');
-            document.getElementById('hydrationTracker').classList.remove('opacity-50');
-        } else {
-            hideElement(document.getElementById('mainApp'));
-            document.getElementById('goalsDetails').classList.add('opacity-50');
-            document.getElementById('addFoodSection').classList.add('opacity-50');
-            document.getElementById('hydrationTracker').classList.add('opacity-50');
-        }
-      } else {
-        userId = null;
-        if (unsubscribeListener) { unsubscribeListener(); unsubscribeListener = null; } 
-        hideElement(document.getElementById('mainApp'));
-        document.getElementById('authControlButton').textContent = 'Fazer Login / Criar Conta';
-        document.getElementById('authControlButton').onclick = () => showLoginModal();
-        document.getElementById('userNameDisplay').textContent = 'Visitante';
-        const hasEverLoggedIn = localStorage.getItem('hasEverLoggedIn') === 'true';
-        if (hasEverLoggedIn) {
-             showLoginModal();
-        } else {
-             showRegistrationModal(false); 
-        }
-        document.getElementById('goalsDetails').classList.add('opacity-50');
-        document.getElementById('addFoodSection').classList.add('opacity-50');
-        document.getElementById('hydrationTracker').classList.add('opacity-50');
-      }
-    });
-  }
-
-  // Lógica de Metas
-  async function saveMetas(){
-    if (!userId) { showLoginModal(); return; } 
-    const weight=parseFloat(document.getElementById('weight').value);
-    const targetWeightInput=document.getElementById('targetWeight'); 
-    const targetWeightValue=parseFloat(targetWeightInput.value); 
-    const height=parseFloat(document.getElementById('height').value);
-    const age=parseFloat(document.getElementById('age').value);
-    const gender=document.getElementById('gender').value;
-    const activity=parseFloat(document.getElementById('activity').value);
-    const goalType=document.getElementById('goalType').value;
-    const goalText=document.getElementById('goalText');
-
-    if(isNaN(weight)||isNaN(height)||isNaN(age)||weight<=0||height<=0||age<=0){
-      goalText.textContent="Por favor, preencha Peso, Altura e Idade corretamente.";
-      goalText.classList.remove('hidden','text-green-700');
-      goalText.classList.add('text-red-600');
-      return;
-    }
-    if(goalType !== 'manter' && (isNaN(targetWeightValue) || targetWeightValue <= 0 || targetWeightValue === weight)){
-      goalText.textContent="Por favor, insira uma Meta de Peso válida, diferente do peso atual, para o seu objetivo.";
-      goalText.classList.remove('hidden','text-green-700');
-      goalText.classList.add('text-red-600');
-      return;
-    }
-
-    let bmr = (10*weight)+(6.25*height)-(5*age)+(gender==='male'?5:-161);
-    const tdee = bmr*activity;
-    let finalCalorieGoal = goalType==='perder'? tdee-400 : goalType==='manter'? tdee : tdee+400;
-    let mlPerKg = 35;
-    if (age >= 56 && age <= 65) mlPerKg = 30;
-    else if (age > 65) mlPerKg = 25;
-    const finalWaterGoal = Math.round(weight * mlPerKg);
-    
-    let proteinGoalInGrams = (goalType === 'manter') ? weight * 1.8 : weight * 2.0;
-    const caloriesFromProtein = proteinGoalInGrams * 4;
-    const caloriesFromFat = finalCalorieGoal * 0.25;
-    const fatGoalInGrams = caloriesFromFat / 9;
-    const caloriesFromCarbs = finalCalorieGoal - caloriesFromProtein - caloriesFromFat;
-    const carbGoalInGrams = caloriesFromCarbs / 4;
-
-    calorieGoal=finalCalorieGoal;
-    waterGoal=finalWaterGoal;
-    proteinGoal = proteinGoalInGrams;
-    carbGoal = carbGoalInGrams;
-    fatGoal = fatGoalInGrams;
-    currentGoalType=goalType;
-    currentWeight = weight; 
-    targetWeight = targetWeightValue; 
-
-    try{
-      await getMetasDocRef().set({ 
-          weight, targetWeight: targetWeightValue, height, age, gender, activity, goalType, 
-          calorieGoal: parseFloat(finalCalorieGoal.toFixed(0)), 
-          waterGoal: parseFloat(finalWaterGoal.toFixed(0)),   
-          proteinGoal: parseFloat(proteinGoalInGrams.toFixed(0)),
-          carbGoal: parseFloat(carbGoalInGrams.toFixed(0)),
-          fatGoal: parseFloat(fatGoalInGrams.toFixed(0))
-      }, { merge: true }); 
-      updateGoalDisplay();
-      updateTotals(false);
-      updateWaterTracker(true); 
-      updateWeightProgress(); 
-      updateMealSuggestion();
-      goalText.textContent="Metas salvas com sucesso!";
-      goalText.classList.remove('hidden','text-red-600');
-      goalText.classList.add('text-green-700');
-    }catch(e){
-      goalText.textContent="Erro ao salvar meta. Verifique sua conexão.";
-      goalText.classList.remove('hidden','text-green-700');
-      goalText.classList.add('text-red-600');
-    }
-  }
-
-  // Atualização da UI de Metas
-  function updateGoalDisplay(){
-    const goalText=document.getElementById('goalText');
-    if(calorieGoal>0){
-      const goalType=document.getElementById('goalType').value||'ganhar';
-      const goalName=goalDisplayNames[goalType];
-      goalText.textContent=`Sua meta (${goalName}): ${calorieGoal.toFixed(0)} kcal/dia`;
-      goalText.classList.remove('hidden','text-red-600');
-      goalText.classList.add('text-green-700');
-      document.getElementById('goalTag').textContent=goalName;
-      showElement(document.getElementById('goalTag'));
-    }else{
-      goalText.textContent="Clique em 'Calcular e Salvar Meta'.";
-      goalText.classList.remove('hidden','text-green-700','text-red-600');
-      goalText.classList.add('text-gray-600');
-      hideElement(document.getElementById('goalTag'));
-    }
-    
-    document.getElementById('proteinGoalText').textContent = `Meta: ${proteinGoal.toFixed(0)} g`;
-    document.getElementById('carbGoalText').textContent = `Meta: ${carbGoal.toFixed(0)} g`;
-    document.getElementById('fatGoalText').textContent = `Meta: ${fatGoal.toFixed(0)} g`;
-
-    updateWaterTracker(true); 
-    updateWeightProgress(); 
-  }
-  
-  // Progresso do Peso
-  function updateWeightProgress() {
-      const goalText = document.getElementById('weightGoalText');
-      const progressEl = document.getElementById('weightProgress');
-      const progressSection = document.getElementById('weightProgressSection');
-      if (currentWeight === 0 || targetWeight === 0 || currentGoalType === 'manter') {
-          hideElement(progressSection);
-          return;
-      }
-      showElement(progressSection); 
-      const startWeight = parseFloat(document.getElementById('weight').value) || 0; 
-      const current = currentWeight;
-      const target = targetWeight;
-      const initial = startWeight > 0 ? startWeight : current;
-      if (target === initial) {
-          progressEl.style.width = '0%';
-          progressEl.classList.remove('bg-green-500', 'bg-red-500', 'bg-gray-400', 'bg-indigo-500'); 
-          progressEl.classList.add('bg-emerald-500'); 
-          goalText.textContent = `${current.toFixed(1)} kg / ${target.toFixed(1)} kg`;
-          return;
-      }
-      let progress = 0;
-      let totalChange = Math.abs(target - initial);
-      if (totalChange > 0) {
-          if (target < initial) { // Perda de peso
-              progress = ((initial - current) / totalChange) * 100;
-              progressEl.classList.remove('bg-green-500', 'bg-gray-400', 'bg-indigo-500');
-              progressEl.classList.add('bg-red-500'); 
-          } else { // Ganho de peso
-              progress = ((current - initial) / totalChange) * 100;
-              progressEl.classList.remove('bg-red-500', 'bg-gray-400', 'bg-indigo-500');
-              progressEl.classList.add('bg-green-500'); 
-          }
-      }
-      progress = Math.min(Math.max(progress, 0), 100); 
-      progressEl.style.width = progress + '%';
-      goalText.textContent = `${current.toFixed(1)} kg / ${target.toFixed(1)} kg (${progress.toFixed(0)}%)`;
-  }
-
-  // Sugestão de Refeição
-  function updateMealSuggestion(){
-    const el=document.getElementById('mealSuggestion');
-    if(calorieGoal===0){ el.innerHTML='Preencha e salve suas metas acima para ver sugestões de refeições.'; return; }
-    const goalType=document.getElementById('goalType').value||'ganhar';
-    const mealTime=document.getElementById('mealTimeSelect').value||'cafe_da_manha';
-    const txt=mealSuggestions[goalType][mealTime];
-    el.innerHTML=`💡 <span class="font-semibold">Sugestão p/ ${goalDisplayNames[goalType]}:</span> ${txt}`;
-  }
-
-  // Lógica de Log Diário
-  function clearFoodListUI() {
-    MEAL_KEYS.forEach(k => {
-        const container = document.getElementById(`${k}_container`);
-        if (container) container.innerHTML = '';
-    });
-    const waterList = document.getElementById('list-water');
-    if (waterList) waterList.innerHTML = '';
-    manageEmptyListText();
-  }
-  
-  async function loadDayData(dateStr){
-    if (!userId) return;
-    if (unsubscribeListener) { unsubscribeListener(); unsubscribeListener = null; }
-    currentDateString = dateStr;
-    dailyLog = {}; 
-    waterLog = 0; 
-    clearFoodListUI();
-    updateTotals(false);
-    updateWaterTracker(false); 
-    const itemsRef = getItemsRef(userId, dateStr);
-    const isToday = currentDateString === todayDateString;
-    const addFoodSection = document.getElementById('addFoodSection');
-    const shareButton = document.getElementById('shareButton');
-    const dateStatus = document.getElementById('dateStatus');
-    const addWaterButton = document.getElementById('addWaterButton'); 
-    const waterInput = document.getElementById('waterQuantityInput');
-    if (isToday) {
-        addFoodSection.classList.remove('opacity-50');
-        addFoodSection.querySelectorAll('input, select, button').forEach(el => el.disabled = false);
-        shareButton.disabled = false;
-        addWaterButton.disabled = false; 
-        waterInput.disabled = false;
-        dateStatus.textContent = 'Visualizando e Editando o dia de Hoje';
-    } else {
-        addFoodSection.classList.add('opacity-50');
-        addFoodSection.querySelectorAll('input, select, button').forEach(el => el.disabled = true);
-        shareButton.disabled = true;
-        addWaterButton.disabled = true; 
-        waterInput.disabled = true;
-        dateStatus.textContent = `Visualizando Histórico (Somente Leitura) em ${dateStr}`;
-    }
-    let initialLoad = true;
-    unsubscribeListener = itemsRef.orderBy('clientTs','asc').onSnapshot(
-      { includeMetadataChanges: true },
-      (snap)=>{
-        let shouldUpdateTotals = false;
-        if (initialLoad) {
-          dailyLog = {};
-          clearFoodListUI();
-        }
-        snap.docChanges().forEach(change => {
-          const item = { ...change.doc.data(), id: change.doc.id };
-          shouldUpdateTotals = true;
-          if (change.type === "added" || change.type === "modified") {
-              dailyLog[item.id] = item;
-              updateFoodItemElement(item); 
-          }
-          if (change.type === "removed") {
-              delete dailyLog[item.id];
-              removeFoodItemElement(item.id); 
-          }
-        });
-        waterLog = Object.values(dailyLog)
-                     .filter(i => i.type === 'water')
-                     .reduce((total, item) => total + item.quantity, 0);
-        if(shouldUpdateTotals) {
-          updateTotals(true);
-          updateWaterTracker(true);
-        }
-        manageEmptyListText();
-        initialLoad = false;
-      },
-      (error) => {
-          console.error("Erro no listener do Firestore:", error);
-      }
-    );
-  }
-
-  // Criar/Remover Elementos da Lista de UI
-  function updateFoodItemElement(item){
-      const existingElement = document.getElementById(`food-item-${item.id}`);
-      let newItemElement;
-      let listContainer;
-      if (item.type === 'water') {
-          newItemElement = createWaterItemElement(item);
-          listContainer = document.getElementById('list-water');
-      } else {
-          newItemElement = createFoodItemElement(item);
-          const mealContainer = document.getElementById(`${item.meal}_container`);
-          let mealSection = document.getElementById(`section-${item.meal}`);
-          if (!mealSection) {
-              mealSection = document.createElement('div');
-              mealSection.id = `section-${item.meal}`;
-              mealSection.className = 'meal-section mb-2';
-              mealSection.innerHTML = `<h4 class="font-semibold text-gray-700 mb-2 text-lg">${mealDisplayNames[item.meal]}</h4><div class="space-y-2" id="list-${item.meal}"></div>`;
-              if (mealContainer) mealContainer.appendChild(mealSection);
-          }
-          listContainer = document.getElementById(`list-${item.meal}`);
-      }
-      if (existingElement) existingElement.remove();
-      if (listContainer) {
-          const itemIds = Object.keys(dailyLog).filter(id => {
-              const logItem = dailyLog[id];
-              return logItem.type === item.type && (item.type === 'water' || logItem.meal === item.meal);
-          }).sort((a, b) => dailyLog[a].clientTs - dailyLog[b].clientTs);
-          const itemIndex = itemIds.indexOf(item.id);
-          if (itemIndex > 0) {
-              const prevItemId = itemIds[itemIndex - 1];
-              const prevElement = document.getElementById(`food-item-${prevItemId}`);
-              if (prevElement) prevElement.after(newItemElement);
-              else listContainer.appendChild(newItemElement);
-          } else if (itemIndex === 0) {
-               const firstElement = listContainer.firstChild;
-               if(firstElement) listContainer.insertBefore(newItemElement, firstElement);
-               else listContainer.appendChild(newItemElement);
-          } else {
-              listContainer.appendChild(newItemElement);
-          }
-          if (item.type !== 'water') {
-              const mealSection = listContainer.closest('.meal-section');
-              if (mealSection && !mealSection.id.startsWith('section-')) {
-                 mealSection.id = `section-${item.meal}`; 
-              }
-          }
-      }
-  }
-  function removeFoodItemElement(itemId){
-      const element = document.getElementById(`food-item-${itemId}`);
-      if(element){
-          const listContainer = element.parentNode;
-          element.remove();
-          if (listContainer) {
-              if (listContainer.children.length === 0 && listContainer.id !== 'list-water') {
-                  const mealSection = listContainer.closest('.meal-section');
-                  if (mealSection) mealSection.remove();
-              }
-          }
-      }
-  }
-  function createWaterItemElement(item){
-      const div = document.createElement('div');
-      div.id = `food-item-${item.id}`;
-      div.className = "flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-gray-200";
-      const isToday = currentDateString === todayDateString;
-      const deleteButtonHtml = isToday ? `
-          <button onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-          </button>` : `<div class="w-7 h-7"></div>`;
-      div.innerHTML = `
-          <div class="flex-grow">
-              <p class="font-medium text-blue-800">${item.name}</p>
-              <p class="text-sm">
-                  <span class="text-gray-600">${item.quantity} ml</span> 
-                  ${item.timeStr ? `<span class="text-gray-400 mx-1">|</span> <span class="text-gray-500 font-medium">${item.timeStr}</span>` : ''}
-              </p>
-          </div>
-          ${deleteButtonHtml}`;
-      return div;
-  }
-  function createFoodItemElement(item){
-    const warn=item.visceralFat?' ⚠️':'';
-    const div = document.createElement('div');
-    div.id = `food-item-${item.id}`;
-    div.className = "flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-gray-200";
-    const isToday = currentDateString === todayDateString;
-    const deleteButtonHtml = isToday ? `
-      <button onclick="removeFoodFromLog('${item.id}')" class="ml-2 text-red-600 hover:text-red-800 transition-colors" title="Remover">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-      </button>` : `<div class="w-7 h-7"></div>`; 
-    div.innerHTML = `
-      <div class="flex-grow">
-        <p class="font-medium text-gray-800">${item.name}${warn}</p>
-        <p class="text-sm">
-          <span class="text-gray-600">${item.quantity} ${item.unit} • </span>
-          <span class="text-orange-600 font-semibold">${item.cals} kcal</span>
-          ${item.timeStr ? `<span class="text-gray-400 mx-1">|</span> <span class="text-gray-500 font-medium">${item.timeStr}</span>` : ''}
-        </p>
-        <p class="text-xs">
-          <span class="text-emerald-600 font-medium">P: ${item.protein}g</span>
-          <span class="text-gray-400 mx-1">|</span>
-          <span class="text-blue-600 font-medium">C: ${item.carbs}g</span>
-          <span class="text-gray-400 mx-1">|</span>
-          <span class="text-red-600 font-medium">G: ${item.fats || 0}g</span>
-        </p>
-      </div>
-      ${deleteButtonHtml}`;
-    return div;
-  }
-  function manageEmptyListText(){
-      const empty = document.getElementById('emptyListText');
-      const hasItems = Object.keys(dailyLog).length > 0;
-      if (hasItems) hideElement(empty);
-      else showElement(empty);
-      const waterContainer = document.getElementById('water_container');
-      const hasWaterItems = Object.values(dailyLog).some(i => i.type === 'water');
-      if (waterContainer) {
-          if (hasWaterItems) showElement(waterContainer);
-          else hideElement(waterContainer);
-      }
-  }
-
-  // Atualizar Totais
-  function updateTotals(checkGoal=true){
-    let totalCals=0, totalProtein=0, totalCarbs=0, totalFats=0;
-    Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ 
-        totalCals+=i.cals; 
-        totalProtein+=i.protein; 
-        totalCarbs+=i.carbs; 
-        totalFats += i.fats || 0;
-    });
-    
-    document.getElementById('totalProteins').textContent = totalProtein.toFixed(1)+' g';
-    document.getElementById('totalCarbs').textContent   = totalCarbs.toFixed(1)+' g';
-    document.getElementById('totalFats').textContent    = totalFats.toFixed(1)+' g';
-    document.getElementById('proteinGoalText').textContent = `Meta: ${proteinGoal.toFixed(0)} g`;
-    document.getElementById('carbGoalText').textContent = `Meta: ${carbGoal.toFixed(0)} g`;
-    document.getElementById('fatGoalText').textContent = `Meta: ${fatGoal.toFixed(0)} g`;
-    const isToday = currentDateString === todayDateString;
-
-    if(calorieGoal>0){
-      document.getElementById('totalCalsGoalText').textContent = `${totalCals.toFixed(0)} / ${calorieGoal.toFixed(0)} kcal`;
-      const pct=Math.min((totalCals/calorieGoal)*100, 100);
-      document.getElementById('calorieProgress').style.width=pct+'%';
-      if(isToday && checkGoal && !goalExceededNotified && totalCals>=calorieGoal){
-        goalExceededNotified=true;
-        showGoalExceededModal();
-      } else if (!isToday && goalExceededNotified) {
-           goalExceededNotified = false;
-      }
-    }else{
-      document.getElementById('totalCalsGoalText').textContent = `${totalCals.toFixed(0)} kcal`;
-      document.getElementById('calorieProgress').style.width='0%';
-    }
-  }
-  function showGoalExceededModal(){
-    const goalType=document.getElementById('goalType').value||'ganhar';
-    document.getElementById('modalGoalText').textContent = `Meta de ${goalDisplayNames[goalType]}: ${calorieGoal.toFixed(0)} kcal atingida!`;
-    showModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay'));
-  }
-  
-  // Adicionar Água
-  async function addWater() {
-    if (!userId) { showLoginModal(); return; } 
-    if (currentDateString !== todayDateString) {
-        alert("Você só pode registrar o consumo de água no dia de hoje.");
-        return;
-    }
-    const addWaterButton = document.getElementById('addWaterButton');
-    addWaterButton.disabled = true; 
-    const input = document.getElementById('waterQuantityInput');
-    const quantity = parseInt(input.value);
-    if (isNaN(quantity) || quantity <= 0) {
-        alert("Por favor, insira uma quantidade de água válida em mililitros.");
-        addWaterButton.disabled = false;
-        return;
-    }
-    const itemsRef = getItemsRef(userId, todayDateString);
-    try {
-        const now = new Date();
-        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; 
-        const payload = {
-            type: 'water', name: 'Água Pura', quantity: quantity, unit: 'ml',
-            ts: firebase.firestore.FieldValue.serverTimestamp(), 
-            clientTs: Date.now(), timeStr: timeStr 
-        };
-        await itemsRef.add(payload);
-        input.value = '250'; 
-    } catch (e) {
-        alert("Erro ao registrar água. Tente novamente. Verifique as regras do Firebase.");
-        console.error("Erro ao adicionar água:", e);
-    } finally {
-        addWaterButton.disabled = false; 
-    }
-  }
-
-  // Atualizar UI da Água
-  function updateWaterTracker(checkGoal = true) {
-      const goalText = document.getElementById('waterGoalText');
-      const progressEl = document.getElementById('waterProgress');
-      goalText.textContent = `Consumo: ${waterLog} ml / Meta: ${waterGoal} ml`;
-      if (waterGoal > 0) {
-          const pct = Math.min((waterLog / waterGoal) * 100, 100);
-          progressEl.style.width = pct + '%';
-      } else {
-          progressEl.style.width = '0%';
-      }
-  }
-
-  // Adicionar Alimento ao Log
-  async function addFoodToLog(){
-    if (!userId) { showLoginModal(); return; } 
-    if(currentDateString !== todayDateString) {
-      alert("Você só pode adicionar alimentos no dia de hoje.");
-      return;
-    }
-    const addFoodButton = document.getElementById('addFoodButton');
-    addFoodButton.disabled = true; 
-    if(!selectedFoodKey){ alert("Por favor, selecione um alimento da lista."); addFoodButton.disabled = false; return; }
-    const quantity=parseFloat(document.getElementById('foodQuantity').value);
-    const meal=document.getElementById('mealTimeSelect').value;
-    if(isNaN(quantity)||quantity<=0){ alert("Por favor, insira uma quantidade válida."); addFoodButton.disabled = false; return; }
-
-    const f=foodDatabase[selectedFoodKey];
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; 
-    const payload = {
-      type: 'food', key: selectedFoodKey, name: f.name, quantity, unit: f.unit,
-      protein: parseFloat((f.protein*quantity).toFixed(1)),
-      carbs: parseFloat((f.carbs*quantity).toFixed(1)),
-      fats: parseFloat(((f.fats || 0)*quantity).toFixed(1)),
-      cals: parseFloat((f.cals*quantity).toFixed(0)),
-      visceralFat: f.visceralFat, meal,
-      ts: firebase.firestore.FieldValue.serverTimestamp(), 
-      clientTs: Date.now(), timeStr: timeStr 
-    };
-    const itemsRef = getItemsRef(userId, currentDateString);
-    try {
-      await itemsRef.add(payload);
-    } catch (e) {
-      alert("Erro ao adicionar alimento. Verifique sua conexão e as regras do Firebase.");
-      console.error("Erro ao adicionar alimento:", e);
-    }
-    clearFoodSearch();
-    document.getElementById('foodQuantity').value='';
-    addFoodButton.disabled = false;
-  }
-  
-  // Limpar Busca
-  function clearFoodSearch() {
-    document.getElementById('foodSearch').value = '';
-    document.getElementById('foodQuantity').value = '';
-    selectedFoodKey = null;
-    hideElement(document.getElementById('searchDropdown'));
-    document.getElementById('addFoodButton').disabled = false;
-    document.getElementById('foodSearch').focus();
-    // Limpa o resultado da API do banco de dados temporário
-    if (foodDatabase['api_result']) {
-        delete foodDatabase['api_result'];
-    }
-  }
-
-  // Remover Alimento do Log
-  async function removeFoodFromLog(itemId){
-    if (!userId) { showLoginModal(); return; } 
-    if(currentDateString !== todayDateString) {
-      alert("Você só pode remover alimentos no dia de hoje.");
-      return;
-    }
-    const itemElement = document.getElementById(`food-item-${itemId}`);
-    if (itemElement) itemElement.style.opacity = '0.5';
-    const itemsRef = getItemsRef(userId, currentDateString);
-    try { 
-      await itemsRef.doc(itemId).delete(); 
-    } catch (err) { 
-      console.error('Falha ao excluir item:', err); 
-      alert("Erro ao excluir o registro. Verifique sua conexão e permissões (Regras do Firebase).");
-      if (itemElement) itemElement.style.opacity = '1';
-    }
-  }
-
-  // Agrupar Itens por Refeição
-  function getItemsByMeal() {
-      return Object.values(dailyLog)
-          .filter(i => i.type === 'food')
-          .reduce((acc, item) => {
-              const meal = item.meal;
-              acc[meal] = acc[meal] || [];
-              acc[meal].push(item);
-              return acc;
-          }, {});
-  }
-
-  // Buscar Alimento (com API)
-  function searchFood(){
-    // Helper para remover acentos (ex: "Maçã" vira "Maca")
-    const normalizeText = (text) => {
-        return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    };
-
-    const q_raw = document.getElementById('foodSearch').value.trim();
-    const dd = document.getElementById('searchDropdown');
-
-    currentApiQuery = q_raw; // Armazena a query atual para o debounce
-    clearTimeout(apiDebounceTimer); // Cancela buscas anteriores
-
-    const manualAddButtonHtml = `
-      <div class="p-3 hover:bg-green-100 cursor-pointer border-t border-gray-200 text-green-700 font-semibold" onclick="showManualAddModal()">
-        + Adicionar Alimento Manualmente
-      </div>
-    `;
-
-    // 1. Se a busca está vazia, esconde o dropdown
-    if(q_raw.length < 1){ 
-      hideElement(dd); 
-      return; 
-    }
-    
-    // Normaliza a busca (minúsculas, sem acentos)
-    const q = normalizeText(q_raw.toLowerCase());
-
-    // 2. Busca no banco de dados local
-    const results = Object.keys(foodDatabase).filter(k => {
-      if (k === 'api_result') return false; // Ignora o resultado da API anterior
-      const f = foodDatabase[k];
-      const keyNormalized = normalizeText(k);
-      const nameNormalized = normalizeText(f.name.toLowerCase());
-      return nameNormalized.includes(q) || keyNormalized.includes(q);
-    });
-
-    // 3. Se o banco local não achar NADA
-    if (results.length === 0) {
-        // ... e a busca for longa o suficiente
-        if (q.length > 3) {
-            // Mostra "Buscando..." e agenda a busca na API
-            dd.innerHTML = '<div class="p-3 text-gray-500 text-sm">Buscando na internet...</div>';
-            showElement(dd);
-            apiDebounceTimer = setTimeout(searchFoodOnline, 500); // Espera 500ms
-        } else {
-            // Se for muito curta (ex: "a"), mostra "Não encontrado"
-            dd.innerHTML = '<div class="p-3 text-gray-500 text-sm">Nenhum alimento encontrado.</div>' + manualAddButtonHtml;
-            showElement(dd);
-        }
-        return;
-    }
-    
-    // 4. Se o banco local ACHAR resultados, exibe
-    const html = results.map(key => { 
-      const f = foodDatabase[key];
-      const warn=f.visceralFat?' ⚠️':'';
-      return `
-        <div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200" onclick="selectFood('${key}')">
-          <p class="font-medium text-gray-800">${f.name}${warn}</p>
-          <p class="text-xs"><span class="text-orange-600 font-medium">${f.cals} kcal</span> <span class="text-gray-600">por ${f.unit}</span></p>
-        </div>
-      `;
-    }).join('');
-
-    dd.innerHTML = html + manualAddButtonHtml;
-    showElement(dd);
-  }
-
-  // Selecionar Alimento
-  function selectFood(key){
-    selectedFoodKey=key;
-    document.getElementById('foodSearch').value=foodDatabase[key].name;
-    hideElement(document.getElementById('searchDropdown'));
-    // Se for o resultado da API, pré-preenche a quantidade como 1
-    if (key === 'api_result') {
-        document.getElementById('foodQuantity').value = 1;
-    }
-    document.getElementById('foodQuantity').focus();
-  }
-
-  // Compartilhar no WhatsApp
-  function shareToWhatsApp(){
-    if (currentDateString !== todayDateString) {
-        alert("Apenas é possível compartilhar o resumo do dia atual. Selecione a data de hoje.");
-        return;
-    }
-    let totalCals=0,totalProtein=0,totalCarbs=0, totalFats=0;
-    const itemsByMeal = getItemsByMeal();
-    Object.values(dailyLog).filter(i => i.type === 'food').forEach(i=>{ 
-        totalCals+=i.cals; totalProtein+=i.protein; totalCarbs+=i.carbs; totalFats += i.fats || 0;
-    });
-    const userName=document.getElementById('userNameDisplay').textContent;
-    const goalType=document.getElementById('goalType').value||'ganhar';
-    const goalName=goalDisplayNames[goalType];
-    let msg = `🏋️ FITNESSPRO - Resumo do Dia (${currentDateString})\n\n`;
-    msg += `👤 ${userName}\n`;
-    msg += `🎯 Objetivo: ${goalName}\n`;
-    msg += `📊 Meta Calorias: ${calorieGoal.toFixed(0)} kcal\n`;
-    msg += `💪 Meta Proteínas: ${proteinGoal.toFixed(0)} g\n`;
-    msg += `🍞 Meta Carboidratos: ${carbGoal.toFixed(0)} g\n`;
-    msg += `🥑 Meta Gorduras: ${fatGoal.toFixed(0)} g\n`;
-    msg += `💧 Meta Água: ${waterGoal.toFixed(0)} ml\n\n`; 
-    msg += `Consumo do Dia:\n`;
-    msg += `🔥 Calorias: ${totalCals.toFixed(0)} kcal\n`;
-    msg += `💧 Água Consumida: ${waterLog} ml\n`; 
-    msg += `💪 Proteínas: ${totalProtein.toFixed(1)}g\n`;
-    msg += `🍞 Carboidratos: ${totalCarbs.toFixed(1)}g\n`;
-    msg += `🥑 Gorduras: ${totalFats.toFixed(1)}g\n\n`;
-    MEAL_KEYS.forEach(k=>{
-      const items=itemsByMeal[k]||[];
-      if(items.length>0){
-        msg += `${mealDisplayNames[k]}\n`;
-        items.forEach(i=>{
-          const warn=i.visceralFat?' ⚠️':'';
-          const time = i.timeStr ? ` [${i.timeStr}]` : '';
-          msg += `• ${i.name}${warn} (${i.quantity} ${i.unit})${time} - ${i.cals} kcal\n`;
-        });
-        msg += `\n`;
-      }
-    });
-    const waterItems = Object.values(dailyLog).filter(i => i.type === 'water');
-    if (waterItems.length > 0) {
-      msg += `💧 Registros de Água\n`;
-      waterItems.forEach(i => {
-          const time = i.timeStr ? ` [${i.timeStr}]` : '';
-           msg += `• ${i.quantity} ml${time}\n`;
-      });
-      msg += `\n`;
-    }
-    const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;
-    window.open(url,'_blank');
-  }
-
-  // Compartilhar App
-  function shareApp(){
-    const message=`🏋️ FITNESSPRO\n\nConheça o app que está me ajudando a alcançar meus objetivos! 💪\n\nAcesse: ${window.location.href}`;
-    const url=`https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(url,'_blank');
-  }
-
-
-  // Eventos de UI
-  function wireUI(){
-    // Auth
-    document.getElementById('authControlButton').addEventListener('click', ()=>{
-      if (userId) firebaseAuth.signOut();
-      else showLoginModal();
-    });
-    document.getElementById('showLoginButton').addEventListener('click', (e)=>{
-      e.preventDefault();
-      hideRegistrationModal();
-      showLoginModal();
-    });
-    document.getElementById('showRegistrationButton').addEventListener('click', (e)=>{
-      e.preventDefault();
-      hideLoginModal();
-      showRegistrationModal(false);
-    });
-    document.getElementById('registerAndProfileButton').addEventListener('click', async ()=>{
-      try{
-        if (isEditingProfile) {
-          const name = document.getElementById('regUserNameInput').value.trim();
-          const phone = document.getElementById('regPhoneInput').value.trim();
-          if (!userId) throw new Error('Necessário login para salvar perfil.');
-          await getProfileDocRef().set({ userName: name, phone, updatedAt: new Date().toISOString() }, { merge: true });
-          if (firebaseAuth.currentUser && name) {
-            await firebaseAuth.currentUser.updateProfile({ displayName: name });
-            localStorage.setItem(`phone_${userId}`, phone || '');
-            document.getElementById('userNameDisplay').textContent = name;
-          }
-          saveProfilePicLocally();
-          hideRegistrationModal();
-        } else {
-          const email = document.getElementById('regEmailInput').value.trim();
-          const pass = document.getElementById('regPasswordInput').value;
-          const name = document.getElementById('regUserNameInput').value.trim();
-          const phone = document.getElementById('regPhoneInput').value.trim();
-          if (!email || !pass || pass.length < 6 || !name) throw new Error('Preencha nome, email e senha (mín. 6).');
-          const cred = await firebaseAuth.createUserWithEmailAndPassword(email, pass);
-          await cred.user.updateProfile({ displayName: name });
-          userId = cred.user.uid;
-          await getProfileDocRef().set({ userName: name, phone: phone || null, createdAt: new Date().toISOString() });
-          saveProfilePicLocally();
-          localStorage.setItem('hasEverLoggedIn', 'true'); 
-          hideRegistrationModal();
-        }
-      } catch(e){
-        let errorMessage = e.message || 'Erro ao salvar.';
-        if(e.code === 'auth/email-already-in-use') errorMessage = 'Este email já está em uso.';
-        showRegError(errorMessage);
-        console.error("Erro na auth/save:", e);
-      }
-    });
-    document.getElementById('loginSubmitButton').addEventListener('click', async ()=>{
-      try{
-        const email = document.getElementById('loginEmail').value.trim();
-        const pass = document.getElementById('loginPassword').value;
-        if (!email || !pass) throw new Error('Preencha email e senha.');
-        await firebaseAuth.signInWithEmailAndPassword(email, pass);
-        localStorage.setItem('hasEverLoggedIn', 'true');
-        hideLoginModal();
-      } catch(e){
-        let errorMessage = e.message || 'Falha no login.';
-        if(e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') errorMessage = 'Email ou senha inválidos.';
-        showLoginError(errorMessage);
-        console.error("Erro no login:", e);
-      }
-    });
-    // Perfil
-    document.getElementById('editProfileButton').addEventListener('click', ()=>{
-      if (!userId) { showLoginModal(); } else { showRegistrationModal(true); }
-    });
-    const picInput = document.getElementById('regProfilePicInput');
-    picInput.addEventListener('change', async (e)=>{
-      const f = e.target.files?.[0];
-      if (!f) return;
-      profilePicBase64 = await fileToBase64(f);
-      document.getElementById('regProfileImage').src = profilePicBase64;
-    });
-    // Data
-    const dateInput = document.getElementById('dateSelector');
-    dateInput.value = currentDateString;
-    dateInput.max = todayDateString;
-    dateInput.addEventListener('change', ()=>{
-      currentDateString = dateInput.value;
-      loadDayData(currentDateString);
-    });
-    // Ações Principais
-    document.getElementById('calculateButton').addEventListener('click', saveMetas);
-    document.getElementById('addFoodButton').addEventListener('click', addFoodToLog);
-    document.getElementById('addWaterButton').addEventListener('click', addWater); 
-    document.getElementById('goalType').addEventListener('change', updateMealSuggestion);
-    document.getElementById('mealTimeSelect').addEventListener('change', updateMealSuggestion);
-    document.getElementById('foodSearch').addEventListener('input', searchFood);
-    document.getElementById('shareButton').addEventListener('click', shareToWhatsApp);
-    document.getElementById('shareAppButton').addEventListener('click', shareApp);
-    document.getElementById('closeWarningModalButton').addEventListener('click', ()=>{
-      hideModal(document.getElementById('warningModal'), document.getElementById('warningModalOverlay'));
-    });
-    // Modal Manual
-    document.getElementById('fetchManualDataButton').addEventListener('click', fetchManualFoodData);
-    document.getElementById('addManualFoodButton').addEventListener('click', addManualFoodToLog);
-    // Fechar dropdown
-    document.addEventListener('click', (e)=>{
-      if(!e.target.closest('#foodSearch') && !e.target.closest('#searchDropdown')){
-        hideElement(document.getElementById('searchDropdown'));
-      }
-    });
-  }
-
-  // ##########################################
-  // ##             INÍCIO DA CORREÇÃO             ##
-  // ##########################################
-
-  // Boot
-  function boot(){
-    initFirebase();
-    wireUI();
-    attachAuthListener();
-  }
-
-  // Garante que o script só rode após o HTML ser carregado
-  // (Esta é a correção para o erro 'TypeError: null is not an object')
-  document.addEventListener('DOMContentLoaded', boot);
-
-  // ##########################################
-  // ##              FIM DA CORREÇÃO              ##
-  // ##########################################
+
+const tipos=[
+"⚪ Normal",
+"🏆 Gold",
+"💎 Diamond",
+"🌈 Rainbow",
+"☯️ Yin Yang",
+"☢️ Radioactive",
+"🍭 Candy",
+"🌋 Lava",
+"🌌 Galaxy",
+"💀 Cursed",
+"👑 Divine"
+]
+
+let tipoSelecionado=0
+let contas=[]
+
+const typesDiv=document.getElementById("types")
+
+function renderTipos(){
+
+typesDiv.innerHTML=""
+
+tipos.forEach((t,i)=>{
+
+let div=document.createElement("div")
+div.className="type"+(tipoSelecionado==i?" active":"")
+
+div.innerText=t
+
+div.onclick=()=>{
+tipoSelecionado=i
+renderTipos()
+}
+
+typesDiv.appendChild(div)
+
+})
+
+}
+
+function abrirModal(){
+document.getElementById("modalBg").style.display="flex"
+}
+
+function fecharModal(){
+document.getElementById("modalBg").style.display="none"
+}
+
+function criarConta(){
+
+let nome=document.getElementById("nomeConta").value
+
+if(!nome){
+alert("Digite nome")
+return
+}
+
+let tipo=tipos[tipoSelecionado]
+
+contas.unshift({nome,tipo})
+
+document.getElementById("nomeConta").value=""
+
+fecharModal()
+
+render()
+
+}
+
+function render(){
+
+document.getElementById("count").innerText=contas.length
+
+document.getElementById("progress").innerText=Math.min(contas.length,100)+"%"
+
+document.getElementById("status").innerText=contas.length?"Em progresso":"Iniciando"
+
+let lista=document.getElementById("list")
+
+lista.innerHTML=contas.map(c=>`
+<div class="item">
+<span>${c.nome}</span>
+<span>${c.tipo}</span>
+</div>
+`).join("")
+
+let resumo={}
+
+contas.forEach(c=>{
+resumo[c.tipo]=(resumo[c.tipo]||0)+1
+})
+
+let sum=document.getElementById("summary")
+
+sum.innerHTML=Object.entries(resumo).map(([t,n])=>`
+<div class="item">
+<span>${t}</span>
+<strong>${n}</strong>
+</div>
+`).join("")
+
+}
+
+renderTipos()
+render()
+
 </script>
+
 </body>
 </html>
