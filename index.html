@@ -1,340 +1,511 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>BT Dashboard Mobile</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#11182b;
+      --line:#24304f;
+      --text:#ffffff;
+      --muted:#aab4d6;
+      --primary:#5d66ff;
+      --primary-dark:#4752f0;
+      --chip:#18213d;
+      --radius:18px;
+    }
 
-<title>BT Dashboard</title>
+    *{
+      box-sizing:border-box;
+      -webkit-tap-highlight-color:transparent;
+    }
 
-<style>
+    html,body{
+      margin:0;
+      padding:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial, sans-serif;
+    }
 
-body{
-margin:0;
-font-family:Arial;
-background:#0b1020;
-color:white;
-}
+    body{
+      min-height:100vh;
+    }
 
-.top{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:16px;
-border-bottom:1px solid #24304f;
-}
+    .top{
+      position:sticky;
+      top:0;
+      z-index:30;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:14px 16px;
+      border-bottom:1px solid var(--line);
+      background:rgba(11,16,32,.96);
+      backdrop-filter:blur(8px);
+    }
 
-.wrap{
-max-width:1100px;
-margin:auto;
-padding:20px;
-}
+    .title{
+      font-size:18px;
+      font-weight:700;
+    }
 
-.hero{
-background:#11182b;
-border:1px solid #24304f;
-border-radius:20px;
-padding:20px;
-}
+    .chip{
+      padding:7px 10px;
+      border-radius:999px;
+      background:var(--chip);
+      border:1px solid #334266;
+      font-size:12px;
+      color:#d7e0ff;
+      white-space:nowrap;
+    }
 
-button{
-height:46px;
-border:0;
-border-radius:12px;
-background:#5d66ff;
-color:white;
-font-weight:700;
-cursor:pointer;
-padding:0 16px;
-}
+    .wrap{
+      width:100%;
+      max-width:1100px;
+      margin:0 auto;
+      padding:14px;
+    }
 
-.stats{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:12px;
-margin-top:16px;
-}
+    .hero,
+    .panel,
+    .stat,
+    .modal{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+    }
 
-.stat{
-background:#11182b;
-border:1px solid #24304f;
-border-radius:20px;
-padding:20px;
-}
+    .hero{
+      padding:18px;
+    }
 
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:16px;
-margin-top:16px;
-}
+    .hero h2{
+      margin:0 0 8px;
+      font-size:22px;
+      line-height:1.2;
+    }
 
-.panel{
-background:#11182b;
-border:1px solid #24304f;
-border-radius:20px;
-padding:20px;
-}
+    .muted{
+      color:var(--muted);
+    }
 
-.item{
-display:flex;
-justify-content:space-between;
-background:#0b1020;
-border:1px solid #24304f;
-border-radius:14px;
-padding:12px;
-margin-top:10px;
-}
+    .hero-actions{
+      margin-top:14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
 
-.muted{
-color:#aab4d6;
-}
+    button{
+      appearance:none;
+      border:0;
+      border-radius:14px;
+      background:var(--primary);
+      color:#fff;
+      font-weight:700;
+      font-size:15px;
+      cursor:pointer;
+      min-height:48px;
+      padding:0 16px;
+    }
 
-.modalBg{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.6);
-display:none;
-align-items:center;
-justify-content:center;
-}
+    button:active{
+      transform:scale(.99);
+    }
 
-.modal{
-background:#11182b;
-border:1px solid #24304f;
-border-radius:20px;
-padding:20px;
-width:400px;
-}
+    .secondary{
+      background:transparent;
+      border:1px solid #3b496d;
+      color:#fff;
+    }
 
-.types{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-top:10px;
-}
+    .full{
+      width:100%;
+    }
 
-.type{
-padding:10px;
-background:#0b1020;
-border:1px solid #24304f;
-border-radius:10px;
-cursor:pointer;
-}
+    .stats{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      margin-top:14px;
+    }
 
-.type.active{
-border-color:#5d66ff;
-background:#171f39;
-}
+    .stat{
+      padding:16px;
+    }
 
-input{
-width:100%;
-height:40px;
-margin-top:10px;
-background:#0b1020;
-border:1px solid #24304f;
-border-radius:10px;
-color:white;
-padding:0 10px;
-}
+    .stat-label{
+      color:var(--muted);
+      font-size:14px;
+    }
 
-.actions{
-display:flex;
-gap:10px;
-margin-top:10px;
-}
+    .stat-value{
+      margin-top:8px;
+      font-size:28px;
+      font-weight:700;
+    }
 
-.secondary{
-background:none;
-border:1px solid #24304f;
-}
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+      margin-top:14px;
+    }
 
-</style>
+    .panel{
+      padding:16px;
+    }
+
+    .panel h3{
+      margin:0 0 10px;
+      font-size:18px;
+    }
+
+    .item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      background:var(--bg);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      margin-top:10px;
+    }
+
+    .item span:first-child{
+      word-break:break-word;
+    }
+
+    .badge{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:var(--chip);
+      border:1px solid #334266;
+      white-space:nowrap;
+    }
+
+    .empty{
+      color:var(--muted);
+      margin-top:8px;
+    }
+
+    .modalBg{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.65);
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      z-index:50;
+    }
+
+    .modal{
+      width:100%;
+      max-height:92vh;
+      overflow:auto;
+      border-bottom-left-radius:0;
+      border-bottom-right-radius:0;
+      padding:18px;
+    }
+
+    .modal h3{
+      margin:0 0 6px;
+      font-size:22px;
+    }
+
+    input{
+      width:100%;
+      height:50px;
+      margin-top:12px;
+      background:var(--bg);
+      border:1px solid var(--line);
+      border-radius:14px;
+      color:#fff;
+      padding:0 14px;
+      font-size:16px;
+      outline:none;
+    }
+
+    input:focus{
+      border-color:var(--primary);
+    }
+
+    .types{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .type{
+      min-height:54px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:10px;
+      background:var(--bg);
+      border:1px solid var(--line);
+      border-radius:14px;
+      cursor:pointer;
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .type.active{
+      border-color:var(--primary);
+      background:#171f39;
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    @media (min-width: 700px){
+      .wrap{
+        padding:20px;
+      }
+
+      .stats{
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .types{
+        grid-template-columns:repeat(3,1fr);
+      }
+
+      .actions{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .modalBg{
+        align-items:center;
+        padding:18px;
+      }
+
+      .modal{
+        max-width:760px;
+        border-radius:18px;
+      }
+    }
+
+    @media (min-width: 980px){
+      .stats{
+        grid-template-columns:repeat(4,1fr);
+      }
+
+      .grid{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .types{
+        grid-template-columns:repeat(4,1fr);
+      }
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="top">
-<strong>BT Dashboard</strong>
-</div>
+  <div class="top">
+    <div class="title">BT Dashboard</div>
+    <div class="chip">Mobile Ready</div>
+  </div>
 
-<div class="wrap">
+  <div class="wrap">
+    <div class="hero">
+      <h2>Painel mobile</h2>
+      <div class="muted">Versão otimizada para celular, com botões maiores e layout responsivo.</div>
+      <div class="hero-actions">
+        <button id="openModalBtn">+ Nova Conta</button>
+      </div>
+    </div>
 
-<div class="hero">
-<h2>Painel</h2>
-<p class="muted">Sistema de contas.</p>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Contas</div>
+        <div class="stat-value" id="count">0</div>
+      </div>
 
-<button onclick="abrirModal()">+ Nova Conta</button>
-</div>
+      <div class="stat">
+        <div class="stat-label">Meta</div>
+        <div class="stat-value">100</div>
+      </div>
 
-<div class="stats">
+      <div class="stat">
+        <div class="stat-label">Progresso</div>
+        <div class="stat-value" id="progress">0%</div>
+      </div>
 
-<div class="stat">
-Contas
-<h2 id="count">0</h2>
-</div>
+      <div class="stat">
+        <div class="stat-label">Status</div>
+        <div class="stat-value" id="status" style="font-size:22px;">Iniciando</div>
+      </div>
+    </div>
 
-<div class="stat">
-Meta
-<h2>100</h2>
-</div>
+    <div class="grid">
+      <div class="panel">
+        <h3>Resumo</h3>
+        <div id="summary"></div>
+      </div>
 
-<div class="stat">
-Progresso
-<h2 id="progress">0%</h2>
-</div>
+      <div class="panel">
+        <h3>Contas</h3>
+        <div id="list"></div>
+      </div>
+    </div>
+  </div>
 
-<div class="stat">
-Status
-<h2 id="status">Iniciando</h2>
-</div>
+  <div id="modalBg" class="modalBg">
+    <div class="modal">
+      <h3>Criar Conta</h3>
+      <div class="muted">Escolha o tipo e salve.</div>
 
-</div>
+      <form id="accountForm">
+        <input id="nomeConta" placeholder="Nome da conta" />
 
-<div class="grid">
+        <div class="types" id="types"></div>
 
-<div class="panel">
-<h3>Resumo</h3>
-<div id="summary"></div>
-</div>
+        <div class="actions">
+          <button type="submit" class="full">Criar</button>
+          <button type="button" id="cancelBtn" class="secondary full">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-<div class="panel">
-<h3>Contas</h3>
-<div id="list"></div>
-</div>
+  <script>
+    const tipos = [
+      "⚪ Normal",
+      "🏆 Gold",
+      "💎 Diamond",
+      "🌈 Rainbow",
+      "☯️ Yin Yang",
+      "☢️ Radioactive",
+      "🍭 Candy",
+      "🌋 Lava",
+      "🌌 Galaxy",
+      "💀 Cursed",
+      "👑 Divine"
+    ];
 
-</div>
+    let tipoSelecionado = 0;
+    let contas = [];
 
-</div>
+    const typesDiv = document.getElementById("types");
+    const modalBg = document.getElementById("modalBg");
+    const countEl = document.getElementById("count");
+    const progressEl = document.getElementById("progress");
+    const statusEl = document.getElementById("status");
+    const listEl = document.getElementById("list");
+    const summaryEl = document.getElementById("summary");
+    const nomeContaEl = document.getElementById("nomeConta");
 
-<div id="modalBg" class="modalBg">
+    function renderTipos() {
+      typesDiv.innerHTML = "";
 
-<div class="modal">
+      tipos.forEach((tipo, i) => {
+        const div = document.createElement("button");
+        div.type = "button";
+        div.className = "type" + (tipoSelecionado === i ? " active" : "");
+        div.textContent = tipo;
+        div.addEventListener("click", () => {
+          tipoSelecionado = i;
+          renderTipos();
+        });
+        typesDiv.appendChild(div);
+      });
+    }
 
-<h3>Criar Conta</h3>
+    function abrirModal() {
+      modalBg.style.display = "flex";
+      setTimeout(() => nomeContaEl.focus(), 50);
+    }
 
-<input id="nomeConta" placeholder="Nome da conta">
+    function fecharModal() {
+      modalBg.style.display = "none";
+    }
 
-<div class="types" id="types"></div>
+    function escapeHtml(texto) {
+      return String(texto)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
 
-<div class="actions">
-<button onclick="criarConta()">Criar</button>
-<button onclick="fecharModal()" class="secondary">Cancelar</button>
-</div>
+    function render() {
+      countEl.textContent = contas.length;
+      progressEl.textContent = Math.min(contas.length, 100) + "%";
+      statusEl.textContent = contas.length ? "Em progresso" : "Iniciando";
 
-</div>
+      if (contas.length === 0) {
+        listEl.innerHTML = '<div class="empty">Nenhuma conta criada.</div>';
+      } else {
+        listEl.innerHTML = contas.map(c => `
+          <div class="item">
+            <span>${escapeHtml(c.nome)}</span>
+            <span class="badge">${escapeHtml(c.tipo)}</span>
+          </div>
+        `).join("");
+      }
 
-</div>
+      const resumo = {};
+      contas.forEach(c => {
+        resumo[c.tipo] = (resumo[c.tipo] || 0) + 1;
+      });
 
-<script>
+      const entradas = Object.entries(resumo);
+      if (entradas.length === 0) {
+        summaryEl.innerHTML = '<div class="empty">Sem dados ainda.</div>';
+      } else {
+        summaryEl.innerHTML = entradas.map(([tipo, qtd]) => `
+          <div class="item">
+            <span>${escapeHtml(tipo)}</span>
+            <strong>${qtd}</strong>
+          </div>
+        `).join("");
+      }
+    }
 
-const tipos=[
-"⚪ Normal",
-"🏆 Gold",
-"💎 Diamond",
-"🌈 Rainbow",
-"☯️ Yin Yang",
-"☢️ Radioactive",
-"🍭 Candy",
-"🌋 Lava",
-"🌌 Galaxy",
-"💀 Cursed",
-"👑 Divine"
-]
+    document.getElementById("openModalBtn").addEventListener("click", abrirModal);
+    document.getElementById("cancelBtn").addEventListener("click", fecharModal);
 
-let tipoSelecionado=0
-let contas=[]
+    modalBg.addEventListener("click", (e) => {
+      if (e.target === modalBg) fecharModal();
+    });
 
-const typesDiv=document.getElementById("types")
+    document.getElementById("accountForm").addEventListener("submit", (e) => {
+      e.preventDefault();
 
-function renderTipos(){
+      const nome = nomeContaEl.value.trim();
+      if (!nome) {
+        alert("Digite o nome da conta.");
+        return;
+      }
 
-typesDiv.innerHTML=""
+      contas.unshift({
+        nome,
+        tipo: tipos[tipoSelecionado]
+      });
 
-tipos.forEach((t,i)=>{
+      nomeContaEl.value = "";
+      tipoSelecionado = 0;
+      renderTipos();
+      render();
+      fecharModal();
+    });
 
-let div=document.createElement("div")
-div.className="type"+(tipoSelecionado==i?" active":"")
-
-div.innerText=t
-
-div.onclick=()=>{
-tipoSelecionado=i
-renderTipos()
-}
-
-typesDiv.appendChild(div)
-
-})
-
-}
-
-function abrirModal(){
-document.getElementById("modalBg").style.display="flex"
-}
-
-function fecharModal(){
-document.getElementById("modalBg").style.display="none"
-}
-
-function criarConta(){
-
-let nome=document.getElementById("nomeConta").value
-
-if(!nome){
-alert("Digite nome")
-return
-}
-
-let tipo=tipos[tipoSelecionado]
-
-contas.unshift({nome,tipo})
-
-document.getElementById("nomeConta").value=""
-
-fecharModal()
-
-render()
-
-}
-
-function render(){
-
-document.getElementById("count").innerText=contas.length
-
-document.getElementById("progress").innerText=Math.min(contas.length,100)+"%"
-
-document.getElementById("status").innerText=contas.length?"Em progresso":"Iniciando"
-
-let lista=document.getElementById("list")
-
-lista.innerHTML=contas.map(c=>`
-<div class="item">
-<span>${c.nome}</span>
-<span>${c.tipo}</span>
-</div>
-`).join("")
-
-let resumo={}
-
-contas.forEach(c=>{
-resumo[c.tipo]=(resumo[c.tipo]||0)+1
-})
-
-let sum=document.getElementById("summary")
-
-sum.innerHTML=Object.entries(resumo).map(([t,n])=>`
-<div class="item">
-<span>${t}</span>
-<strong>${n}</strong>
-</div>
-`).join("")
-
-}
-
-renderTipos()
-render()
-
-</script>
-
+    renderTipos();
+    render();
+  </script>
 </body>
 </html>
