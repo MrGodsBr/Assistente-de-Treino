@@ -3,29 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>BT Dashboard Premium</title>
+  <title>BT Dashboard Funcional</title>
   <style>
     :root{
       --bg:#000000;
       --surface:#05070d;
       --card:#0b0f1b;
-      --card-2:#111827;
-      --line:#2b3147;
-      --line-2:#202638;
-      --text:#f4f4f5;
-      --muted:#9ca3af;
-      --muted-2:#cfcfd4;
+      --card-2:#101625;
+      --line:#232a3d;
+      --line-2:#1b2232;
+      --text:#f3f4f6;
+      --muted:#a0a6b4;
+      --muted-2:#cfd3dc;
       --chip:#141925;
-      --btn:#1a2233;
-      --btn-2:#20283b;
-      --primary:#5d66ff;
-      --primary-2:#7c3aed;
-      --danger:#ff5f7a;
-      --ok:#2dcc8f;
-      --radius-xl:32px;
+      --primary:#6772ff;
+      --primary-2:#7a3cff;
+      --btn-dark:#171e2d;
+      --danger:#ff627d;
+      --ok:#23c98b;
+      --radius-xl:30px;
       --radius-lg:22px;
-      --radius-md:18px;
-      --shadow:0 14px 34px rgba(0,0,0,.22);
+      --radius-md:16px;
+      --shadow:0 18px 40px rgba(0,0,0,.25);
     }
 
     *{
@@ -49,803 +48,1095 @@
       display:none !important;
     }
 
-    .top{
+    .topbar{
       position:sticky;
       top:0;
-      z-index:40;
+      z-index:60;
+      height:88px;
       display:flex;
-      justify-content:space-between;
       align-items:center;
-      padding:14px 16px;
-      border-bottom:1px solid var(--line);
-      background:rgba(5,7,13,.96);
+      justify-content:space-between;
+      padding:0 20px;
+      border-bottom:1px solid #131a2a;
+      background:rgba(5,7,13,.98);
       backdrop-filter:blur(10px);
     }
 
-    .title{
-      font-size:18px;
-      font-weight:700;
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
     }
 
-    .chip{
-      padding:7px 10px;
-      border-radius:999px;
-      background:var(--chip);
-      border:1px solid #334266;
-      font-size:12px;
-      color:#d7e0ff;
-      white-space:nowrap;
+    .brand-logo{
+      width:60px;
+      height:60px;
+      border-radius:18px;
+      background:linear-gradient(180deg,#6b71ff 0%, #5d63f5 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:28px;
+      box-shadow:0 10px 30px rgba(103,114,255,.25);
     }
 
-    .wrap,
-    .detail-wrap{
+    .brand-name{
+      font-size:24px;
+      font-weight:800;
+      letter-spacing:-.5px;
+    }
+
+    .menu-btn{
+      border:0;
+      background:transparent;
+      color:#fff;
+      font-size:34px;
+      width:52px;
+      height:52px;
+      border-radius:14px;
+      cursor:pointer;
+    }
+
+    .container{
       width:100%;
-      max-width:1280px;
+      max-width:1240px;
       margin:0 auto;
-      padding:14px;
+      padding:22px 18px 40px;
     }
 
-    .hero,
-    .panel,
-    .modal,
-    .detail-hero,
-    .grid-card,
-    .kpi{
+    .section-card,
+    .modal-card,
+    .account-card,
+    .search-panel,
+    .empty-panel,
+    .kpi-card{
       background:var(--card);
       border:1px solid var(--line);
       border-radius:var(--radius-lg);
       box-shadow:var(--shadow);
     }
 
-    .hero,
-    .panel,
-    .detail-hero,
-    .grid-card{
-      padding:16px;
-    }
-
-    .hero h2,
-    .detail-hero h2{
-      margin:0 0 8px;
-      font-size:24px;
-      line-height:1.15;
-    }
-
-    .muted{
-      color:var(--muted);
-    }
-
-    .hero-actions,
-    .detail-actions{
+    .dashboard-top{
       display:flex;
-      gap:10px;
+      gap:12px;
       flex-wrap:wrap;
-      margin-top:14px;
+      margin-bottom:16px;
     }
 
-    button{
-      appearance:none;
+    .btn{
+      min-height:50px;
+      padding:0 18px;
+      border-radius:16px;
       border:0;
-      border-radius:14px;
-      background:var(--primary);
-      color:#fff;
+      cursor:pointer;
       font-weight:700;
       font-size:15px;
-      cursor:pointer;
-      min-height:48px;
-      padding:0 16px;
+      color:#fff;
+      background:var(--primary);
     }
 
-    button:active{
-      transform:scale(.99);
-    }
-
-    .secondary{
+    .btn.secondary{
       background:transparent;
-      border:1px solid #3b496d;
+      border:1px solid #33405d;
     }
 
-    .danger{
+    .btn.dark{
+      background:var(--btn-dark);
+      border:1px solid #242b3b;
+    }
+
+    .btn.danger{
       background:var(--danger);
     }
 
-    .small-btn{
-      min-height:40px;
-      padding:0 12px;
-      font-size:14px;
-    }
-
-    .full{
+    .btn.full{
       width:100%;
     }
 
     .stats{
       display:grid;
-      grid-template-columns:1fr;
+      grid-template-columns:repeat(2,1fr);
       gap:12px;
-      margin-top:14px;
+      margin-bottom:16px;
     }
 
-    .stat{
-      padding:16px;
+    .stat-card{
       background:var(--card);
       border:1px solid var(--line);
-      border-radius:var(--radius-lg);
+      border-radius:20px;
+      padding:16px;
       box-shadow:var(--shadow);
     }
 
     .stat-label{
+      font-size:13px;
       color:var(--muted);
-      font-size:14px;
     }
 
     .stat-value{
       margin-top:8px;
-      font-size:28px;
-      font-weight:700;
+      font-size:26px;
+      font-weight:800;
     }
 
-    .grid{
+    .dashboard-grid{
       display:grid;
       grid-template-columns:1fr;
-      gap:14px;
-      margin-top:14px;
+      gap:16px;
     }
 
-    .panel h3,
-    .grid-card h3{
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:16px;
+      box-shadow:var(--shadow);
+    }
+
+    .panel h3{
       margin:0 0 12px;
-      font-size:18px;
+      font-size:20px;
     }
 
-    .item{
+    .summary-item{
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap:10px;
-      background:var(--surface);
+      padding:12px;
       border:1px solid var(--line);
       border-radius:14px;
-      padding:12px;
+      background:var(--surface);
       margin-top:10px;
     }
 
-    .item span:first-child{
-      word-break:break-word;
-    }
-
-    .empty{
-      color:var(--muted);
-      margin-top:8px;
+    .summary-item:first-child{
+      margin-top:0;
     }
 
     .accounts-grid{
       display:grid;
       grid-template-columns:1fr;
-      gap:22px;
-      width:100%;
+      gap:18px;
     }
 
-    .account-premium-card{
+    .account-card{
       position:relative;
       overflow:hidden;
-      border:1px solid var(--line);
-      border-radius:var(--radius-xl);
+      padding:26px 22px 20px;
       background:
-        linear-gradient(135deg, rgba(25,29,47,.95) 0%, rgba(8,11,22,.96) 45%, rgba(5,8,18,.98) 100%);
-      padding:38px 34px 34px;
-      min-height:420px;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.03),
-        0 0 0 1px rgba(255,255,255,.02);
+        linear-gradient(135deg, rgba(24,29,47,.96) 0%, rgba(8,11,22,.98) 55%, rgba(3,6,15,1) 100%);
       cursor:pointer;
     }
 
-    .account-premium-card::before{
+    .account-card::before{
       content:"";
       position:absolute;
       inset:0;
-      background:
-        linear-gradient(140deg, rgba(255,255,255,.03) 0%, transparent 30%, transparent 60%, rgba(0,85,255,.08) 100%);
+      background:linear-gradient(140deg, rgba(255,255,255,.03), transparent 35%, transparent 70%, rgba(34,88,255,.1));
       pointer-events:none;
     }
 
-    .account-premium-card:hover{
-      border-color:#46507a;
-    }
-
-    .account-card-top{
-      position:relative;
-      z-index:2;
-    }
-
     .account-icon-box{
-      width:146px;
-      height:146px;
-      border-radius:34px;
-      background:linear-gradient(180deg, #1b2233 0%, #171d2b 100%);
+      width:86px;
+      height:86px;
+      border-radius:24px;
+      background:linear-gradient(180deg,#1d2433 0%, #171d2b 100%);
       display:flex;
       align-items:center;
       justify-content:center;
-      margin-bottom:34px;
-    }
-
-    .account-icon{
-      font-size:62px;
-      line-height:1;
-      color:#c8ccd7;
+      font-size:40px;
+      color:#c9ced7;
+      margin-bottom:20px;
+      position:relative;
+      z-index:2;
     }
 
     .account-title{
-      font-size:58px;
-      line-height:1;
+      position:relative;
+      z-index:2;
+      font-size:34px;
+      line-height:1.05;
       font-weight:800;
-      margin:0 0 26px 0;
-      letter-spacing:-1.5px;
-      color:#f3f4f6;
+      margin:0 0 16px;
+      letter-spacing:-1px;
       word-break:break-word;
     }
 
-    .account-type-badge{
+    .type-badge{
+      position:relative;
+      z-index:2;
       display:inline-flex;
       align-items:center;
-      justify-content:center;
-      min-height:70px;
-      padding:0 34px;
+      min-height:44px;
+      padding:0 18px;
       border-radius:999px;
-      background:rgba(22,25,36,.9);
-      color:#d6d6db;
-      font-size:36px;
+      background:#141924;
+      border:1px solid #1a2130;
+      font-size:18px;
       font-weight:700;
-      margin-bottom:48px;
+      color:#d5d8de;
+      margin-bottom:26px;
     }
 
-    .account-stat-box{
-      min-height:122px;
-      border-radius:30px;
-      background:rgba(17,21,33,.88);
+    .brainrot-stat{
+      position:relative;
+      z-index:2;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      padding:0 38px;
-      margin-bottom:28px;
-      position:relative;
-      z-index:2;
+      gap:12px;
+      min-height:76px;
+      padding:0 18px;
+      border-radius:20px;
+      background:rgba(16,20,32,.92);
+      border:1px solid #13192a;
+      margin-bottom:16px;
     }
 
-    .account-stat-left{
+    .brainrot-stat-left{
       display:flex;
       align-items:center;
-      gap:22px;
-      color:#b8bbc4;
-      font-size:34px;
-      font-weight:500;
+      gap:12px;
+      color:#b5bac6;
+      font-size:18px;
     }
 
-    .account-stat-icon{
-      font-size:34px;
-      opacity:.9;
-    }
-
-    .account-stat-value{
-      font-size:60px;
+    .brainrot-stat-value{
+      font-size:32px;
       font-weight:800;
-      color:#f4f4f5;
-      line-height:1;
     }
 
-    .account-open-btn{
+    .open-btn{
+      position:relative;
+      z-index:2;
       width:100%;
-      min-height:110px;
+      min-height:72px;
+      border-radius:20px;
       border:0;
-      border-radius:30px;
-      background:linear-gradient(180deg, #1a2233 0%, #1c2436 100%);
-      color:#f3f4f6;
-      font-size:36px;
+      background:linear-gradient(180deg,#1a2233 0%, #1c2436 100%);
+      color:#fff;
+      font-size:20px;
       font-weight:500;
       display:flex;
       align-items:center;
       justify-content:center;
-      gap:24px;
+      gap:12px;
       cursor:pointer;
+    }
+
+    .open-btn .arrow{
+      font-size:28px;
+    }
+
+    .account-actions{
       position:relative;
       z-index:2;
-    }
-
-    .account-open-btn .arrow{
-      font-size:48px;
-      line-height:1;
-      margin-top:-2px;
-    }
-
-    .account-delete-row{
       display:flex;
       justify-content:flex-end;
-      margin-top:14px;
-      position:relative;
-      z-index:2;
+      margin-top:12px;
     }
 
-    .badge{
+    .small-btn{
+      min-height:40px;
+      padding:0 12px;
+      border-radius:12px;
+      font-size:14px;
+    }
+
+    .empty-text{
+      color:var(--muted);
+      text-align:center;
+      padding:14px 6px;
+    }
+
+    .page-head{
+      margin-top:2px;
+      margin-bottom:16px;
+    }
+
+    .back-link{
       display:inline-flex;
       align-items:center;
-      gap:6px;
-      font-size:12px;
-      padding:6px 10px;
-      border-radius:999px;
-      background:var(--chip);
-      border:1px solid #334266;
-      white-space:nowrap;
+      gap:10px;
+      color:#d7dae2;
+      font-size:18px;
+      text-decoration:none;
+      cursor:pointer;
+      margin-bottom:18px;
     }
 
-    .modalBg{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.65);
-      display:none;
-      align-items:flex-end;
-      justify-content:center;
-      z-index:60;
+    .detail-title{
+      font-size:44px;
+      font-weight:800;
+      line-height:1.05;
+      margin:0 0 12px;
+      letter-spacing:-1.5px;
     }
 
-    .modal{
-      width:100%;
-      max-height:92vh;
-      overflow:auto;
-      border-bottom-left-radius:0;
-      border-bottom-right-radius:0;
-      padding:18px;
+    .detail-meta-row{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
     }
 
-    .modal h3{
-      margin:0 0 6px;
+    .detail-count{
+      color:var(--muted);
       font-size:22px;
     }
 
-    input{
+    .big-primary-btn{
       width:100%;
-      height:50px;
-      margin-top:12px;
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-radius:14px;
-      color:#fff;
-      padding:0 14px;
-      font-size:16px;
-      outline:none;
-    }
-
-    input:focus{
-      border-color:var(--primary);
-    }
-
-    .types{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-      margin-top:14px;
-    }
-
-    .type{
-      min-height:54px;
+      min-height:78px;
+      border:0;
+      border-radius:22px;
+      background:linear-gradient(180deg,#6d73ff 0%, #6168f1 100%);
+      color:#f7f7fb;
+      font-size:22px;
+      font-weight:500;
       display:flex;
       align-items:center;
       justify-content:center;
-      text-align:center;
-      padding:10px;
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-radius:14px;
+      gap:14px;
       cursor:pointer;
-      font-size:14px;
-      font-weight:700;
+      margin-bottom:20px;
     }
 
-    .type.active{
-      border-color:var(--primary);
-      background:#171f39;
+    .brainrots-card{
+      background:linear-gradient(180deg,#060915 0%, #050812 100%);
+      border:1px solid var(--line);
+      border-radius:30px;
+      padding:18px;
+      box-shadow:var(--shadow);
     }
 
-    .actions{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:10px;
-      margin-top:16px;
+    .brainrots-card h3{
+      margin:0 0 18px;
+      font-size:24px;
     }
 
-    .kpis{
-      display:grid;
-      grid-template-columns:1fr 1fr;
+    .tools-row{
+      display:flex;
       gap:12px;
-      margin-top:14px;
+      align-items:center;
+      margin-bottom:18px;
     }
 
-    .kpi{
-      padding:14px;
+    .search-box{
+      flex:1;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      height:58px;
+      background:#0d1220;
+      border:1px solid #1b2335;
+      border-radius:18px;
+      padding:0 16px;
     }
 
-    .kpi .label{
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .kpi .value{
-      margin-top:8px;
+    .search-box span{
       font-size:22px;
-      font-weight:700;
+      color:#cfd3dc;
+    }
+
+    .search-box input{
+      flex:1;
+      border:0;
+      outline:none;
+      background:transparent;
+      color:#fff;
+      font-size:18px;
+      height:100%;
+    }
+
+    .search-box input::placeholder{
+      color:#888f9e;
+    }
+
+    .view-toggle{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:#101621;
+      border:1px solid #171d2d;
+      border-radius:18px;
+      padding:8px;
+    }
+
+    .toggle-btn{
+      width:52px;
+      height:52px;
+      border-radius:16px;
+      background:transparent;
+      border:0;
+      color:#ced3db;
+      font-size:24px;
+      cursor:pointer;
+    }
+
+    .toggle-btn.active{
+      background:#181f2e;
+      border:1px solid #232b3c;
+    }
+
+    .empty-panel{
+      min-height:520px;
+      border-radius:28px;
+      padding:30px 24px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+      background:
+        linear-gradient(180deg, rgba(7,10,20,1) 0%, rgba(5,8,18,1) 100%);
+    }
+
+    .empty-icon-wrap{
+      width:108px;
+      height:108px;
+      border-radius:999px;
+      background:#111743;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:54px;
+      color:#6b71ff;
+      margin-bottom:24px;
+    }
+
+    .empty-title{
+      font-size:32px;
+      font-weight:800;
+      margin-bottom:14px;
+    }
+
+    .empty-sub{
+      font-size:18px;
+      color:var(--muted);
+      line-height:1.45;
+      max-width:520px;
+      margin-bottom:26px;
+    }
+
+    .empty-first-btn{
+      min-height:76px;
+      border-radius:20px;
+      background:#101520;
+      border:1px solid #1d2432;
+      color:#fff;
+      font-size:20px;
+      padding:0 28px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      cursor:pointer;
     }
 
     .brainrot-grid{
       display:grid;
       grid-template-columns:repeat(2,1fr);
       gap:12px;
-      margin-top:14px;
     }
 
-    .brainrot{
-      background:var(--card-2);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:12px;
-      min-height:132px;
+    .brainrot-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .brainrot-item{
+      background:#0c111d;
+      border:1px solid #1b2232;
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .brainrot-item.done{
+      border-color:#246d52;
+      background:#10231d;
+    }
+
+    .brainrot-grid .brainrot-item{
+      min-height:160px;
       display:flex;
       flex-direction:column;
       justify-content:space-between;
     }
 
-    .brainrot.done{
-      border-color:#2f805f;
-      background:#12261f;
-    }
-
-    .brainrot-top{
+    .brainrot-list .brainrot-item{
       display:flex;
+      align-items:center;
       justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
+      gap:12px;
     }
 
-    .brainrot-emoji{
-      font-size:32px;
+    .brainrot-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .brainrot-main{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+    }
+
+    .brainrot-icon{
+      font-size:30px;
+      width:40px;
+      flex:0 0 40px;
+      text-align:center;
     }
 
     .brainrot-name{
-      font-size:14px;
+      font-size:16px;
       font-weight:700;
       line-height:1.3;
-      margin-top:10px;
     }
 
-    .brainrot-actions{
+    .brainrot-sub{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .brainrot-controls{
       display:flex;
       gap:8px;
       margin-top:12px;
+      flex-wrap:wrap;
     }
 
-    .brainrot-actions button{
-      flex:1;
-      min-height:40px;
+    .brainrot-list .brainrot-controls{
+      margin-top:0;
+      flex-wrap:nowrap;
+    }
+
+    .mini-btn{
+      min-height:38px;
+      padding:0 12px;
+      border-radius:12px;
+      border:0;
+      cursor:pointer;
+      font-weight:700;
       font-size:13px;
-      padding:0 8px;
     }
 
-    .complete{
+    .mini-btn.ok{
       background:var(--ok);
+      color:#07140f;
     }
 
-    .outline{
-      background:transparent;
-      border:1px solid #3b496d;
+    .mini-btn.dark{
+      background:#171e2d;
+      border:1px solid #262f40;
+      color:#fff;
     }
 
-    .skeleton-grid{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
+    .mini-btn.remove{
+      background:#261219;
+      border:1px solid #49202b;
+      color:#ffd2dc;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      min-height:30px;
+      padding:0 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      background:#151b28;
+      border:1px solid #263044;
+      color:#d7dce7;
+      white-space:nowrap;
+    }
+
+    .pill.done{
+      background:#173427;
+      border-color:#285941;
+      color:#c9ffe7;
+    }
+
+    .modal-bg{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.66);
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      z-index:120;
+    }
+
+    .modal-card{
+      width:100%;
+      max-height:92vh;
+      overflow:auto;
+      border-bottom-left-radius:0;
+      border-bottom-right-radius:0;
+      padding:20px 18px;
+      background:#020409;
+    }
+
+    .modal-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
       gap:12px;
+      margin-bottom:10px;
+    }
+
+    .modal-title{
+      font-size:30px;
+      font-weight:800;
+      line-height:1.1;
+      margin:0;
+      text-align:center;
+      width:100%;
+    }
+
+    .modal-close{
+      width:46px;
+      height:46px;
+      border-radius:14px;
+      background:transparent;
+      color:#d7dbe5;
+      font-size:28px;
+      border:0;
+      cursor:pointer;
+      margin-left:auto;
+      flex:0 0 46px;
+    }
+
+    .modal-sub{
+      text-align:center;
+      color:var(--muted);
+      font-size:18px;
+      line-height:1.45;
+      margin-bottom:18px;
+    }
+
+    .info-box{
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      padding:18px;
+      border-radius:20px;
+      border:1px solid #1b2335;
+      background:#0b101d;
+      color:var(--muted-2);
+      font-size:18px;
+      line-height:1.45;
+      margin-bottom:20px;
+    }
+
+    .info-icon{
+      font-size:26px;
+      line-height:1;
+      margin-top:2px;
+    }
+
+    .label-block{
+      margin-bottom:10px;
+      font-size:18px;
+      font-weight:800;
+    }
+
+    .modal-search{
+      width:100%;
+      height:58px;
+      border-radius:18px;
+      border:1px solid #1b2233;
+      background:#0b101c;
+      color:#fff;
+      font-size:18px;
+      padding:0 16px;
+      outline:none;
+    }
+
+    .selected-count{
+      margin-top:18px;
+      font-size:22px;
+      color:#d8dde6;
+    }
+
+    .tip{
       margin-top:14px;
+      color:var(--muted);
+      font-size:17px;
+      line-height:1.45;
     }
 
-    .sk{
-      height:146px;
+    .divider{
+      height:1px;
+      background:#1a2130;
+      margin:22px 0;
+    }
+
+    .official-list{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      max-height:280px;
+      overflow:auto;
+    }
+
+    .official-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px;
       border-radius:16px;
-      background:linear-gradient(90deg,#161f38,#1f2a48,#161f38);
-      background-size:200% 100%;
-      animation:shine 1.2s linear infinite;
-      border:1px solid var(--line);
+      border:1px solid #1b2233;
+      background:#0b101c;
     }
 
-    @keyframes shine{
-      0%{background-position:200% 0}
-      100%{background-position:-200% 0}
+    .official-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
     }
 
-    @media (min-width:700px){
-      .wrap,.detail-wrap{
-        padding:20px;
+    .official-name{
+      font-size:16px;
+      font-weight:700;
+      word-break:break-word;
+    }
+
+    .official-item.selected{
+      border-color:#4954bd;
+      background:#121834;
+    }
+
+    .official-item.duplicate{
+      opacity:.55;
+    }
+
+    .official-action{
+      min-height:38px;
+      padding:0 12px;
+      border-radius:12px;
+      font-size:13px;
+      font-weight:700;
+      border:0;
+      cursor:pointer;
+      background:#1a2233;
+      color:#fff;
+      white-space:nowrap;
+    }
+
+    .official-action.added{
+      background:#163526;
+      color:#baffdf;
+    }
+
+    .modal-actions{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      margin-top:18px;
+    }
+
+    @media (min-width:760px){
+      .container{
+        padding:26px 22px 50px;
       }
 
       .stats{
+        grid-template-columns:repeat(4,1fr);
+      }
+
+      .dashboard-grid{
+        grid-template-columns:1fr 1.35fr;
+      }
+
+      .accounts-grid{
         grid-template-columns:repeat(2,1fr);
       }
 
-      .types{
+      .brainrot-grid{
         grid-template-columns:repeat(3,1fr);
       }
 
-      .actions{
-        grid-template-columns:1fr 1fr;
-      }
-
-      .modalBg{
+      .modal-bg{
         align-items:center;
         padding:18px;
       }
 
-      .modal{
-        max-width:760px;
-        border-radius:18px;
+      .modal-card{
+        max-width:1060px;
+        border-radius:28px;
       }
 
-      .brainrot-grid,
-      .skeleton-grid{
-        grid-template-columns:repeat(3,1fr);
-      }
-    }
-
-    @media (min-width:980px){
-      .stats{
-        grid-template-columns:repeat(4,1fr);
-      }
-
-      .grid{
+      .modal-actions{
         grid-template-columns:1fr 1fr;
       }
-
-      .types{
-        grid-template-columns:repeat(4,1fr);
-      }
-
-      .brainrot-grid,
-      .skeleton-grid{
-        grid-template-columns:repeat(5,1fr);
-      }
     }
 
-    @media (max-width:768px){
-      .accounts-grid{
-        padding:0;
-        gap:14px;
-      }
-
-      .account-premium-card{
-        padding:22px 20px 20px;
-        min-height:auto;
-        border-radius:24px;
-      }
-
-      .account-icon-box{
-        width:82px;
-        height:82px;
-        border-radius:22px;
-        margin-bottom:20px;
-      }
-
-      .account-icon{
-        font-size:34px;
-      }
-
-      .account-title{
-        font-size:32px;
-        margin-bottom:16px;
-        letter-spacing:-0.7px;
-      }
-
-      .account-type-badge{
-        min-height:44px;
-        padding:0 18px;
-        font-size:18px;
-        margin-bottom:24px;
-      }
-
-      .account-stat-box{
-        min-height:76px;
-        border-radius:20px;
-        padding:0 18px;
-        margin-bottom:16px;
-      }
-
-      .account-stat-left{
-        gap:12px;
-        font-size:18px;
-      }
-
-      .account-stat-icon{
-        font-size:20px;
-      }
-
-      .account-stat-value{
-        font-size:32px;
-      }
-
-      .account-open-btn{
-        min-height:72px;
-        border-radius:20px;
-        font-size:20px;
-        gap:12px;
-      }
-
-      .account-open-btn .arrow{
-        font-size:28px;
+    @media (min-width:1080px){
+      .brainrot-grid{
+        grid-template-columns:repeat(4,1fr);
       }
     }
   </style>
 </head>
 <body>
-  <div class="top">
-    <div class="title" id="headerTitle">BT Dashboard</div>
-    <div class="chip" id="topChip">Mobile Ready</div>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-logo">✦</div>
+      <div class="brand-name">BT</div>
+    </div>
+    <button class="menu-btn" type="button">☰</button>
   </div>
 
-  <section id="dashboardView">
-    <div class="wrap">
-      <div class="hero">
-        <h2>Painel premium</h2>
-        <div class="muted">Contas em layout igual ao card do seu print, com detalhes, itens e salvamento local.</div>
-        <div class="hero-actions">
-          <button id="openModalBtn">+ Nova Conta</button>
-          <button id="clearAllBtn" class="secondary">Limpar Tudo</button>
-        </div>
+  <section id="dashboardView" class="container">
+    <div class="dashboard-top">
+      <button id="openCreateAccountBtn" class="btn">+ Nova Conta</button>
+      <button id="clearAllAccountsBtn" class="btn secondary">Limpar Contas</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Contas</div>
+        <div class="stat-value" id="statAccounts">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Meta</div>
+        <div class="stat-value">100</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Brainrots</div>
+        <div class="stat-value" id="statBrainrots">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Status</div>
+        <div class="stat-value" id="statStatus">Iniciando</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="panel">
+        <h3>Resumo por tipo</h3>
+        <div id="summaryList"></div>
       </div>
 
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-label">Contas</div>
-          <div class="stat-value" id="count">0</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Meta</div>
-          <div class="stat-value">100</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Progresso</div>
-          <div class="stat-value" id="progress">0%</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Status</div>
-          <div class="stat-value" id="status" style="font-size:22px;">Iniciando</div>
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="panel">
-          <h3>Resumo por tipo</h3>
-          <div id="summary"></div>
-        </div>
-
-        <div class="panel">
-          <h3>Contas</h3>
-          <div id="accountCards" class="accounts-grid"></div>
-        </div>
+      <div class="panel">
+        <h3>Contas</h3>
+        <div id="accountsGrid" class="accounts-grid"></div>
       </div>
     </div>
   </section>
 
-  <section id="detailView" class="hidden">
-    <div class="detail-wrap">
-      <div class="detail-hero">
-        <h2 id="detailAccountName">Conta</h2>
-        <div class="muted" id="detailAccountMeta">Detalhes da conta</div>
-        <div class="detail-actions">
-          <button id="backBtn" class="secondary">← Voltar</button>
-          <button id="detailResetBtn" class="danger">Resetar Itens</button>
+  <section id="accountView" class="container hidden">
+    <div class="page-head">
+      <a id="backToAccounts" class="back-link">← Volver a Cuentas</a>
+
+      <h1 id="accountTitle" class="detail-title">Conta</h1>
+
+      <div class="detail-meta-row">
+        <div id="accountTypeBadge" class="type-badge" style="margin:0;">Normal</div>
+        <div id="accountTotalText" class="detail-count">0 brainrots totales</div>
+      </div>
+
+      <button id="openAddBrainrotBtn" class="big-primary-btn" type="button">
+        <span style="font-size:40px;line-height:1;">+</span>
+        <span>Agregar Brainrots</span>
+      </button>
+    </div>
+
+    <div class="brainrots-card">
+      <h3>Brainrots de esta Cuenta</h3>
+
+      <div class="tools-row">
+        <div class="search-box">
+          <span>⌕</span>
+          <input id="accountSearchInput" placeholder="Buscar brainrots..." />
+        </div>
+
+        <div class="view-toggle">
+          <button id="gridViewBtn" class="toggle-btn active" type="button">⊞</button>
+          <button id="listViewBtn" class="toggle-btn" type="button">☷</button>
         </div>
       </div>
 
-      <div class="kpis">
-        <div class="kpi">
-          <div class="label">Tipo</div>
-          <div class="value" id="detailType">-</div>
-        </div>
-        <div class="kpi">
-          <div class="label">Concluídos</div>
-          <div class="value" id="detailDone">0 / 20</div>
-        </div>
-      </div>
-
-      <div class="grid-card" style="margin-top:14px">
-        <h3>Itens da conta</h3>
-
-        <div id="detailLoading" class="skeleton-grid">
-          <div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div>
-          <div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div>
-        </div>
-
-        <div id="brainrotGrid" class="brainrot-grid hidden"></div>
-      </div>
+      <div id="brainrotsContent"></div>
     </div>
   </section>
 
-  <div id="modalBg" class="modalBg">
-    <div class="modal">
-      <h3>Criar Conta</h3>
-      <div class="muted">Escolha o tipo e salve.</div>
+  <div id="createAccountModal" class="modal-bg">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div style="width:46px;"></div>
+        <h2 class="modal-title">Criar Conta</h2>
+        <button id="closeCreateAccountModal" class="modal-close" type="button">✕</button>
+      </div>
 
-      <form id="accountForm">
-        <input id="nomeConta" placeholder="Nome da conta" />
+      <div class="modal-sub">Escolha o nome e o tipo da sua conta.</div>
 
-        <div class="types" id="types"></div>
+      <form id="createAccountForm">
+        <input id="createAccountNameInput" class="modal-search" placeholder="Nome da conta" />
 
-        <div class="actions">
-          <button type="submit" class="full">Criar</button>
-          <button type="button" id="cancelBtn" class="secondary full">Cancelar</button>
+        <div id="typeSelector" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;"></div>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn full">Criar</button>
+          <button id="cancelCreateAccountBtn" type="button" class="btn secondary full">Cancelar</button>
         </div>
       </form>
     </div>
   </div>
 
+  <div id="addBrainrotModal" class="modal-bg">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div style="width:46px;"></div>
+        <h2 class="modal-title">Agregar Brainrots</h2>
+        <button id="closeAddBrainrotModal" class="modal-close" type="button">✕</button>
+      </div>
+
+      <div class="modal-sub">Busca y selecciona brainrots de la lista oficial</div>
+
+      <div class="info-box">
+        <div class="info-icon">ⓘ</div>
+        <div id="accountLimitInfo">Esta cuenta tiene 0/26 brainrots. Puedes agregar hasta 26 más.</div>
+      </div>
+
+      <div class="label-block">Buscar y Agregar Brainrots</div>
+      <input id="addBrainrotSearchInput" class="modal-search" placeholder="Escribe para buscar..." />
+
+      <div id="selectedCounter" class="selected-count">0 / 26 brainrots seleccionados</div>
+
+      <div class="tip">💡 Tip: Presiona Enter para agregar rápidamente. Los duplicados serán detectados automáticamente.</div>
+
+      <div id="officialList" class="official-list"></div>
+
+      <div class="divider"></div>
+
+      <div class="modal-actions">
+        <button id="confirmAddBrainrotsBtn" type="button" class="btn full">Agregar</button>
+        <button id="cancelAddBrainrotBtn" type="button" class="btn secondary full">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const tipos = [
-      "⚪ Normal","🏆 Gold","💎 Diamond","🌈 Rainbow","☯️ Yin Yang",
-      "☢️ Radioactive","🍭 Candy","🌋 Lava","🌌 Galaxy","💀 Cursed","👑 Divine"
+    const STORAGE_KEY = "bt_full_functional_app_v1";
+
+    const types = [
+      "⚪ Normal",
+      "🏆 Gold",
+      "💎 Diamond",
+      "🌈 Rainbow",
+      "☯️ Yin Yang",
+      "☢️ Radioactive",
+      "🍭 Candy",
+      "🌋 Lava",
+      "🌌 Galaxy",
+      "💀 Cursed",
+      "👑 Divine"
     ];
 
-    const itemNames = [
-      "Brr Brr","Capuccino","Bombardiro","Tralalero","Tung Tung",
-      "Lirilì","Ballerina","Chimpanzini","Frigo Camelo","Bobritto",
-      "La Vaca","Tripi Tropi","Cocofanto","Bombini","Boneca",
-      "Miaurino","Cacto Cacto","Pasticcio","Gorillo","Sahur"
+    const officialBrainrots = [
+      { id:"br_1", name:"Brr Brr", icon:"🧠" },
+      { id:"br_2", name:"Capuccino", icon:"☕" },
+      { id:"br_3", name:"Bombardiro", icon:"💣" },
+      { id:"br_4", name:"Tralalero", icon:"🎭" },
+      { id:"br_5", name:"Tung Tung", icon:"🔨" },
+      { id:"br_6", name:"Lirilì", icon:"🎵" },
+      { id:"br_7", name:"Ballerina", icon:"🩰" },
+      { id:"br_8", name:"Chimpanzini", icon:"🐵" },
+      { id:"br_9", name:"Frigo Camelo", icon:"🐪" },
+      { id:"br_10", name:"Bobritto", icon:"🌯" },
+      { id:"br_11", name:"La Vaca", icon:"🐄" },
+      { id:"br_12", name:"Tripi Tropi", icon:"🌴" },
+      { id:"br_13", name:"Cocofanto", icon:"🥥" },
+      { id:"br_14", name:"Bombini", icon:"🧨" },
+      { id:"br_15", name:"Boneca", icon:"🪆" },
+      { id:"br_16", name:"Miaurino", icon:"🐱" },
+      { id:"br_17", name:"Cacto Cacto", icon:"🌵" },
+      { id:"br_18", name:"Pasticcio", icon:"🍝" },
+      { id:"br_19", name:"Gorillo", icon:"🦍" },
+      { id:"br_20", name:"Sahur", icon:"🌙" },
+      { id:"br_21", name:"Ratatini", icon:"🐀" },
+      { id:"br_22", name:"Pinguino", icon:"🐧" },
+      { id:"br_23", name:"Falconcini", icon:"🦅" },
+      { id:"br_24", name:"Croccodino", icon:"🐊" },
+      { id:"br_25", name:"Fofucho", icon:"🧸" },
+      { id:"br_26", name:"Lunarex", icon:"🌌" },
+      { id:"br_27", name:"Stellino", icon:"⭐" },
+      { id:"br_28", name:"Tornadox", icon:"🌪️" },
+      { id:"br_29", name:"Pipistrello", icon:"🦇" },
+      { id:"br_30", name:"Voltino", icon:"⚡" },
+      { id:"br_31", name:"Gelatino", icon:"🍨" },
+      { id:"br_32", name:"Caramello", icon:"🍮" },
+      { id:"br_33", name:"Brontolix", icon:"🦖" },
+      { id:"br_34", name:"Rubberino", icon:"🛞" },
+      { id:"br_35", name:"Cavaletti", icon:"🐎" },
+      { id:"br_36", name:"Marinello", icon:"⚓" },
+      { id:"br_37", name:"Misterioso", icon:"🕶️" },
+      { id:"br_38", name:"Nebulino", icon:"☁️" },
+      { id:"br_39", name:"Roccatto", icon:"🪨" },
+      { id:"br_40", name:"Dramatiko", icon:"🎬" }
     ];
 
-    const itemIcons = [
-      "🧠","🔥","⚡","🌪️","🎯","👑","💀","🎲","🚀","🌈",
-      "🪐","🧩","🗿","🐉","🎭","🍭","🌋","☢️","🕶️","💎"
-    ];
-
-    let tipoSelecionado = 0;
-    let contas = [];
+    let selectedTypeIndex = 0;
+    let accounts = [];
     let currentAccountId = null;
+    let currentViewMode = "grid";
+    let selectedBrainrotIds = [];
 
-    const STORAGE_KEY = "bt_dashboard_premium_v2";
-
-    const typesDiv = document.getElementById("types");
-    const modalBg = document.getElementById("modalBg");
-    const countEl = document.getElementById("count");
-    const progressEl = document.getElementById("progress");
-    const statusEl = document.getElementById("status");
-    const summaryEl = document.getElementById("summary");
-    const accountCardsEl = document.getElementById("accountCards");
-    const nomeContaEl = document.getElementById("nomeConta");
     const dashboardView = document.getElementById("dashboardView");
-    const detailView = document.getElementById("detailView");
-    const topChip = document.getElementById("topChip");
-    const headerTitle = document.getElementById("headerTitle");
+    const accountView = document.getElementById("accountView");
 
-    const detailAccountNameEl = document.getElementById("detailAccountName");
-    const detailAccountMetaEl = document.getElementById("detailAccountMeta");
-    const detailTypeEl = document.getElementById("detailType");
-    const detailDoneEl = document.getElementById("detailDone");
-    const detailLoadingEl = document.getElementById("detailLoading");
-    const brainrotGridEl = document.getElementById("brainrotGrid");
+    const accountsGrid = document.getElementById("accountsGrid");
+    const summaryList = document.getElementById("summaryList");
+    const statAccounts = document.getElementById("statAccounts");
+    const statBrainrots = document.getElementById("statBrainrots");
+    const statStatus = document.getElementById("statStatus");
 
-    function uid() {
-      return "acc_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+    const createAccountModal = document.getElementById("createAccountModal");
+    const createAccountNameInput = document.getElementById("createAccountNameInput");
+    const typeSelector = document.getElementById("typeSelector");
+
+    const accountTitle = document.getElementById("accountTitle");
+    const accountTypeBadge = document.getElementById("accountTypeBadge");
+    const accountTotalText = document.getElementById("accountTotalText");
+    const accountSearchInput = document.getElementById("accountSearchInput");
+    const brainrotsContent = document.getElementById("brainrotsContent");
+    const gridViewBtn = document.getElementById("gridViewBtn");
+    const listViewBtn = document.getElementById("listViewBtn");
+
+    const addBrainrotModal = document.getElementById("addBrainrotModal");
+    const addBrainrotSearchInput = document.getElementById("addBrainrotSearchInput");
+    const officialList = document.getElementById("officialList");
+    const selectedCounter = document.getElementById("selectedCounter");
+    const accountLimitInfo = document.getElementById("accountLimitInfo");
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
     }
 
-    function save() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(contas));
-    }
-
-    function load() {
+    function loadData() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) contas = parsed;
+        if (Array.isArray(parsed)) accounts = parsed;
       } catch (e) {}
     }
 
-    function escapeHtml(texto) {
-      return String(texto)
+    function escapeHtml(value) {
+      return String(value)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -853,272 +1144,377 @@
         .replace(/'/g, "&#39;");
     }
 
-    function cleanTypeLabel(tipo) {
-      return String(tipo).replace(/^.\s*/, "");
+    function cleanTypeLabel(type) {
+      return String(type).replace(/^.\s*/, "");
     }
 
-    function makeDefaultItems() {
-      return itemNames.map((name, i) => ({
-        id: "item_" + (i + 1),
+    function uid() {
+      return "id_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function getCurrentAccount() {
+      return accounts.find(a => a.id === currentAccountId) || null;
+    }
+
+    function openDashboard() {
+      currentAccountId = null;
+      dashboardView.classList.remove("hidden");
+      accountView.classList.add("hidden");
+      renderDashboard();
+    }
+
+    function openAccount(accountId) {
+      currentAccountId = accountId;
+      dashboardView.classList.add("hidden");
+      accountView.classList.remove("hidden");
+      renderAccountPage();
+    }
+
+    function openCreateAccountModal() {
+      createAccountModal.style.display = "flex";
+      setTimeout(() => createAccountNameInput.focus(), 60);
+    }
+
+    function closeCreateAccountModal() {
+      createAccountModal.style.display = "none";
+      createAccountNameInput.value = "";
+      selectedTypeIndex = 0;
+      renderTypeSelector();
+    }
+
+    function openAddBrainrotModal() {
+      selectedBrainrotIds = [];
+      addBrainrotModal.style.display = "flex";
+      addBrainrotSearchInput.value = "";
+      renderAddBrainrotModal();
+      setTimeout(() => addBrainrotSearchInput.focus(), 60);
+    }
+
+    function closeAddBrainrotModal() {
+      addBrainrotModal.style.display = "none";
+      selectedBrainrotIds = [];
+      addBrainrotSearchInput.value = "";
+    }
+
+    function createAccount(name, type) {
+      accounts.unshift({
+        id: uid(),
         name,
-        icon: itemIcons[i % itemIcons.length],
-        done: false
-      }));
-    }
-
-    function renderTipos() {
-      typesDiv.innerHTML = "";
-      tipos.forEach((tipo, i) => {
-        const div = document.createElement("button");
-        div.type = "button";
-        div.className = "type" + (tipoSelecionado === i ? " active" : "");
-        div.textContent = cleanTypeLabel(tipo);
-        div.addEventListener("click", () => {
-          tipoSelecionado = i;
-          renderTipos();
-        });
-        typesDiv.appendChild(div);
+        type,
+        createdAt: new Date().toISOString(),
+        brainrots: []
       });
+      saveData();
+      renderDashboard();
     }
 
-    function openModal() {
-      modalBg.style.display = "flex";
-      setTimeout(() => nomeContaEl.focus(), 50);
+    function deleteAccount(accountId) {
+      const account = accounts.find(a => a.id === accountId);
+      if (!account) return;
+      if (!confirm('Excluir a conta "' + account.name + '"?')) return;
+      accounts = accounts.filter(a => a.id !== accountId);
+      saveData();
+      renderDashboard();
     }
 
-    function closeModal() {
-      modalBg.style.display = "none";
+    function toggleDone(accountId, brainrotId) {
+      const account = accounts.find(a => a.id === accountId);
+      if (!account) return;
+      const brainrot = account.brainrots.find(b => b.id === brainrotId);
+      if (!brainrot) return;
+      brainrot.done = !brainrot.done;
+      saveData();
+      renderAccountPage();
+      renderDashboard();
+    }
+
+    function removeBrainrot(accountId, brainrotId) {
+      const account = accounts.find(a => a.id === accountId);
+      if (!account) return;
+      account.brainrots = account.brainrots.filter(b => b.id !== brainrotId);
+      saveData();
+      renderAccountPage();
+      renderDashboard();
+    }
+
+    function renderTypeSelector() {
+      typeSelector.innerHTML = "";
+      types.forEach((type, index) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn dark";
+        btn.style.minHeight = "54px";
+        btn.style.border = selectedTypeIndex === index ? "1px solid #5f68ff" : "1px solid #24304a";
+        btn.style.background = selectedTypeIndex === index ? "#151d3a" : "#0b101d";
+        btn.textContent = cleanTypeLabel(type);
+        btn.addEventListener("click", () => {
+          selectedTypeIndex = index;
+          renderTypeSelector();
+        });
+        typeSelector.appendChild(btn);
+      });
     }
 
     function renderDashboard() {
-      countEl.textContent = contas.length;
-      progressEl.textContent = Math.min(contas.length, 100) + "%";
-      statusEl.textContent = contas.length ? "Em progresso" : "Iniciando";
+      statAccounts.textContent = accounts.length;
+      statBrainrots.textContent = accounts.reduce((acc, item) => acc + item.brainrots.length, 0);
+      statStatus.textContent = accounts.length ? "Em progresso" : "Iniciando";
 
-      const resumo = {};
-      contas.forEach(c => {
-        resumo[cleanTypeLabel(c.tipo)] = (resumo[cleanTypeLabel(c.tipo)] || 0) + 1;
+      const summary = {};
+      accounts.forEach(account => {
+        const label = cleanTypeLabel(account.type);
+        summary[label] = (summary[label] || 0) + 1;
       });
 
-      const entries = Object.entries(resumo);
-      summaryEl.innerHTML = entries.length
-        ? entries.map(([tipo, qtd]) => `
-          <div class="item">
-            <span>${escapeHtml(tipo)}</span>
-            <strong>${qtd}</strong>
+      const summaryEntries = Object.entries(summary);
+      summaryList.innerHTML = summaryEntries.length
+        ? summaryEntries.map(([type, count]) => `
+          <div class="summary-item">
+            <span>${escapeHtml(type)}</span>
+            <strong>${count}</strong>
           </div>
         `).join("")
-        : '<div class="empty">Sem dados ainda.</div>';
+        : '<div class="empty-text">Sem dados ainda.</div>';
 
-      if (!contas.length) {
-        accountCardsEl.innerHTML = '<div class="empty">Nenhuma conta criada.</div>';
+      if (!accounts.length) {
+        accountsGrid.innerHTML = '<div class="empty-text">Nenhuma conta criada.</div>';
         return;
       }
 
-      accountCardsEl.innerHTML = contas.map(c => {
-        const total = c.items.length;
-        const icon = "📦";
-        return `
-          <div class="account-premium-card" data-id="${c.id}">
-            <div class="account-card-top">
-              <div class="account-icon-box">
-                <div class="account-icon">${icon}</div>
-              </div>
+      accountsGrid.innerHTML = accounts.map(account => `
+        <div class="account-card" data-account-id="${account.id}">
+          <div class="account-icon-box">📦</div>
 
-              <h2 class="account-title">${escapeHtml(c.nome)}</h2>
+          <h2 class="account-title">${escapeHtml(account.name)}</h2>
 
-              <div class="account-type-badge">${escapeHtml(cleanTypeLabel(c.tipo))}</div>
+          <div class="type-badge">${escapeHtml(cleanTypeLabel(account.type))}</div>
+
+          <div class="brainrot-stat">
+            <div class="brainrot-stat-left">
+              <span>📦</span>
+              <span>Brainrots</span>
             </div>
-
-            <div class="account-stat-box">
-              <div class="account-stat-left">
-                <span class="account-stat-icon">${icon}</span>
-                <span>Brainrots</span>
-              </div>
-              <div class="account-stat-value">${total}</div>
-            </div>
-
-            <button class="account-open-btn open-account-btn" type="button" data-open="${c.id}">
-              <span>Ver Brainrots</span>
-              <span class="arrow">→</span>
-            </button>
-
-            <div class="account-delete-row">
-              <button class="small-btn secondary delete-account-btn" type="button" data-delete="${c.id}">Excluir</button>
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      document.querySelectorAll(".open-account-btn").forEach(btn => {
-        btn.addEventListener("click", function (e) {
-          e.stopPropagation();
-          const id = this.getAttribute("data-open");
-          openAccount(id);
-        });
-      });
-
-      document.querySelectorAll(".delete-account-btn").forEach(btn => {
-        btn.addEventListener("click", function (e) {
-          e.stopPropagation();
-          const id = this.getAttribute("data-delete");
-          deleteAccount(id);
-        });
-      });
-
-      document.querySelectorAll(".account-premium-card").forEach(card => {
-        card.addEventListener("click", function () {
-          const id = this.getAttribute("data-id");
-          openAccount(id);
-        });
-      });
-    }
-
-    function deleteAccount(id) {
-      const acc = contas.find(c => c.id === id);
-      if (!acc) return;
-      const ok = confirm('Excluir a conta "' + acc.nome + '"?');
-      if (!ok) return;
-      contas = contas.filter(c => c.id !== id);
-      save();
-      renderDashboard();
-    }
-
-    function openAccount(id) {
-      const account = contas.find(c => c.id === id);
-      if (!account) return;
-      currentAccountId = id;
-
-      dashboardView.classList.add("hidden");
-      detailView.classList.remove("hidden");
-      headerTitle.textContent = "Detalhes";
-      topChip.textContent = "Conta aberta";
-
-      detailAccountNameEl.textContent = account.nome;
-      detailAccountMetaEl.textContent = "Visualização da conta e seus itens";
-      detailTypeEl.textContent = cleanTypeLabel(account.tipo);
-
-      detailLoadingEl.classList.remove("hidden");
-      brainrotGridEl.classList.add("hidden");
-      brainrotGridEl.innerHTML = "";
-
-      setTimeout(() => {
-        renderAccountItems(account.id);
-        detailLoadingEl.classList.add("hidden");
-        brainrotGridEl.classList.remove("hidden");
-      }, 700);
-    }
-
-    function backToDashboard() {
-      currentAccountId = null;
-      detailView.classList.add("hidden");
-      dashboardView.classList.remove("hidden");
-      headerTitle.textContent = "BT Dashboard";
-      topChip.textContent = "Mobile Ready";
-      renderDashboard();
-    }
-
-    function renderAccountItems(id) {
-      const account = contas.find(c => c.id === id);
-      if (!account) return;
-
-      const done = account.items.filter(i => i.done).length;
-      detailDoneEl.textContent = done + " / " + account.items.length;
-
-      brainrotGridEl.innerHTML = account.items.map(item => `
-        <div class="brainrot ${item.done ? 'done' : ''}">
-          <div>
-            <div class="brainrot-top">
-              <div class="brainrot-emoji">${escapeHtml(item.icon)}</div>
-              <span class="badge">${item.done ? 'Feito' : 'Pendente'}</span>
-            </div>
-            <div class="brainrot-name">${escapeHtml(item.name)}</div>
+            <div class="brainrot-stat-value">${account.brainrots.length}</div>
           </div>
 
-          <div class="brainrot-actions">
-            <button class="${item.done ? 'outline' : 'complete'}" data-toggle="${item.id}">
-              ${item.done ? 'Desmarcar' : 'Concluir'}
-            </button>
+          <button class="open-btn" type="button" data-open-id="${account.id}">
+            <span>Ver Brainrots</span>
+            <span class="arrow">→</span>
+          </button>
+
+          <div class="account-actions">
+            <button class="btn secondary small-btn" type="button" data-delete-id="${account.id}">Excluir</button>
           </div>
         </div>
       `).join("");
 
-      brainrotGridEl.querySelectorAll("[data-toggle]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          toggleItem(id, btn.getAttribute("data-toggle"));
+      accountsGrid.querySelectorAll("[data-open-id]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openAccount(btn.getAttribute("data-open-id"));
+        });
+      });
+
+      accountsGrid.querySelectorAll("[data-delete-id]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteAccount(btn.getAttribute("data-delete-id"));
+        });
+      });
+
+      accountsGrid.querySelectorAll(".account-card").forEach(card => {
+        card.addEventListener("click", () => {
+          openAccount(card.getAttribute("data-account-id"));
         });
       });
     }
 
-    function toggleItem(accountId, itemId) {
-      const account = contas.find(c => c.id === accountId);
-      if (!account) return;
-      const item = account.items.find(i => i.id === itemId);
-      if (!item) return;
-      item.done = !item.done;
-      save();
-      renderAccountItems(accountId);
-      renderDashboard();
-    }
-
-    function resetItems() {
-      if (!currentAccountId) return;
-      const account = contas.find(c => c.id === currentAccountId);
-      if (!account) return;
-      const ok = confirm("Resetar todos os itens desta conta?");
-      if (!ok) return;
-      account.items.forEach(i => i.done = false);
-      save();
-      renderAccountItems(currentAccountId);
-      renderDashboard();
-    }
-
-    document.getElementById("openModalBtn").addEventListener("click", openModal);
-    document.getElementById("cancelBtn").addEventListener("click", closeModal);
-    document.getElementById("backBtn").addEventListener("click", backToDashboard);
-    document.getElementById("detailResetBtn").addEventListener("click", resetItems);
-
-    document.getElementById("clearAllBtn").addEventListener("click", () => {
-      if (!contas.length) return;
-      const ok = confirm("Limpar todas as contas salvas?");
-      if (!ok) return;
-      contas = [];
-      save();
-      renderDashboard();
-    });
-
-    modalBg.addEventListener("click", (e) => {
-      if (e.target === modalBg) closeModal();
-    });
-
-    document.getElementById("accountForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      const nome = nomeContaEl.value.trim();
-      if (!nome) {
-        alert("Digite o nome da conta.");
+    function renderAccountPage() {
+      const account = getCurrentAccount();
+      if (!account) {
+        openDashboard();
         return;
       }
 
-      contas.unshift({
-        id: uid(),
-        nome,
-        tipo: tipos[tipoSelecionado],
-        createdAt: new Date().toISOString(),
-        items: makeDefaultItems()
+      accountTitle.textContent = account.name;
+      accountTypeBadge.textContent = cleanTypeLabel(account.type);
+      accountTotalText.textContent = account.brainrots.length + " brainrots totales";
+
+      renderBrainrots();
+    }
+
+    function renderBrainrots() {
+      const account = getCurrentAccount();
+      if (!account) return;
+
+      const query = accountSearchInput.value.trim().toLowerCase();
+
+      let filtered = account.brainrots.filter(item => {
+        return item.name.toLowerCase().includes(query);
       });
 
-      nomeContaEl.value = "";
-      tipoSelecionado = 0;
-      save();
-      renderTipos();
-      renderDashboard();
-      closeModal();
-    });
+      if (!filtered.length) {
+        const hasAny = account.brainrots.length > 0;
 
-    load();
-    renderTipos();
-    renderDashboard();
-  </script>
-</body>
-</html>
+        if (!hasAny) {
+          brainrotsContent.innerHTML = `
+            <div class="empty-panel">
+              <div class="empty-icon-wrap">📦</div>
+              <div class="empty-title">No hay brainrots</div>
+              <div class="empty-sub">Agrega tu primer brainrot a esta cuenta usando el botón de arriba</div>
+              <button id="emptyAddFirstBtn" class="empty-first-btn" type="button">
+                <span>📦</span>
+                <span>Agregar Primer Brainrot</span>
+              </button>
+            </div>
+          `;
+          document.getElementById("emptyAddFirstBtn").addEventListener("click", openAddBrainrotModal);
+          return;
+        }
+
+        brainrotsContent.innerHTML = `<div class="empty-text">Nenhum brainrot encontrado na busca.</div>`;
+        return;
+      }
+
+      if (currentViewMode === "grid") {
+        brainrotsContent.innerHTML = `<div class="brainrot-grid">${filtered.map(renderBrainrotCardGrid).join("")}</div>`;
+      } else {
+        brainrotsContent.innerHTML = `<div class="brainrot-list">${filtered.map(renderBrainrotCardList).join("")}</div>`;
+      }
+
+      bindBrainrotActions();
+    }
+
+    function renderBrainrotCardGrid(item) {
+      return `
+        <div class="brainrot-item ${item.done ? "done" : ""}">
+          <div>
+            <div class="brainrot-head">
+              <div class="brainrot-main">
+                <div class="brainrot-icon">${escapeHtml(item.icon)}</div>
+                <div>
+                  <div class="brainrot-name">${escapeHtml(item.name)}</div>
+                  <div class="brainrot-sub">ID: ${escapeHtml(item.officialId)}</div>
+                </div>
+              </div>
+              <div class="pill ${item.done ? "done" : ""}">${item.done ? "Feito" : "Pendente"}</div>
+            </div>
+          </div>
+
+          <div class="brainrot-controls">
+            <button class="mini-btn ${item.done ? "dark" : "ok"}" type="button" data-toggle="${item.id}">
+              ${item.done ? "Desmarcar" : "Concluir"}
+            </button>
+            <button class="mini-btn remove" type="button" data-remove="${item.id}">Remover</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBrainrotCardList(item) {
+      return `
+        <div class="brainrot-item ${item.done ? "done" : ""}">
+          <div class="brainrot-main">
+            <div class="brainrot-icon">${escapeHtml(item.icon)}</div>
+            <div>
+              <div class="brainrot-name">${escapeHtml(item.name)}</div>
+              <div class="brainrot-sub">${item.done ? "Concluído" : "Pendente"}</div>
+            </div>
+          </div>
+
+          <div class="brainrot-controls">
+            <button class="mini-btn ${item.done ? "dark" : "ok"}" type="button" data-toggle="${item.id}">
+              ${item.done ? "Desmarcar" : "Concluir"}
+            </button>
+            <button class="mini-btn remove" type="button" data-remove="${item.id}">Remover</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindBrainrotActions() {
+      const account = getCurrentAccount();
+      if (!account) return;
+
+      brainrotsContent.querySelectorAll("[data-toggle]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          toggleDone(account.id, btn.getAttribute("data-toggle"));
+        });
+      });
+
+      brainrotsContent.querySelectorAll("[data-remove]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          removeBrainrot(account.id, btn.getAttribute("data-remove"));
+        });
+      });
+    }
+
+    function renderAddBrainrotModal() {
+      const account = getCurrentAccount();
+      if (!account) return;
+
+      const query = addBrainrotSearchInput.value.trim().toLowerCase();
+      const existingOfficialIds = new Set(account.brainrots.map(item => item.officialId));
+
+      const filtered = officialBrainrots.filter(item =>
+        item.name.toLowerCase().includes(query)
+      );
+
+      accountLimitInfo.textContent =
+        "Esta cuenta tiene " + account.brainrots.length + "/26 brainrots. Puedes agregar hasta " +
+        Math.max(0, 26 - account.brainrots.length) + " más.";
+
+      selectedCounter.textContent = selectedBrainrotIds.length + " / 26 brainrots seleccionados";
+
+      if (!filtered.length) {
+        officialList.innerHTML = '<div class="empty-text">Nenhum brainrot encontrado.</div>';
+        return;
+      }
+
+      officialList.innerHTML = filtered.map(item => {
+        const isDuplicate = existingOfficialIds.has(item.id);
+        const isSelected = selectedBrainrotIds.includes(item.id);
+
+        return `
+          <div class="official-item ${isSelected ? "selected" : ""} ${isDuplicate ? "duplicate" : ""}">
+            <div class="official-left">
+              <div style="font-size:26px;">${escapeHtml(item.icon)}</div>
+              <div class="official-name">${escapeHtml(item.name)}</div>
+            </div>
+            <button
+              class="official-action ${isDuplicate ? "added" : ""}"
+              type="button"
+              data-select="${item.id}"
+              ${isDuplicate ? "disabled" : ""}
+            >
+              ${isDuplicate ? "Já adicionado" : (isSelected ? "Selecionado" : "Selecionar")}
+            </button>
+          </div>
+        `;
+      }).join("");
+
+      officialList.querySelectorAll("[data-select]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          toggleSelectBrainrot(btn.getAttribute("data-select"));
+        });
+      });
+    }
+
+    function toggleSelectBrainrot(officialId) {
+      const account = getCurrentAccount();
+      if (!account) return;
+
+      const alreadyExists = account.brainrots.some(item => item.officialId === officialId);
+      if (alreadyExists) return;
+
+      if (selectedBrainrotIds.includes(officialId)) {
+        selectedBrainrotIds = selectedBrainrotIds.filter(id => id !== officialId);
+      } else {
+        if (account.brainrots.length + selectedBrainrotIds.length >= 26) {
+          alert("Você atingiu o limite temporário de 26 brainrots nesta conta.");
+          return;
+        }
+        selectedBrainrotIds.push(officialId);
+      }
+
+      renderAddBrain
