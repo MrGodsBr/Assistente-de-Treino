@@ -3,21 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>BT Dashboard Plus</title>
+  <title>BT Dashboard Premium</title>
   <style>
     :root{
-      --bg:#0b1020;
-      --card:#11182b;
-      --card-2:#0f1528;
-      --line:#24304f;
-      --text:#ffffff;
-      --muted:#aab4d6;
+      --bg:#000000;
+      --surface:#05070d;
+      --card:#0b0f1b;
+      --card-2:#111827;
+      --line:#2b3147;
+      --line-2:#202638;
+      --text:#f4f4f5;
+      --muted:#9ca3af;
+      --muted-2:#cfcfd4;
+      --chip:#141925;
+      --btn:#1a2233;
+      --btn-2:#20283b;
       --primary:#5d66ff;
       --primary-2:#7c3aed;
       --danger:#ff5f7a;
-      --chip:#18213d;
       --ok:#2dcc8f;
-      --radius:18px;
+      --radius-xl:32px;
+      --radius-lg:22px;
+      --radius-md:18px;
       --shadow:0 14px 34px rgba(0,0,0,.22);
     }
 
@@ -39,7 +46,7 @@
     }
 
     .hidden{
-      display:none!important;
+      display:none !important;
     }
 
     .top{
@@ -51,7 +58,7 @@
       align-items:center;
       padding:14px 16px;
       border-bottom:1px solid var(--line);
-      background:rgba(11,16,32,.96);
+      background:rgba(5,7,13,.96);
       backdrop-filter:blur(10px);
     }
 
@@ -73,21 +80,20 @@
     .wrap,
     .detail-wrap{
       width:100%;
-      max-width:1100px;
+      max-width:1280px;
       margin:0 auto;
       padding:14px;
     }
 
     .hero,
     .panel,
-    .stat,
     .modal,
-    .account-card,
     .detail-hero,
-    .grid-card{
+    .grid-card,
+    .kpi{
       background:var(--card);
       border:1px solid var(--line);
-      border-radius:var(--radius);
+      border-radius:var(--radius-lg);
       box-shadow:var(--shadow);
     }
 
@@ -162,6 +168,10 @@
 
     .stat{
       padding:16px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow);
     }
 
     .stat-label{
@@ -193,7 +203,7 @@
       justify-content:space-between;
       align-items:center;
       gap:10px;
-      background:var(--bg);
+      background:var(--surface);
       border:1px solid var(--line);
       border-radius:14px;
       padding:12px;
@@ -209,62 +219,151 @@
       margin-top:8px;
     }
 
-    .account-list{
+    .accounts-grid{
       display:grid;
-      gap:12px;
+      grid-template-columns:1fr;
+      gap:22px;
+      width:100%;
     }
 
-    .account-card{
-      padding:14px;
-      cursor:pointer;
-      transition:.18s ease;
-      border-color:#273556;
-    }
-
-    .account-card:hover{
-      transform:translateY(-1px);
-      border-color:#4557a5;
-    }
-
-    .account-top{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-    }
-
-    .account-name{
-      font-size:17px;
-      font-weight:700;
-    }
-
-    .account-meta{
-      font-size:13px;
-      color:var(--muted);
-      margin-top:6px;
-    }
-
-    .account-footer{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      margin-top:12px;
-    }
-
-    .progress{
-      flex:1;
-      height:10px;
-      background:#0c1223;
-      border:1px solid #2a3558;
-      border-radius:999px;
+    .account-premium-card{
+      position:relative;
       overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:var(--radius-xl);
+      background:
+        linear-gradient(135deg, rgba(25,29,47,.95) 0%, rgba(8,11,22,.96) 45%, rgba(5,8,18,.98) 100%);
+      padding:38px 34px 34px;
+      min-height:420px;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.03),
+        0 0 0 1px rgba(255,255,255,.02);
+      cursor:pointer;
     }
 
-    .progress > div{
-      height:100%;
-      background:linear-gradient(90deg,var(--primary),var(--primary-2));
-      width:0%;
+    .account-premium-card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(140deg, rgba(255,255,255,.03) 0%, transparent 30%, transparent 60%, rgba(0,85,255,.08) 100%);
+      pointer-events:none;
+    }
+
+    .account-premium-card:hover{
+      border-color:#46507a;
+    }
+
+    .account-card-top{
+      position:relative;
+      z-index:2;
+    }
+
+    .account-icon-box{
+      width:146px;
+      height:146px;
+      border-radius:34px;
+      background:linear-gradient(180deg, #1b2233 0%, #171d2b 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:34px;
+    }
+
+    .account-icon{
+      font-size:62px;
+      line-height:1;
+      color:#c8ccd7;
+    }
+
+    .account-title{
+      font-size:58px;
+      line-height:1;
+      font-weight:800;
+      margin:0 0 26px 0;
+      letter-spacing:-1.5px;
+      color:#f3f4f6;
+      word-break:break-word;
+    }
+
+    .account-type-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:70px;
+      padding:0 34px;
+      border-radius:999px;
+      background:rgba(22,25,36,.9);
+      color:#d6d6db;
+      font-size:36px;
+      font-weight:700;
+      margin-bottom:48px;
+    }
+
+    .account-stat-box{
+      min-height:122px;
+      border-radius:30px;
+      background:rgba(17,21,33,.88);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 38px;
+      margin-bottom:28px;
+      position:relative;
+      z-index:2;
+    }
+
+    .account-stat-left{
+      display:flex;
+      align-items:center;
+      gap:22px;
+      color:#b8bbc4;
+      font-size:34px;
+      font-weight:500;
+    }
+
+    .account-stat-icon{
+      font-size:34px;
+      opacity:.9;
+    }
+
+    .account-stat-value{
+      font-size:60px;
+      font-weight:800;
+      color:#f4f4f5;
+      line-height:1;
+    }
+
+    .account-open-btn{
+      width:100%;
+      min-height:110px;
+      border:0;
+      border-radius:30px;
+      background:linear-gradient(180deg, #1a2233 0%, #1c2436 100%);
+      color:#f3f4f6;
+      font-size:36px;
+      font-weight:500;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:24px;
+      cursor:pointer;
+      position:relative;
+      z-index:2;
+    }
+
+    .account-open-btn .arrow{
+      font-size:48px;
+      line-height:1;
+      margin-top:-2px;
+    }
+
+    .account-delete-row{
+      display:flex;
+      justify-content:flex-end;
+      margin-top:14px;
+      position:relative;
+      z-index:2;
     }
 
     .badge{
@@ -307,7 +406,7 @@
       width:100%;
       height:50px;
       margin-top:12px;
-      background:var(--bg);
+      background:var(--surface);
       border:1px solid var(--line);
       border-radius:14px;
       color:#fff;
@@ -334,7 +433,7 @@
       justify-content:center;
       text-align:center;
       padding:10px;
-      background:var(--bg);
+      background:var(--surface);
       border:1px solid var(--line);
       border-radius:14px;
       cursor:pointer;
@@ -362,9 +461,6 @@
     }
 
     .kpi{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:16px;
       padding:14px;
     }
 
@@ -514,6 +610,74 @@
         grid-template-columns:repeat(5,1fr);
       }
     }
+
+    @media (max-width:768px){
+      .accounts-grid{
+        padding:0;
+        gap:14px;
+      }
+
+      .account-premium-card{
+        padding:22px 20px 20px;
+        min-height:auto;
+        border-radius:24px;
+      }
+
+      .account-icon-box{
+        width:82px;
+        height:82px;
+        border-radius:22px;
+        margin-bottom:20px;
+      }
+
+      .account-icon{
+        font-size:34px;
+      }
+
+      .account-title{
+        font-size:32px;
+        margin-bottom:16px;
+        letter-spacing:-0.7px;
+      }
+
+      .account-type-badge{
+        min-height:44px;
+        padding:0 18px;
+        font-size:18px;
+        margin-bottom:24px;
+      }
+
+      .account-stat-box{
+        min-height:76px;
+        border-radius:20px;
+        padding:0 18px;
+        margin-bottom:16px;
+      }
+
+      .account-stat-left{
+        gap:12px;
+        font-size:18px;
+      }
+
+      .account-stat-icon{
+        font-size:20px;
+      }
+
+      .account-stat-value{
+        font-size:32px;
+      }
+
+      .account-open-btn{
+        min-height:72px;
+        border-radius:20px;
+        font-size:20px;
+        gap:12px;
+      }
+
+      .account-open-btn .arrow{
+        font-size:28px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -525,8 +689,8 @@
   <section id="dashboardView">
     <div class="wrap">
       <div class="hero">
-        <h2>Painel mobile</h2>
-        <div class="muted">Agora com contas clicáveis, detalhes da conta, grade de itens e salvamento local.</div>
+        <h2>Painel premium</h2>
+        <div class="muted">Contas em layout igual ao card do seu print, com detalhes, itens e salvamento local.</div>
         <div class="hero-actions">
           <button id="openModalBtn">+ Nova Conta</button>
           <button id="clearAllBtn" class="secondary">Limpar Tudo</button>
@@ -560,7 +724,7 @@
 
         <div class="panel">
           <h3>Contas</h3>
-          <div id="accountCards" class="account-list"></div>
+          <div id="accountCards" class="accounts-grid"></div>
         </div>
       </div>
     </div>
@@ -632,13 +796,16 @@
       "Miaurino","Cacto Cacto","Pasticcio","Gorillo","Sahur"
     ];
 
-    const itemIcons = ["🧠","🔥","⚡","🌪️","🎯","👑","💀","🎲","🚀","🌈","🪐","🧩","🗿","🐉","🎭","🍭","🌋","☢️","🕶️","💎"];
+    const itemIcons = [
+      "🧠","🔥","⚡","🌪️","🎯","👑","💀","🎲","🚀","🌈",
+      "🪐","🧩","🗿","🐉","🎭","🍭","🌋","☢️","🕶️","💎"
+    ];
 
     let tipoSelecionado = 0;
     let contas = [];
     let currentAccountId = null;
 
-    const STORAGE_KEY = "bt_dashboard_plus_v1";
+    const STORAGE_KEY = "bt_dashboard_premium_v2";
 
     const typesDiv = document.getElementById("types");
     const modalBg = document.getElementById("modalBg");
@@ -686,6 +853,10 @@
         .replace(/'/g, "&#39;");
     }
 
+    function cleanTypeLabel(tipo) {
+      return String(tipo).replace(/^.\s*/, "");
+    }
+
     function makeDefaultItems() {
       return itemNames.map((name, i) => ({
         id: "item_" + (i + 1),
@@ -701,7 +872,7 @@
         const div = document.createElement("button");
         div.type = "button";
         div.className = "type" + (tipoSelecionado === i ? " active" : "");
-        div.textContent = tipo;
+        div.textContent = cleanTypeLabel(tipo);
         div.addEventListener("click", () => {
           tipoSelecionado = i;
           renderTipos();
@@ -726,7 +897,7 @@
 
       const resumo = {};
       contas.forEach(c => {
-        resumo[c.tipo] = (resumo[c.tipo] || 0) + 1;
+        resumo[cleanTypeLabel(c.tipo)] = (resumo[cleanTypeLabel(c.tipo)] || 0) + 1;
       });
 
       const entries = Object.entries(resumo);
@@ -746,39 +917,59 @@
 
       accountCardsEl.innerHTML = contas.map(c => {
         const total = c.items.length;
-        const done = c.items.filter(i => i.done).length;
-        const pct = total ? Math.round((done / total) * 100) : 0;
+        const icon = "📦";
         return `
-          <div class="account-card" data-id="${c.id}">
-            <div class="account-top">
-              <div>
-                <div class="account-name">${escapeHtml(c.nome)}</div>
-                <div class="account-meta">${escapeHtml(c.tipo)} • ${done}/${total} concluídos</div>
+          <div class="account-premium-card" data-id="${c.id}">
+            <div class="account-card-top">
+              <div class="account-icon-box">
+                <div class="account-icon">${icon}</div>
               </div>
-              <span class="badge">${pct}%</span>
+
+              <h2 class="account-title">${escapeHtml(c.nome)}</h2>
+
+              <div class="account-type-badge">${escapeHtml(cleanTypeLabel(c.tipo))}</div>
             </div>
 
-            <div class="account-footer">
-              <div class="progress"><div style="width:${pct}%"></div></div>
+            <div class="account-stat-box">
+              <div class="account-stat-left">
+                <span class="account-stat-icon">${icon}</span>
+                <span>Brainrots</span>
+              </div>
+              <div class="account-stat-value">${total}</div>
+            </div>
+
+            <button class="account-open-btn open-account-btn" type="button" data-open="${c.id}">
+              <span>Ver Brainrots</span>
+              <span class="arrow">→</span>
+            </button>
+
+            <div class="account-delete-row">
               <button class="small-btn secondary delete-account-btn" type="button" data-delete="${c.id}">Excluir</button>
             </div>
           </div>
         `;
       }).join("");
 
-      document.querySelectorAll(".account-card").forEach(card => {
-        card.addEventListener("click", (e) => {
-          if (e.target.closest(".delete-account-btn")) return;
-          const id = card.getAttribute("data-id");
+      document.querySelectorAll(".open-account-btn").forEach(btn => {
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const id = this.getAttribute("data-open");
           openAccount(id);
         });
       });
 
       document.querySelectorAll(".delete-account-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
+        btn.addEventListener("click", function (e) {
           e.stopPropagation();
-          const id = btn.getAttribute("data-delete");
+          const id = this.getAttribute("data-delete");
           deleteAccount(id);
+        });
+      });
+
+      document.querySelectorAll(".account-premium-card").forEach(card => {
+        card.addEventListener("click", function () {
+          const id = this.getAttribute("data-id");
+          openAccount(id);
         });
       });
     }
@@ -805,7 +996,7 @@
 
       detailAccountNameEl.textContent = account.nome;
       detailAccountMetaEl.textContent = "Visualização da conta e seus itens";
-      detailTypeEl.textContent = account.tipo;
+      detailTypeEl.textContent = cleanTypeLabel(account.tipo);
 
       detailLoadingEl.classList.remove("hidden");
       brainrotGridEl.classList.add("hidden");
