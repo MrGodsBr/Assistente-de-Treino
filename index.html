@@ -2,19 +2,23 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>BT Dashboard Mobile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>BT Dashboard Plus</title>
   <style>
     :root{
       --bg:#0b1020;
       --card:#11182b;
+      --card-2:#0f1528;
       --line:#24304f;
       --text:#ffffff;
       --muted:#aab4d6;
       --primary:#5d66ff;
-      --primary-dark:#4752f0;
+      --primary-2:#7c3aed;
+      --danger:#ff5f7a;
       --chip:#18213d;
+      --ok:#2dcc8f;
       --radius:18px;
+      --shadow:0 14px 34px rgba(0,0,0,.22);
     }
 
     *{
@@ -27,24 +31,28 @@
       padding:0;
       background:var(--bg);
       color:var(--text);
-      font-family:Arial, sans-serif;
+      font-family:Arial,sans-serif;
     }
 
     body{
       min-height:100vh;
     }
 
+    .hidden{
+      display:none!important;
+    }
+
     .top{
       position:sticky;
       top:0;
-      z-index:30;
+      z-index:40;
       display:flex;
       justify-content:space-between;
       align-items:center;
       padding:14px 16px;
       border-bottom:1px solid var(--line);
       background:rgba(11,16,32,.96);
-      backdrop-filter:blur(8px);
+      backdrop-filter:blur(10px);
     }
 
     .title{
@@ -62,7 +70,8 @@
       white-space:nowrap;
     }
 
-    .wrap{
+    .wrap,
+    .detail-wrap{
       width:100%;
       max-width:1100px;
       margin:0 auto;
@@ -72,31 +81,40 @@
     .hero,
     .panel,
     .stat,
-    .modal{
+    .modal,
+    .account-card,
+    .detail-hero,
+    .grid-card{
       background:var(--card);
       border:1px solid var(--line);
       border-radius:var(--radius);
+      box-shadow:var(--shadow);
     }
 
-    .hero{
-      padding:18px;
+    .hero,
+    .panel,
+    .detail-hero,
+    .grid-card{
+      padding:16px;
     }
 
-    .hero h2{
+    .hero h2,
+    .detail-hero h2{
       margin:0 0 8px;
-      font-size:22px;
-      line-height:1.2;
+      font-size:24px;
+      line-height:1.15;
     }
 
     .muted{
       color:var(--muted);
     }
 
-    .hero-actions{
-      margin-top:14px;
+    .hero-actions,
+    .detail-actions{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
+      margin-top:14px;
     }
 
     button{
@@ -119,7 +137,16 @@
     .secondary{
       background:transparent;
       border:1px solid #3b496d;
-      color:#fff;
+    }
+
+    .danger{
+      background:var(--danger);
+    }
+
+    .small-btn{
+      min-height:40px;
+      padding:0 12px;
+      font-size:14px;
     }
 
     .full{
@@ -155,12 +182,9 @@
       margin-top:14px;
     }
 
-    .panel{
-      padding:16px;
-    }
-
-    .panel h3{
-      margin:0 0 10px;
+    .panel h3,
+    .grid-card h3{
+      margin:0 0 12px;
       font-size:18px;
     }
 
@@ -180,18 +204,79 @@
       word-break:break-word;
     }
 
+    .empty{
+      color:var(--muted);
+      margin-top:8px;
+    }
+
+    .account-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .account-card{
+      padding:14px;
+      cursor:pointer;
+      transition:.18s ease;
+      border-color:#273556;
+    }
+
+    .account-card:hover{
+      transform:translateY(-1px);
+      border-color:#4557a5;
+    }
+
+    .account-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .account-name{
+      font-size:17px;
+      font-weight:700;
+    }
+
+    .account-meta{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:6px;
+    }
+
+    .account-footer{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-top:12px;
+    }
+
+    .progress{
+      flex:1;
+      height:10px;
+      background:#0c1223;
+      border:1px solid #2a3558;
+      border-radius:999px;
+      overflow:hidden;
+    }
+
+    .progress > div{
+      height:100%;
+      background:linear-gradient(90deg,var(--primary),var(--primary-2));
+      width:0%;
+    }
+
     .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
       font-size:12px;
       padding:6px 10px;
       border-radius:999px;
       background:var(--chip);
       border:1px solid #334266;
       white-space:nowrap;
-    }
-
-    .empty{
-      color:var(--muted);
-      margin-top:8px;
     }
 
     .modalBg{
@@ -201,7 +286,7 @@
       display:none;
       align-items:flex-end;
       justify-content:center;
-      z-index:50;
+      z-index:60;
     }
 
     .modal{
@@ -269,8 +354,117 @@
       margin-top:16px;
     }
 
-    @media (min-width: 700px){
-      .wrap{
+    .kpis{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .kpi{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+    }
+
+    .kpi .label{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .kpi .value{
+      margin-top:8px;
+      font-size:22px;
+      font-weight:700;
+    }
+
+    .brainrot-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .brainrot{
+      background:var(--card-2);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+      min-height:132px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+
+    .brainrot.done{
+      border-color:#2f805f;
+      background:#12261f;
+    }
+
+    .brainrot-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+    }
+
+    .brainrot-emoji{
+      font-size:32px;
+    }
+
+    .brainrot-name{
+      font-size:14px;
+      font-weight:700;
+      line-height:1.3;
+      margin-top:10px;
+    }
+
+    .brainrot-actions{
+      display:flex;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .brainrot-actions button{
+      flex:1;
+      min-height:40px;
+      font-size:13px;
+      padding:0 8px;
+    }
+
+    .complete{
+      background:var(--ok);
+    }
+
+    .outline{
+      background:transparent;
+      border:1px solid #3b496d;
+    }
+
+    .skeleton-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .sk{
+      height:146px;
+      border-radius:16px;
+      background:linear-gradient(90deg,#161f38,#1f2a48,#161f38);
+      background-size:200% 100%;
+      animation:shine 1.2s linear infinite;
+      border:1px solid var(--line);
+    }
+
+    @keyframes shine{
+      0%{background-position:200% 0}
+      100%{background-position:-200% 0}
+    }
+
+    @media (min-width:700px){
+      .wrap,.detail-wrap{
         padding:20px;
       }
 
@@ -295,9 +489,14 @@
         max-width:760px;
         border-radius:18px;
       }
+
+      .brainrot-grid,
+      .skeleton-grid{
+        grid-template-columns:repeat(3,1fr);
+      }
     }
 
-    @media (min-width: 980px){
+    @media (min-width:980px){
       .stats{
         grid-template-columns:repeat(4,1fr);
       }
@@ -309,59 +508,98 @@
       .types{
         grid-template-columns:repeat(4,1fr);
       }
+
+      .brainrot-grid,
+      .skeleton-grid{
+        grid-template-columns:repeat(5,1fr);
+      }
     }
   </style>
 </head>
 <body>
-
   <div class="top">
-    <div class="title">BT Dashboard</div>
-    <div class="chip">Mobile Ready</div>
+    <div class="title" id="headerTitle">BT Dashboard</div>
+    <div class="chip" id="topChip">Mobile Ready</div>
   </div>
 
-  <div class="wrap">
-    <div class="hero">
-      <h2>Painel mobile</h2>
-      <div class="muted">Versão otimizada para celular, com botões maiores e layout responsivo.</div>
-      <div class="hero-actions">
-        <button id="openModalBtn">+ Nova Conta</button>
+  <section id="dashboardView">
+    <div class="wrap">
+      <div class="hero">
+        <h2>Painel mobile</h2>
+        <div class="muted">Agora com contas clicáveis, detalhes da conta, grade de itens e salvamento local.</div>
+        <div class="hero-actions">
+          <button id="openModalBtn">+ Nova Conta</button>
+          <button id="clearAllBtn" class="secondary">Limpar Tudo</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Contas</div>
+          <div class="stat-value" id="count">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Meta</div>
+          <div class="stat-value">100</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Progresso</div>
+          <div class="stat-value" id="progress">0%</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Status</div>
+          <div class="stat-value" id="status" style="font-size:22px;">Iniciando</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <h3>Resumo por tipo</h3>
+          <div id="summary"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Contas</h3>
+          <div id="accountCards" class="account-list"></div>
+        </div>
       </div>
     </div>
+  </section>
 
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-label">Contas</div>
-        <div class="stat-value" id="count">0</div>
+  <section id="detailView" class="hidden">
+    <div class="detail-wrap">
+      <div class="detail-hero">
+        <h2 id="detailAccountName">Conta</h2>
+        <div class="muted" id="detailAccountMeta">Detalhes da conta</div>
+        <div class="detail-actions">
+          <button id="backBtn" class="secondary">← Voltar</button>
+          <button id="detailResetBtn" class="danger">Resetar Itens</button>
+        </div>
       </div>
 
-      <div class="stat">
-        <div class="stat-label">Meta</div>
-        <div class="stat-value">100</div>
+      <div class="kpis">
+        <div class="kpi">
+          <div class="label">Tipo</div>
+          <div class="value" id="detailType">-</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Concluídos</div>
+          <div class="value" id="detailDone">0 / 20</div>
+        </div>
       </div>
 
-      <div class="stat">
-        <div class="stat-label">Progresso</div>
-        <div class="stat-value" id="progress">0%</div>
-      </div>
+      <div class="grid-card" style="margin-top:14px">
+        <h3>Itens da conta</h3>
 
-      <div class="stat">
-        <div class="stat-label">Status</div>
-        <div class="stat-value" id="status" style="font-size:22px;">Iniciando</div>
+        <div id="detailLoading" class="skeleton-grid">
+          <div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div>
+          <div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div>
+        </div>
+
+        <div id="brainrotGrid" class="brainrot-grid hidden"></div>
       </div>
     </div>
-
-    <div class="grid">
-      <div class="panel">
-        <h3>Resumo</h3>
-        <div id="summary"></div>
-      </div>
-
-      <div class="panel">
-        <h3>Contas</h3>
-        <div id="list"></div>
-      </div>
-    </div>
-  </div>
+  </section>
 
   <div id="modalBg" class="modalBg">
     <div class="modal">
@@ -383,34 +621,82 @@
 
   <script>
     const tipos = [
-      "⚪ Normal",
-      "🏆 Gold",
-      "💎 Diamond",
-      "🌈 Rainbow",
-      "☯️ Yin Yang",
-      "☢️ Radioactive",
-      "🍭 Candy",
-      "🌋 Lava",
-      "🌌 Galaxy",
-      "💀 Cursed",
-      "👑 Divine"
+      "⚪ Normal","🏆 Gold","💎 Diamond","🌈 Rainbow","☯️ Yin Yang",
+      "☢️ Radioactive","🍭 Candy","🌋 Lava","🌌 Galaxy","💀 Cursed","👑 Divine"
     ];
+
+    const itemNames = [
+      "Brr Brr","Capuccino","Bombardiro","Tralalero","Tung Tung",
+      "Lirilì","Ballerina","Chimpanzini","Frigo Camelo","Bobritto",
+      "La Vaca","Tripi Tropi","Cocofanto","Bombini","Boneca",
+      "Miaurino","Cacto Cacto","Pasticcio","Gorillo","Sahur"
+    ];
+
+    const itemIcons = ["🧠","🔥","⚡","🌪️","🎯","👑","💀","🎲","🚀","🌈","🪐","🧩","🗿","🐉","🎭","🍭","🌋","☢️","🕶️","💎"];
 
     let tipoSelecionado = 0;
     let contas = [];
+    let currentAccountId = null;
+
+    const STORAGE_KEY = "bt_dashboard_plus_v1";
 
     const typesDiv = document.getElementById("types");
     const modalBg = document.getElementById("modalBg");
     const countEl = document.getElementById("count");
     const progressEl = document.getElementById("progress");
     const statusEl = document.getElementById("status");
-    const listEl = document.getElementById("list");
     const summaryEl = document.getElementById("summary");
+    const accountCardsEl = document.getElementById("accountCards");
     const nomeContaEl = document.getElementById("nomeConta");
+    const dashboardView = document.getElementById("dashboardView");
+    const detailView = document.getElementById("detailView");
+    const topChip = document.getElementById("topChip");
+    const headerTitle = document.getElementById("headerTitle");
+
+    const detailAccountNameEl = document.getElementById("detailAccountName");
+    const detailAccountMetaEl = document.getElementById("detailAccountMeta");
+    const detailTypeEl = document.getElementById("detailType");
+    const detailDoneEl = document.getElementById("detailDone");
+    const detailLoadingEl = document.getElementById("detailLoading");
+    const brainrotGridEl = document.getElementById("brainrotGrid");
+
+    function uid() {
+      return "acc_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(contas));
+    }
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) contas = parsed;
+      } catch (e) {}
+    }
+
+    function escapeHtml(texto) {
+      return String(texto)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function makeDefaultItems() {
+      return itemNames.map((name, i) => ({
+        id: "item_" + (i + 1),
+        name,
+        icon: itemIcons[i % itemIcons.length],
+        done: false
+      }));
+    }
 
     function renderTipos() {
       typesDiv.innerHTML = "";
-
       tipos.forEach((tipo, i) => {
         const div = document.createElement("button");
         div.type = "button";
@@ -424,63 +710,194 @@
       });
     }
 
-    function abrirModal() {
+    function openModal() {
       modalBg.style.display = "flex";
       setTimeout(() => nomeContaEl.focus(), 50);
     }
 
-    function fecharModal() {
+    function closeModal() {
       modalBg.style.display = "none";
     }
 
-    function escapeHtml(texto) {
-      return String(texto)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
-
-    function render() {
+    function renderDashboard() {
       countEl.textContent = contas.length;
       progressEl.textContent = Math.min(contas.length, 100) + "%";
       statusEl.textContent = contas.length ? "Em progresso" : "Iniciando";
-
-      if (contas.length === 0) {
-        listEl.innerHTML = '<div class="empty">Nenhuma conta criada.</div>';
-      } else {
-        listEl.innerHTML = contas.map(c => `
-          <div class="item">
-            <span>${escapeHtml(c.nome)}</span>
-            <span class="badge">${escapeHtml(c.tipo)}</span>
-          </div>
-        `).join("");
-      }
 
       const resumo = {};
       contas.forEach(c => {
         resumo[c.tipo] = (resumo[c.tipo] || 0) + 1;
       });
 
-      const entradas = Object.entries(resumo);
-      if (entradas.length === 0) {
-        summaryEl.innerHTML = '<div class="empty">Sem dados ainda.</div>';
-      } else {
-        summaryEl.innerHTML = entradas.map(([tipo, qtd]) => `
+      const entries = Object.entries(resumo);
+      summaryEl.innerHTML = entries.length
+        ? entries.map(([tipo, qtd]) => `
           <div class="item">
             <span>${escapeHtml(tipo)}</span>
             <strong>${qtd}</strong>
           </div>
-        `).join("");
+        `).join("")
+        : '<div class="empty">Sem dados ainda.</div>';
+
+      if (!contas.length) {
+        accountCardsEl.innerHTML = '<div class="empty">Nenhuma conta criada.</div>';
+        return;
       }
+
+      accountCardsEl.innerHTML = contas.map(c => {
+        const total = c.items.length;
+        const done = c.items.filter(i => i.done).length;
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        return `
+          <div class="account-card" data-id="${c.id}">
+            <div class="account-top">
+              <div>
+                <div class="account-name">${escapeHtml(c.nome)}</div>
+                <div class="account-meta">${escapeHtml(c.tipo)} • ${done}/${total} concluídos</div>
+              </div>
+              <span class="badge">${pct}%</span>
+            </div>
+
+            <div class="account-footer">
+              <div class="progress"><div style="width:${pct}%"></div></div>
+              <button class="small-btn secondary delete-account-btn" type="button" data-delete="${c.id}">Excluir</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      document.querySelectorAll(".account-card").forEach(card => {
+        card.addEventListener("click", (e) => {
+          if (e.target.closest(".delete-account-btn")) return;
+          const id = card.getAttribute("data-id");
+          openAccount(id);
+        });
+      });
+
+      document.querySelectorAll(".delete-account-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute("data-delete");
+          deleteAccount(id);
+        });
+      });
     }
 
-    document.getElementById("openModalBtn").addEventListener("click", abrirModal);
-    document.getElementById("cancelBtn").addEventListener("click", fecharModal);
+    function deleteAccount(id) {
+      const acc = contas.find(c => c.id === id);
+      if (!acc) return;
+      const ok = confirm('Excluir a conta "' + acc.nome + '"?');
+      if (!ok) return;
+      contas = contas.filter(c => c.id !== id);
+      save();
+      renderDashboard();
+    }
+
+    function openAccount(id) {
+      const account = contas.find(c => c.id === id);
+      if (!account) return;
+      currentAccountId = id;
+
+      dashboardView.classList.add("hidden");
+      detailView.classList.remove("hidden");
+      headerTitle.textContent = "Detalhes";
+      topChip.textContent = "Conta aberta";
+
+      detailAccountNameEl.textContent = account.nome;
+      detailAccountMetaEl.textContent = "Visualização da conta e seus itens";
+      detailTypeEl.textContent = account.tipo;
+
+      detailLoadingEl.classList.remove("hidden");
+      brainrotGridEl.classList.add("hidden");
+      brainrotGridEl.innerHTML = "";
+
+      setTimeout(() => {
+        renderAccountItems(account.id);
+        detailLoadingEl.classList.add("hidden");
+        brainrotGridEl.classList.remove("hidden");
+      }, 700);
+    }
+
+    function backToDashboard() {
+      currentAccountId = null;
+      detailView.classList.add("hidden");
+      dashboardView.classList.remove("hidden");
+      headerTitle.textContent = "BT Dashboard";
+      topChip.textContent = "Mobile Ready";
+      renderDashboard();
+    }
+
+    function renderAccountItems(id) {
+      const account = contas.find(c => c.id === id);
+      if (!account) return;
+
+      const done = account.items.filter(i => i.done).length;
+      detailDoneEl.textContent = done + " / " + account.items.length;
+
+      brainrotGridEl.innerHTML = account.items.map(item => `
+        <div class="brainrot ${item.done ? 'done' : ''}">
+          <div>
+            <div class="brainrot-top">
+              <div class="brainrot-emoji">${escapeHtml(item.icon)}</div>
+              <span class="badge">${item.done ? 'Feito' : 'Pendente'}</span>
+            </div>
+            <div class="brainrot-name">${escapeHtml(item.name)}</div>
+          </div>
+
+          <div class="brainrot-actions">
+            <button class="${item.done ? 'outline' : 'complete'}" data-toggle="${item.id}">
+              ${item.done ? 'Desmarcar' : 'Concluir'}
+            </button>
+          </div>
+        </div>
+      `).join("");
+
+      brainrotGridEl.querySelectorAll("[data-toggle]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          toggleItem(id, btn.getAttribute("data-toggle"));
+        });
+      });
+    }
+
+    function toggleItem(accountId, itemId) {
+      const account = contas.find(c => c.id === accountId);
+      if (!account) return;
+      const item = account.items.find(i => i.id === itemId);
+      if (!item) return;
+      item.done = !item.done;
+      save();
+      renderAccountItems(accountId);
+      renderDashboard();
+    }
+
+    function resetItems() {
+      if (!currentAccountId) return;
+      const account = contas.find(c => c.id === currentAccountId);
+      if (!account) return;
+      const ok = confirm("Resetar todos os itens desta conta?");
+      if (!ok) return;
+      account.items.forEach(i => i.done = false);
+      save();
+      renderAccountItems(currentAccountId);
+      renderDashboard();
+    }
+
+    document.getElementById("openModalBtn").addEventListener("click", openModal);
+    document.getElementById("cancelBtn").addEventListener("click", closeModal);
+    document.getElementById("backBtn").addEventListener("click", backToDashboard);
+    document.getElementById("detailResetBtn").addEventListener("click", resetItems);
+
+    document.getElementById("clearAllBtn").addEventListener("click", () => {
+      if (!contas.length) return;
+      const ok = confirm("Limpar todas as contas salvas?");
+      if (!ok) return;
+      contas = [];
+      save();
+      renderDashboard();
+    });
 
     modalBg.addEventListener("click", (e) => {
-      if (e.target === modalBg) fecharModal();
+      if (e.target === modalBg) closeModal();
     });
 
     document.getElementById("accountForm").addEventListener("submit", (e) => {
@@ -493,19 +910,24 @@
       }
 
       contas.unshift({
+        id: uid(),
         nome,
-        tipo: tipos[tipoSelecionado]
+        tipo: tipos[tipoSelecionado],
+        createdAt: new Date().toISOString(),
+        items: makeDefaultItems()
       });
 
       nomeContaEl.value = "";
       tipoSelecionado = 0;
+      save();
       renderTipos();
-      render();
-      fecharModal();
+      renderDashboard();
+      closeModal();
     });
 
+    load();
     renderTipos();
-    render();
+    renderDashboard();
   </script>
 </body>
 </html>
